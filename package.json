@@ -1,0 +1,34 @@
+{
+  "name": "platform2-crosstabs",
+  "description": "An app to visualize two-dimensional tables of data points and audiences",
+  "keywords": [],
+  "author": "GlobalWebIndex",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "elm-coverage": "0.4.1",
+    "elm-review": "2.12.0",
+    "husky": "9.1.7",
+    "prettier": "3.4.2",
+    "prettier-plugin-elm": "0.11.0",
+    "prettier-plugin-sh": "0.14.0",
+    "stylelint": "16.12.0"
+  },
+  "private": true,
+  "scripts": {
+    "start": "make start",
+    "test": "make test",
+    "prepare": "husky",
+    "test:watch": "make test_watch",
+    "test:coverage": "make test_coverage",
+    "build": "make build",
+    "lint": "make lint",
+    "lint:fix": "make lint_fix",
+    "lint:watch": "make lint_watch",
+    "format": "make format"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GlobalWebIndex/platform2-crosstabs.git"
+  },
+  "homepage": "https://github.com/GlobalWebIndex/platform2-crosstabs#readme"
+}

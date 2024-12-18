@@ -1,0 +1,9 @@
+{
+    "printWidth": 90,
+    "trailingComma": "none",
+    "tabWidth": 4,
+    "plugins": ["prettier-plugin-elm", "prettier-plugin-sh"],
+    "endOfLine": "lf",
+    "semi": true,
+    "singleQuote": false
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# Quality Checks before push
+echo "Linting"
+echo "======="
+make lint
+
+echo "Validate format"
+echo "==============="
+make format_validate
+
+echo "Running tests"
+echo "============="
+make test
