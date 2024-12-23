@@ -1,0 +1,281 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+
+.xb2-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 8px;
+
+    &__left {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: calc(100% - 470px);
+    }
+
+    &__back-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        flex-shrink: 0;
+        color: black;
+
+        &:focus-visible {
+            outline: 2px solid P2Colors.$pink-dark;
+            outline-offset: -8px;
+            color: P2Colors.$pink-dark;
+            border-radius: 8px;
+        }
+
+        &:hover {
+            color: P2Colors.$pink-medium;
+        }
+    }
+
+    &__share-buttons {
+        display: flex;
+        flex-direction: row;
+        border: 1px solid P2Colors.$grey4;
+        border-radius: 4px;
+
+        &--separator {
+            width: 1px;
+            height: 32px;
+            background: P2Colors.$grey4;
+            margin-left: 8px;
+        }
+    }
+
+    &__share-buttons &__btn {
+        background-color: P2Colors.$white;
+
+        &:hover {
+            background-color: P2Colors.$white;
+        }
+    }
+
+    &__separator {
+        border: 1px solid P2Colors.$grey4;
+        height: 32px;
+    }
+
+    &__btn,
+    &__btn--undo,
+    &__btn--redo,
+    &__btn--save-as-new,
+    &__share-buttons--btn--share,
+    &__share-buttons--btn--share-link,
+    &__btn--export {
+        @include P2Components.secondary-button($on-colour-bg: false, $border: false);
+        padding: 0 4px;
+
+        &:focus-visible {
+            outline: 2px solid P2Colors.$pink-dark;
+            border-radius: 4px;
+        }
+
+        &--collapsor {
+            height: 32px;
+            width: 32px;
+            padding: 0;
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                border-radius: 4px;
+            }
+        }
+    }
+
+    &__btn-primary,
+    &__btn-primary--save {
+        @include P2Components.primary-button-with-icon(
+            $on-colour-bg: false,
+            $icon-placement: "left"
+        );
+        margin-left: 8px;
+        border-radius: 4px;
+
+        &:focus-visible {
+            background-color: P2Colors.$pink-dark;
+            border-color: P2Colors.$pink-dark;
+            border-radius: 4px;
+        }
+    }
+
+    &__title {
+        max-width: 95%;
+    }
+
+    &__sub-title {
+        &--tooltip {
+            flex: 1;
+            min-width: 0;
+        }
+
+        &--label {
+            margin: 0;
+            font-weight: 400;
+            font-size: 12px;
+            color: P2Colors.$navy;
+            text-transform: none;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            line-height: 1;
+        }
+    }
+
+    &__name {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        margin: 0px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: default;
+        color: P2Colors.$navy;
+
+        &--sharing-icon {
+            display: flex;
+            cursor: help;
+
+            &--wrapper {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        &--text {
+            display: flex;
+            align-items: center;
+            &--content {
+                @include mixins.lineClamp(1);
+            }
+        }
+
+        &--rename-btn {
+            @include P2Components.secondary-button($on-colour-bg: false, $border: false);
+            margin: -14px 0 -15px;
+            display: flex;
+            padding: 0px;
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                color: P2Colors.$pink-dark;
+                outline-offset: -6px;
+                border-radius: 8px;
+            }
+        }
+    }
+
+    &__edited {
+        color: P2Colors.$grey6;
+        margin: 0px;
+        padding: 0 0 0 5px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    &__right {
+        display: flex;
+        align-items: center;
+        margin-left: 0.05rem;
+        gap: 0.2rem;
+    }
+
+    &__shared-project-warning {
+        @include zindex.layer("XB2SharedProjectWarning");
+        position: absolute;
+        right: 88px;
+        top: 100px;
+        width: 241px;
+        border-radius: 2px;
+        box-shadow:
+            0 4px 16px 0 rgba(35, 103, 219, 0.1),
+            0 2px 4px 0 rgba(19, 62, 171, 0.2);
+        background-color: P2Colors.$white;
+        padding: 16px;
+        color: P2Colors.$grey6;
+
+        &--heading {
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 16px;
+        }
+
+        &--notice {
+            font-size: 14px;
+            line-height: 19px;
+            padding-top: 8px;
+            padding-bottom: 16px;
+        }
+
+        &--checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            &--input {
+                @include zindex.layer("P2CheckboxInput");
+
+                margin: 0;
+                position: absolute;
+                left: 2px;
+                top: 2px;
+                cursor: pointer;
+                opacity: 0;
+            }
+
+            &--indicator {
+                width: 16px;
+                height: 16px;
+                display: flex;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+
+                &:hover {
+                    color: P2Colors.$pink-dark;
+                }
+
+                &--icon {
+                    height: 32px;
+                }
+            }
+
+            &--input:checked ~ &--indicator {
+                color: P2Colors.$pink-dark;
+            }
+
+            &--label {
+                color: P2Colors.$grey5;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 16px;
+                cursor: pointer;
+                padding-left: 8px;
+            }
+        }
+
+        &--close-btn {
+            width: 16px;
+            height: 16px;
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            padding: 0px;
+            color: P2Colors.$navy;
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+        }
+    }
+}

@@ -16,10 +16,10 @@ help: ## Prints this prompt.
 clean: ## Cleans every asset built by Elm, TS, pnpm or another stuff.
 	@echo "\033[36mCleaning...\033[0m"
 	rm -rf ./dist
-	rm -rf ./**/elm-stuff
-	rm -rf ./**/node_modules
+	rm -rf ./elm-stuff
+	rm -rf ./node_modules
 	rm -rf ./build
-	rm -rf ./**/.coverage
+	rm -rf ./.coverage
 
 .PHONY: install
 install: ## Installs every dependency needed to build the project. Expects `pnpm` to be installed globally.

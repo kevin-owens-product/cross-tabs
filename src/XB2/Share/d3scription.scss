@@ -1,0 +1,82 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+
+.d3scription-tip {
+    $bg: rgb(55, 68, 81);
+    font-size: 11px;
+    color: white;
+    background: $bg;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    border-radius: 3px;
+    padding: 5px 10px;
+    min-width: 190px;
+    max-width: 350px;
+
+    &.dashboard-tip {
+        padding: 0;
+
+        .circle {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 100%;
+            margin-right: 5px;
+            margin-bottom: -1px;
+        }
+
+        ul {
+            @include mixins.normalize-ul;
+            line-height: 2em;
+
+            .base {
+                margin-bottom: 6px;
+
+                .circle {
+                    border: 1px solid rgb(132, 144, 164);
+                }
+            }
+
+            .label {
+                flex-grow: 2;
+                line-height: 1.2;
+                max-width: calc(100% - 60px);
+            }
+
+            li {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                width: 100%;
+            }
+
+            .value {
+                float: right;
+                padding-left: 10px;
+                font-weight: bold;
+                width: 40px;
+            }
+        }
+
+        .tip-header {
+            padding: 10px 15px 12px 15px;
+            border-bottom: 1px solid rgb(42, 56, 70);
+            font-weight: bold;
+        }
+
+        .tip-body {
+            padding: 12px 15px;
+        }
+    }
+}
+
+.d3-tip {
+    line-height: 1.7;
+    pointer-events: none;
+
+    .span {
+        opacity: 0.8;
+    }
+
+    &.purple {
+        background: #7c2494;
+    }
+}

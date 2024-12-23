@@ -1,0 +1,1693 @@
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/SearchInput/style" as SearchInput;
+
+$p2-fonts: mixins.$p2-fonts;
+
+//Buttons (accorging to Zeplin Platform 2.0 Styleguide)
+
+// Sadly there's no guarantee of the Zeplin link contents not changing, so... hello, soon-to-be-outdated comments.
+
+// The styleguide is here:
+// https://app.zeplin.io/project/5f8d4250ed37163bf7f99a0f/screen/5f8d42b20fed111ca45c5130
+
+// $on-colour-bg | $border | styleguide row
+// --------------+---------+----------------
+// false         | false   | "Secondary button (border)"
+// false         | true    | "Secondary button (no icon)"
+// true          | false   | "Secondary button (on colour BG)"
+// true          | true    | not in styleguide, but used eg. in Waves/Locations drawers
+@mixin secondary-button($on-colour-bg: false, $border: true) {
+    font-family: $p2-fonts;
+    padding: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 16px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    border-width: if($border, 1px, 0);
+    border-style: solid;
+    border-color: if($on-colour-bg, P2Colors.$white, P2Colors.$navy);
+    background-color: transparent;
+    color: if($on-colour-bg, P2Colors.$white, P2Colors.$navy);
+    text-decoration: none;
+    cursor: pointer;
+    margin: 0;
+
+    &:hover,
+    &:active {
+        color: P2Colors.$pink-medium;
+        border-color: if(
+            $border,
+            if($on-colour-bg, P2Colors.$white, P2Colors.$pink-medium),
+            transparent
+        );
+        background-color: if($border and $on-colour-bg, P2Colors.$white, transparent);
+    }
+
+    &.active {
+        background-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        border-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        color: if($on-colour-bg, P2Colors.$pink-dark, white);
+    }
+
+    &:disabled,
+    &.disabled {
+        color: if($on-colour-bg, P2Colors.$white, P2Colors.$grey5);
+        border-color: P2Colors.$grey4;
+        background-color: if($on-colour-bg, P2Colors.$grey4, transparent);
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 2px solid P2Colors.$pink-dark;
+        border-radius: 4px;
+    }
+}
+
+@mixin PRIVATE_primary-button($on-colour-bg: false) {
+    font-family: $p2-fonts;
+    display: flex;
+    align-items: center;
+    padding: 9px;
+    height: 32px;
+    font-size: 14px;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 16px;
+    border-radius: 2px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-medium);
+    border: 1px solid if($on-colour-bg, P2Colors.$white, P2Colors.$pink-medium);
+    color: if($on-colour-bg, P2Colors.$navy, P2Colors.$white);
+    margin: 0;
+
+    &:hover,
+    &:active {
+        background-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        border-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        color: if($on-colour-bg, P2Colors.$pink-medium, P2Colors.$white);
+    }
+
+    &.active {
+        background-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        border-color: if($on-colour-bg, P2Colors.$white, P2Colors.$pink-dark);
+        color: if($on-colour-bg, P2Colors.$pink-dark, P2Colors.$white);
+    }
+
+    &.disabled,
+    &:disabled {
+        background-color: P2Colors.$grey3;
+        border-color: P2Colors.$grey3;
+        color: P2Colors.$grey5;
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 2px solid P2Colors.$pink-dark;
+        outline-offset: 2px;
+        border-radius: 4px;
+        background-color: P2Colors.$pink-dark;
+    }
+}
+
+// $on-colour-bg | styleguide row
+// --------------+------------------
+// false         | "Primary button (no icon)"
+// true          | "Primary button (on colour BG)"
+@mixin primary-button($on-colour-bg: false) {
+    @include PRIVATE_primary-button($on-colour-bg);
+
+    svg {
+        @include zindex.layer("MixinWrongUsageProtection");
+        width: 300px;
+        height: 300px;
+        position: fixed;
+        background-color: red;
+        top: 50px;
+        left: 50%;
+        z-index: 100000;
+    }
+}
+
+@mixin primary-button-with-icon($on-colour-bg: false, $icon-placement: "left") {
+    @include PRIVATE_primary-button($on-colour-bg);
+
+    @if $icon-placement == "left" {
+        padding-left: 0;
+    }
+
+    @if $icon-placement == "right" {
+        padding-right: 0;
+    }
+}
+
+@mixin platform2Button-with-icon-on-right {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 8px;
+    border-radius: 2px;
+    background-color: P2Colors.$pink-medium;
+    color: P2Colors.$white;
+
+    &--label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &--icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &:hover {
+        cursor: pointer;
+        background-color: P2Colors.$pink-dark;
+    }
+}
+
+/* Right icon transparency:
+
+false: full color when hovered and active
+true:  partially transparent black when hovered and active
+
+For more info see this Slack comment: https://globalwebindex.slack.com/archives/CV9386V89/p1626088207042100?thread_ts=1626087494.040700&cid=CV9386V89
+*/
+@mixin dropdown($right-icon-transparency) {
+    &--dropdown {
+        position: relative;
+
+        &--pill {
+            &--trigger-button {
+                &--right-icon {
+                    color: #000000;
+                    margin-top: 7px;
+                    margin-left: 5px;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    &.active {
+                        color: P2Colors.$white;
+                        background-color: if(
+                            $right-icon-transparency,
+                            rgba(0, 0, 0, 0.5),
+                            P2Colors.$pink-dark
+                        );
+                    }
+
+                    &:not(.active):hover {
+                        color: P2Colors.$white;
+                        background-color: if(
+                            $right-icon-transparency,
+                            rgba(0, 0, 0, 0.4),
+                            P2Colors.$pink-medium
+                        );
+                    }
+
+                    & > svg {
+                        min-height: 32px;
+                        min-width: 32px;
+                    }
+                }
+            }
+        }
+
+        &--options {
+            @include zindex.layer("D2DropdownAndOverElements");
+
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            background-color: P2Colors.$white;
+            border-radius: 4px;
+            box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.08);
+
+            &.bottom-left {
+                right: 0;
+            }
+
+            &.bottom-right {
+                left: 0;
+            }
+
+            &.top-left {
+                bottom: 100%;
+                right: 0;
+            }
+
+            &.top-right {
+                bottom: 100%;
+                left: 0;
+            }
+
+            &--item {
+                display: flex;
+                flex: 1;
+                flex-direction: row;
+                align-items: center;
+                font-size: 14px;
+                height: 40px;
+                padding: 4px 13px 4px 0;
+                width: 100%;
+
+                &--wrapper {
+                    width: 100%;
+                }
+
+                &--wrapper:first-child & {
+                    border-top-left-radius: 4px;
+                    border-top-right-radius: 4px;
+                }
+
+                &--wrapper:last-child & {
+                    border-bottom-left-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+
+                &:hover:not(.disabled) {
+                    cursor: pointer;
+                    background-color: P2Colors.$pink-bg;
+                    color: P2Colors.$pink-medium;
+                }
+
+                &--left-icon {
+                    display: flex;
+                }
+
+                &.disabled,
+                &:disabled {
+                    color: P2Colors.$grey5;
+                    cursor: not-allowed;
+                }
+            }
+
+            &--separator {
+                height: 1px;
+                border-left: P2Colors.$white 4px solid;
+                border-right: P2Colors.$white 4px solid;
+                background-color: P2Colors.$grey2;
+            }
+        }
+    }
+}
+
+/* The name "dropdown" is already taken in XB2/Detail/style.scss */
+@mixin nestable-dropdown() {
+    $trigger-button--space-on-left-side-of-label: 8px;
+    $menu--space-on-left-side-of-label: 32px;
+    $menu--space-on-right-side-of-label: 10px;
+
+    position: relative;
+
+    &.dynamic {
+        border-radius: 4px;
+        box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    &--trigger-button {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin-bottom: 0;
+        border-radius: 4px;
+        color: inherit;
+        height: 32px;
+
+        &:focus-visible {
+            outline: 2px solid P2Colors.$pink-dark;
+            border-radius: 4px;
+        }
+
+        &--label {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            padding-left: $trigger-button--space-on-left-side-of-label;
+        }
+
+        &--sublabel {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            padding-left: 8px;
+        }
+
+        &--left-icon {
+            width: 32px;
+            height: 32px;
+            color: P2Colors.$pink-dark;
+            margin-right: -$trigger-button--space-on-left-side-of-label;
+
+            .open &,
+            :focus-visible & {
+                color: P2Colors.$white;
+            }
+        }
+
+        &--right-icon {
+            width: 32px;
+            height: 32px;
+
+            & > svg {
+                min-height: 32px;
+                min-width: 32px;
+            }
+        }
+
+        &.open,
+        &:focus-visible {
+            background-color: P2Colors.$pink-dark;
+            color: P2Colors.$white;
+        }
+
+        &.disabled {
+            pointer-events: none;
+            color: P2Colors.$grey4;
+        }
+
+        &:not(.disabled):not(.open):hover {
+            cursor: pointer;
+            color: P2Colors.$pink-medium;
+        }
+    }
+
+    &--trigger-ellipsis {
+        padding: 0;
+        color: inherit;
+        display: block;
+
+        &--icon,
+        &--icon-circle {
+            width: 32px;
+            height: 32px;
+        }
+
+        &:focus-visible &--icon,
+        &--icon-circle {
+            display: none;
+        }
+
+        &:focus-visible &--icon-circle {
+            display: block;
+            color: P2Colors.$pink-dark;
+        }
+        /* https://stackoverflow.com/questions/19502835/is-it-possible-to-change-between-two-fontawesome-icons-on-hover#answer-19503006 */
+
+        &:hover &--icon,
+        &--icon-circle {
+            display: none;
+        }
+
+        &:hover &--icon-circle {
+            display: block;
+            color: P2Colors.$pink-medium;
+        }
+
+        &.open &--icon,
+        &:focus-visible &--icon {
+            display: none;
+        }
+
+        &.open &--icon-circle,
+        &:focus-visible &--icon-circle {
+            display: block;
+            color: P2Colors.$pink-dark;
+        }
+    }
+
+    &--menu {
+        @include zindex.layer("P2DropdownList");
+        box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.08);
+        border-radius: 4px;
+        position: absolute;
+        margin-top: 8px;
+
+        &.expand-left {
+            right: 0;
+        }
+
+        &.expand-right {
+            left: 0;
+        }
+
+        &.appear-top {
+            bottom: 0;
+        }
+
+        .dynamic & {
+            display: contents;
+        }
+
+        &--separator {
+            height: 1px;
+            border-left: P2Colors.$white 4px solid;
+            border-right: P2Colors.$white 4px solid;
+            background-color: P2Colors.$grey2;
+        }
+
+        & > &--item:first-child,
+        & > &--item:first-child > button,
+        & > &--item--wrapper:first-child &--item,
+        & > &--item:first-child > &--item--wrapper > &--item {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        & > &--item:last-child,
+        & > &--item:last-child > button,
+        & > &--item--wrapper:last-child &--item,
+        & > &--item:last-child > &--item--wrapper > &--item {
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        &--item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex: 0 0 100%;
+            padding: 4px 0;
+            background-color: P2Colors.$white;
+            color: P2Colors.$navy;
+            width: 100%;
+            text-align: left;
+            margin: 0;
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+            }
+
+            &--label {
+                font-size: 14px;
+                white-space: nowrap;
+                flex: 1 0 auto;
+                padding-left: $menu--space-on-left-side-of-label;
+                padding-right: $menu--space-on-right-side-of-label;
+                font-family: $p2-fonts;
+
+                /* https://stackoverflow.com/questions/556153/inline-elements-shifting-when-made-bold-on-hover */
+
+                &:before {
+                    display: block;
+                    content: attr(label);
+                    font-weight: 600;
+                    height: 0;
+                    overflow: hidden;
+                    visibility: hidden;
+                }
+            }
+
+            &--left-icon {
+                width: 32px;
+                height: 32px;
+                margin-right: -$menu--space-on-left-side-of-label;
+            }
+
+            &--right-icon {
+                width: 32px;
+                height: 32px;
+                margin-left: -$menu--space-on-right-side-of-label;
+            }
+
+            &.selected {
+                color: P2Colors.$pink-dark;
+                font-weight: 600;
+            }
+
+            &.disabled {
+                pointer-events: none;
+                color: P2Colors.$grey4;
+            }
+
+            &:not(.disabled):hover {
+                cursor: pointer;
+                background-color: P2Colors.$pink-bg;
+                color: P2Colors.$pink-medium;
+            }
+
+            /* The following styles are for nested dropdowns */
+
+            &.nested {
+                display: contents;
+            }
+
+            /* This wrapper is needed only because of the little space between parent and child menus,
+               and we want to keep the hover of the mouse while moving it on no man's land */
+
+            &.children-wrap {
+                display: none;
+                position: absolute;
+                padding: 0;
+                height: 100%;
+                width: 100%;
+                background-color: transparent;
+
+                .expand-left & {
+                    transform: translate(-100%, -50%);
+                }
+
+                .expand-right & {
+                    transform: translate(100%, -50%);
+                }
+            }
+
+            &.children-wrap > &.children > &.nested:first-child > &--wrapper > &,
+            &.children-wrap > &.children > &--wrapper:first-child > & {
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+
+            &.children-wrap > &.children > &.nested:last-child > &--wrapper > &,
+            &.children-wrap > &.children > &--wrapper:last-child > & {
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
+            }
+
+            &.children {
+                display: block;
+                padding: 0;
+                background-color: P2Colors.$white;
+                border-radius: 4px;
+                box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.08);
+                font-weight: 500;
+                width: auto;
+
+                position: absolute;
+                transform: translateY(-50%);
+                top: 40%;
+                /* Working with dynamic-dropdown-menu mixin */
+
+                .right-bottom &.v-edge {
+                    top: 17%;
+                }
+
+                .expand-left & {
+                    right: 10px;
+                }
+
+                .expand-right & {
+                    left: 10px;
+                }
+
+                &:hover {
+                    font-weight: 500;
+                }
+            }
+
+            &:hover > &.children-wrap,
+            &:focus-within > &.children-wrap {
+                display: block;
+                background-color: transparent;
+            }
+
+            &.nested:hover > & {
+                color: P2Colors.$pink-medium;
+            }
+        }
+    }
+
+    &--separator {
+        height: 1px;
+        border-left: P2Colors.$white 4px solid;
+        border-right: P2Colors.$white 4px solid;
+        background-color: P2Colors.$grey2;
+    }
+}
+
+@mixin text-input() {
+    $space-on-both-sides-of-control: 6px;
+    color: P2Colors.$navy;
+
+    &--control {
+        display: flex;
+        align-items: center;
+        padding: 1px calc(#{$space-on-both-sides-of-control} + 1px);
+        background-color: P2Colors.$grey1;
+
+        box-sizing: border-box; // so that border is on the inside
+        border-radius: 4px;
+        border: 1px solid P2Colors.$grey5;
+
+        &:focus-within {
+            border: 2px solid P2Colors.$pink-dark;
+            padding: 0 $space-on-both-sides-of-control;
+        }
+
+        &:hover:not(:focus-within) {
+            border: 1px solid P2Colors.$pink-medium;
+        }
+
+        &:hover:not(:focus-within) &--input {
+            color: P2Colors.$pink-medium;
+        }
+    }
+
+    &--icon {
+        width: 32px;
+        height: 32px;
+        margin-left: -$space-on-both-sides-of-control;
+    }
+
+    &--input {
+        flex: 1 1 auto;
+        padding: 9px 0;
+        font-family: $p2-fonts;
+        font-size: 14px;
+        border: 0 none;
+        background-color: transparent;
+
+        &:hover {
+            color: P2Colors.$pink-medium;
+        }
+
+        &:focus {
+            outline: 0;
+            color: P2Colors.$navy;
+            font-weight: 600;
+        }
+
+        &::placeholder {
+            font-size: 14px;
+            color: P2Colors.$grey6;
+        }
+    }
+
+    &--input:hover:not(:focus-within) ~ &--char-limit {
+        color: P2Colors.$pink-medium;
+    }
+
+    &--char-limit {
+        padding-left: 16px;
+        font-size: 14px;
+        font-weight: 400;
+        color: P2Colors.$grey6;
+        cursor: default;
+
+        &.reached {
+            color: P2Colors.$orange-medium;
+            font-weight: 600;
+        }
+    }
+}
+
+@mixin checkbox() {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+
+    &--input {
+        @include zindex.layer("P2CheckboxInput");
+
+        margin: 0;
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        cursor: pointer;
+        opacity: 0;
+    }
+
+    &--indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        width: 32px;
+        height: 32px;
+    }
+
+    &--icon {
+        display: flex;
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid P2Colors.$navy;
+        background-color: P2Colors.$white;
+
+        align-items: center;
+        justify-content: center;
+    }
+
+    &--input:checked ~ &--indicator &--icon {
+        background-color: P2Colors.$pink-medium;
+        border-color: P2Colors.$pink-medium;
+        color: P2Colors.$white;
+    }
+}
+
+@mixin radio-button {
+    display: inline-block;
+    height: 32px;
+
+    & input[type="radio"] {
+        opacity: 0;
+        position: fixed;
+        width: 0;
+        cursor: pointer;
+    }
+
+    & label {
+        display: inline-flex;
+        align-items: center;
+        height: 32px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 22px;
+
+        &:before {
+            content: url("/assets/vectors/icons/radio-unfilled.svg");
+            height: 32px;
+            width: 32px;
+        }
+
+        &:hover {
+            &:before {
+                content: url("/assets/vectors/icons/radio-unfilled-hover.svg");
+            }
+        }
+    }
+
+    input[type="radio"]:focus-visible + label:before {
+        outline: 2px solid P2Colors.$pink-dark;
+        border-radius: 4px;
+    }
+
+    &--label-text {
+        display: inline-flex;
+        flex-direction: column;
+
+        &::after {
+            content: attr(data-text);
+            content: attr(data-text) / "";
+            height: 0;
+            visibility: hidden;
+            overflow: hidden;
+            user-select: none;
+            pointer-events: none;
+            font-weight: 600;
+
+            @media speech {
+                display: none;
+            }
+        }
+
+        &--info {
+            font-weight: 400;
+            padding-left: 8px;
+            padding-right: 32px;
+        }
+    }
+
+    & input[type="radio"]:checked + label {
+        color: P2Colors.$pink-dark;
+        font-weight: 600;
+
+        &:before {
+            content: url("/assets/vectors/icons/radio-filled.svg");
+        }
+
+        &:hover {
+            color: P2Colors.$pink-medium;
+
+            &:before {
+                content: url("/assets/vectors/icons/radio-filled-hover.svg");
+            }
+        }
+    }
+
+    & input[type="radio"]:hover + label {
+        color: P2Colors.$pink-medium;
+    }
+
+    & input[type="radio"]:disabled + label {
+        color: P2Colors.$grey5;
+        cursor: not-allowed;
+
+        &:before {
+            content: url("/assets/vectors/icons/radio-disabled.svg");
+        }
+    }
+}
+
+@mixin scroll-area() {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+@mixin animated-loader {
+    background: linear-gradient(75deg, P2Colors.$grey4, P2Colors.$grey1);
+    background-size: 100px;
+
+    @keyframes loading-animation-for-plate {
+        0% {
+            background-position: -700px 0;
+        }
+
+        100% {
+            background-position: 0 0;
+        }
+    }
+
+    &.animated {
+        animation: loading-animation-for-plate 5s linear infinite;
+    }
+}
+
+//---------------------------
+//  MODALS
+//---------------------------
+$modal-header-padding: 24px;
+$modal-margin: 32px;
+$modal-header-height: 48px;
+$modal-footer-height: 80px;
+$modal-content-height: calc(
+    100vh - 2 * #{$modal-margin} - #{$modal-footer-height} - #{$modal-header-height}
+);
+
+@mixin modal-footer() {
+    display: flex;
+    height: $modal-footer-height;
+    flex-direction: row;
+    justify-content: flex-end;
+    user-select: none;
+    padding: 24px;
+    background-color: P2Colors.$white;
+    gap: 8px;
+}
+
+@mixin modal-overlay {
+    @include zindex.layer("P2ModalOverlay");
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(25, 21, 48, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin modal-container {
+    @include zindex.layer("P2ModalContent");
+
+    background-color: P2Colors.$white;
+    color: P2Colors.$navy;
+    border-radius: 4px;
+    max-height: none;
+}
+
+@mixin modal-commons {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background-color: P2Colors.$white;
+    border-radius: 4px;
+
+    // TODO assumptions:
+    //
+    // # HEADER TYPES
+    // --header-with-tabs is always used with --main
+    // --header is always used with --content
+    // TODO: if that's correct, then the names should probably change somehow
+    // or even get merged to one and different behaviour done
+    // with --header-with-tabs + --content vs --header + content?
+    //
+    // # HEADLINE USAGE
+    // Should it always live as <h2> tag inside --header and be the title text?
+    // Or does it have some other purpose?
+    // Note there's also --subtitle.
+
+    &--header {
+        position: relative;
+        width: 100%;
+        min-height: $modal-header-height;
+        padding: $modal-header-padding;
+        padding-bottom: 0;
+        margin-bottom: 8px;
+
+        &--close {
+            @include zindex.layer("P2ModalHeader");
+            position: absolute;
+            top: 4px;
+            right: 0;
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+        }
+    }
+
+    &--header-with-tabs {
+        position: relative;
+        width: 100%;
+        height: $modal-header-height;
+        border-bottom: 1px solid P2Colors.$grey3;
+        padding: 0;
+        padding-left: $modal-header-padding;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        &--tabs {
+            @include mixins.normalize-ul;
+
+            display: flex;
+            flex-direction: row;
+            height: $modal-header-height;
+
+            &--tab {
+                display: flex;
+                padding: 8px 8px 8px 0;
+                align-items: center;
+                border-bottom: 2px solid transparent;
+
+                &.clickable {
+                    cursor: pointer;
+                }
+
+                &--icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                }
+
+                &.active {
+                    color: P2Colors.$pink-dark;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border-color: currentColor;
+                }
+            }
+        }
+
+        &--close {
+            padding: 0;
+            margin: 0;
+            margin-right: 8px;
+            height: 32px;
+            cursor: pointer;
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                border-radius: 4px;
+            }
+        }
+    }
+
+    &--main {
+        padding: 0 24px;
+        overflow-x: auto;
+    }
+
+    &--content {
+        flex: 1 1 auto;
+        max-height: $modal-content-height;
+        padding: 0 24px;
+
+        &--text {
+            color: P2Colors.$navy;
+            margin: 8px 0;
+        }
+    }
+
+    &--footer {
+        @include modal-footer();
+    }
+
+    &--headline {
+        color: P2Colors.$navy;
+        font-size: 20px;
+        text-transform: none;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    &--label {
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 8px;
+        color: P2Colors.$grey6;
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    &--notice {
+        color: P2Colors.$grey5;
+    }
+
+    &--action-link {
+        @include secondary-button($on-colour-bg: false, $border: false);
+    }
+
+    &--primary-button {
+        @include primary-button($on-colour-bg: false);
+    }
+
+    &--secondary-button {
+        @include secondary-button($on-colour-bg: false, $border: true);
+    }
+
+    &--expression-viewer {
+        width: 100%;
+        background: P2Colors.$white;
+        margin-bottom: 4px;
+    }
+}
+
+@mixin small-modal-container {
+    &--container {
+        border-radius: 4px;
+
+        width: 449px;
+        max-height: calc(100vh - 64px);
+        overflow: hidden; // ensures the bottom border radius can be seen
+    }
+}
+
+@mixin medium-modal-container {
+    &--container {
+        border-radius: 0;
+
+        width: 953px;
+        min-height: 300px;
+        max-height: calc(100vh - 2 * #{$modal-margin});
+        height: calc(100vh - 2 * #{$modal-margin});
+    }
+}
+
+@mixin large-modal-container {
+    &--container {
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+
+        width: calc(100vw - 2 * #{$modal-margin});
+        max-width: calc(100vw - 2 * #{$modal-margin});
+        height: calc(100vh - 2 * #{$modal-margin});
+        max-height: calc(100vh - 2 * #{$modal-margin});
+    }
+}
+
+@mixin medium-flexible-height-modal-container {
+    @include medium-modal-container();
+
+    &--container {
+        height: auto;
+    }
+}
+
+@mixin large-capped-modal-container {
+    @include large-modal-container();
+
+    &--container {
+        max-width: 1376px;
+        max-height: 736px;
+    }
+}
+
+@mixin tooltip($transform: translate(-50%, -100%)) {
+    position: relative;
+
+    &[data-title]:not([data-title=""]):hover:after {
+        @include zindex.layer("P2Tooltip");
+
+        content: attr(data-title);
+        transform: $transform;
+        position: absolute;
+        top: 7px;
+        left: 50%;
+        font-weight: normal;
+        padding: 4px 8px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        background-color: P2Colors.$navy;
+        color: P2Colors.$white;
+        white-space: nowrap;
+        line-height: 2;
+    }
+}
+
+@mixin simple-tooltip {
+    content: attr(tooltip-content);
+    position: absolute;
+    background-color: P2Colors.$navy;
+    border-radius: 4px;
+    padding: 4px 8px;
+    text-transform: none;
+    color: P2Colors.$white;
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+    transform: translate(calc(-90% + 16px), -100%);
+}
+
+@mixin cooltipP2Override {
+    x-cooltip-target.p2 {
+        display: flex;
+    }
+
+    x-cooltip-tooltip.p2 {
+        font-family: $p2-fonts;
+        background: P2Colors.$navy;
+        color: P2Colors.$white;
+        font-size: 12px;
+        font-weight: 400;
+        padding: 4px 8px 5px;
+        width: auto;
+        height: auto;
+
+        &:before {
+            display: none;
+        }
+    }
+
+    x-cooltip-tooltip.p2-white {
+        background: P2Colors.$white;
+        color: P2Colors.$navy;
+        box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.08);
+        border-radius: 4px;
+    }
+
+    x-cooltip-tooltip.short {
+        max-width: 458px;
+    }
+}
+
+@mixin expressionViewerWrapper {
+    // WeakCSS pain...
+
+    &__expression-viewer--wrapper,
+    &--expression-viewer--wrapper {
+        height: 0;
+        overflow: hidden;
+
+        &.is-expanded {
+            height: unset;
+        }
+    }
+}
+
+@mixin pagination(
+    $pagination-width: 32px,
+    $pagination-margin-left: 0,
+    $pagination-margin-right: 0
+) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: $pagination-width;
+    margin-left: $pagination-margin-left;
+    margin-right: $pagination-margin-right;
+    max-height: 100%;
+    color: P2Colors.$navy;
+
+    &.horizontal {
+        flex-direction: row;
+        width: auto;
+        height: $pagination-width;
+        gap: 8px;
+    }
+
+    &--button {
+        color: P2Colors.$navy;
+        padding: 0;
+        margin: 0;
+
+        .horizontal & {
+            transform: rotate(-90deg);
+        }
+
+        &.disabled {
+            color: P2Colors.$grey4;
+            cursor: not-allowed;
+        }
+
+        &:hover:not(.disabled) {
+            color: P2Colors.$pink_dark;
+
+            &:before {
+                @include simple-tooltip;
+                transform: translate(calc(-100% - 4px), calc(-50% + 8px));
+            }
+        }
+    }
+
+    &--pages {
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        font-size: 14px;
+        font-weight: 600;
+        justify-content: center;
+        align-items: center;
+
+        .horizontal & {
+            flex-direction: row;
+        }
+
+        &--page {
+            color: P2Colors.$navy;
+            cursor: pointer;
+
+            &.active {
+                color: P2Colors.$pink-dark;
+            }
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+        }
+    }
+}
+
+@mixin onboarding(
+    $above-element: false,
+    $arrow-left: false,
+    $arrow-right: false,
+    $arrow-up: false
+) {
+    &--wrapper {
+        position: relative;
+        width: auto;
+        height: 32px;
+    }
+
+    &--onboarding {
+        @include zindex.layer("Onboarding");
+
+        position: absolute;
+
+        @if $above-element {
+            bottom: calc(100% + 32px);
+            left: calc(50% + 4px);
+            transform: translateX(-50%);
+        } @else {
+            top: calc(100% + 26px);
+            right: 0;
+        }
+
+        width: 304px;
+        flex-grow: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 24px;
+        border-radius: 2px;
+        background-color: P2Colors.$navy;
+        color: P2Colors.$white;
+        font-size: 14px;
+        font-weight: normal;
+
+        &:before {
+            content: "";
+            position: absolute;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+
+            @if $above-element {
+                top: 100%;
+                right: calc(50% - 16px);
+                border-top: 15px solid P2Colors.$navy;
+            } @else {
+                top: -15px;
+                border-bottom: 15px solid P2Colors.$navy;
+            }
+
+            @if $arrow-left {
+                right: 250px;
+            }
+
+            @if $arrow-right {
+                left: 250px;
+            }
+
+            @if $arrow-up {
+                top: -32px;
+                transform: rotate(90deg);
+            }
+        }
+
+        &--new-badge {
+            padding: 1px 8px;
+            font-size: 12px;
+            border-radius: 16px;
+            background-color: P2Colors.$pink-medium;
+        }
+
+        &--title {
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: P2Colors.$white;
+        }
+
+        &--paragraph {
+            color: P2Colors.$white;
+        }
+
+        &--got-it,
+        &--buttons--got-it {
+            @include primary-button($on-colour-bg: false);
+        }
+
+        &--buttons {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+
+            &--skip-tour {
+                @include secondary-button($on-colour-bg: false, $border: false);
+                background-color: P2Colors.$white;
+                height: 32px;
+
+                &:hover {
+                    background-color: P2Colors.$grey2;
+                }
+            }
+        }
+    }
+}
+
+@mixin list-header-tabs($show-underline: true) {
+    display: flex;
+    flex: 1;
+
+    &--items {
+        display: flex;
+        flex-direction: row;
+        margin: 0 auto;
+        padding-left: 0;
+        overflow: hidden;
+        max-width: 100%;
+
+        &--item {
+            @include mixins.normalize-ul;
+            color: P2Colors.$navy;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &--link {
+                display: flex;
+                align-items: center;
+                height: 48px;
+                line-height: 48px;
+                color: currentColor;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 8px 8px 8px 0;
+                cursor: pointer;
+                text-decoration: none;
+
+                &:focus-visible {
+                    box-shadow: 0 0 0 2px inset P2Colors.$pink-dark;
+                    outline: none;
+                    border-radius: 4px;
+                }
+
+                &:hover {
+                    color: P2Colors.$pink-medium;
+                }
+            }
+
+            &.active {
+                color: P2Colors.$pink-dark;
+
+                @if ($show-underline) {
+                    & > a {
+                        box-shadow: inset 0px -2px 0 0 currentColor;
+                    }
+                }
+            }
+
+            & ~ * {
+                margin-left: 8px;
+            }
+        }
+    }
+}
+
+@mixin item-checkbox($width: 48px) {
+    display: flex;
+    position: relative;
+    min-width: $width;
+    width: $width;
+    height: 24px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+
+    &--input {
+        @include zindex.layer("P2CheckboxInput");
+
+        margin: 0;
+
+        position: absolute;
+        left: 2px;
+        top: 2px;
+
+        cursor: pointer;
+
+        opacity: 0;
+    }
+
+    &--indicator:hover {
+        border-color: P2Colors.$orange-medium;
+    }
+
+    &--indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        height: 16px;
+        width: 16px;
+
+        &--icon {
+            height: 32px;
+        }
+    }
+
+    &--input:checked ~ &--indicator {
+        color: P2Colors.$pink-dark;
+    }
+}
+
+@mixin management-page-header($side-padding: 53px, $max-width: 1440px) {
+    &__header {
+        width: 100%;
+        max-width: $max-width;
+        margin: 32px auto 0 auto;
+        padding: 0 $side-padding;
+
+        &--inner {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            margin-bottom: 12px;
+
+            &--title {
+                font-size: 24px;
+                font-weight: bold;
+                line-height: 1.33;
+                text-align: center;
+                color: P2Colors.$navy;
+                margin: 0 auto;
+            }
+        }
+    }
+
+    &__navigation-wrapper {
+        width: 100%;
+        max-width: $max-width;
+        padding: 0 53px;
+        margin: 0 auto;
+    }
+
+    &__navigation {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        position: relative;
+
+        &--search {
+            @include SearchInput.search;
+            position: relative;
+            max-width: 300px;
+            top: 8px;
+            width: 100%;
+            margin-bottom: 16px;
+
+            @media screen and (max-width: 1420px) {
+                max-width: 250px;
+
+                &.is-nonempty &--input {
+                    max-width: 180px;
+                }
+            }
+        }
+    }
+
+    &__create-btn {
+        @include primary-button-with-icon($on-colour-bg: false, $icon-placement: "right");
+        @include onboarding($arrow-right: true);
+
+        position: relative;
+        height: 32px;
+
+        &--wrapper {
+            display: flex;
+            justify-content: flex-end;
+            width: 300px;
+
+            &.hide {
+                visibility: hidden;
+            }
+
+            @media screen and (max-width: 1420px) {
+                width: auto;
+                min-width: 166px;
+            }
+        }
+    }
+}
+
+@mixin selectable-list {
+    &--selectable-list {
+        width: 250px;
+        background-color: P2Colors.$white;
+        box-shadow: 0px -4px 14px rgba(0, 0, 0, 0.16);
+
+        &--search {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            height: 40px;
+            background-color: P2Colors.$grey1;
+            border-bottom: 1px solid P2Colors.$grey4;
+
+            &--input {
+                border: none;
+                font-size: 14px;
+                outline: 0px;
+                border: 0px;
+                height: 40px;
+                flex-grow: 1;
+                line-height: 40px;
+                background-color: transparent;
+            }
+        }
+
+        &--items {
+            height: 240px;
+            width: 100%;
+            background-color: P2Colors.$white;
+            overflow: auto;
+            overflow-x: hidden;
+
+            &--empty {
+                padding: 16px;
+                text-align: center;
+                width: 100%;
+                font-size: 14px;
+            }
+
+            &--item {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                align-items: center;
+                cursor: pointer;
+                height: 40px;
+                font-weight: 400;
+                font-size: 14px;
+
+                &--label {
+                    flex-grow: 1;
+                    text-align: left;
+                    padding: 8px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                &.disabled,
+                &:disabled {
+                    color: P2Colors.$grey5;
+                    cursor: not-allowed;
+                }
+
+                &.selected {
+                    color: P2Colors.$pink-dark;
+                    font-weight: 600;
+                }
+
+                &:hover {
+                    background-color: P2Colors.$pink-bg;
+                    color: P2Colors.$pink-medium;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid P2Colors.$pink-dark;
+                }
+            }
+        }
+
+        &--footer {
+            display: flex;
+            height: 52px;
+            flex-direction: row;
+            align-items: center;
+            padding: 8px 12px;
+
+            box-shadow: 0px -4px 14px rgba(0, 0, 0, 0.16);
+
+            &--selection-info {
+                flex-grow: 1;
+                font-size: 14px;
+            }
+
+            &--button {
+                @include secondary-button($on-colour-bg: false, $border: true);
+                align-self: flex-end;
+                border-radius: 4px;
+            }
+        }
+    }
+}

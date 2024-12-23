@@ -1,0 +1,227 @@
+@use "crosstab-builder/XB2/src/XB2/Share/svg-icons" as icons;
+
+$p2-fonts:
+    Faktum,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol";
+
+@mixin hide-text {
+    text-indent: -9999px;
+    overflow: hidden;
+}
+
+@mixin transition($transition) {
+    -webkit-transition: $transition;
+    -moz-transition: $transition;
+    -o-transition: $transition;
+    transition: $transition;
+}
+
+@mixin gradient-line($color, $bg) {
+    position: relative;
+    background: $color; /* Old browsers */
+    background: -moz-linear-gradient(
+        left,
+        $bg 0,
+        $color 16px,
+        $color 100%
+    ); /* FF3.6-15 */
+    background: -webkit-linear-gradient(
+        left,
+        $bg 0,
+        $color 16px,
+        $color 100%
+    ); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(
+        to right,
+        $bg 0,
+        $color 16px,
+        $color 100%
+    ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+
+    &:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 16px;
+        background: -moz-linear-gradient(left, $color 0, $bg 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(
+            left,
+            $color 0,
+            $bg 100%
+        ); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(
+            to right,
+            $color 0,
+            $bg 100%
+        ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    }
+}
+
+@mixin placeholder-color($color) {
+    &::-webkit-input-placeholder {
+        /* WebKit, Blink, Edge */
+        color: $color;
+    }
+
+    &:-moz-placeholder {
+        /* Mozilla Firefox 4 to 18 */
+        color: $color;
+    }
+
+    &::-moz-placeholder {
+        /* Mozilla Firefox 19+ */
+        color: $color;
+    }
+
+    &:-ms-input-placeholder {
+        /* Internet Explorer 10-11 */
+        color: $color;
+    }
+}
+
+@mixin button-basic(
+    $color,
+    $bgColor,
+    $hoverBgColor,
+    $activeShadowColor,
+    $hoverColor: "same"
+) {
+    display: inline-block;
+    padding: 10px 36px;
+    font-size: 14px;
+    line-height: 16px;
+    border-radius: 18px;
+    font-weight: 600;
+    color: $color;
+    text-decoration: none;
+    background-color: $bgColor;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $hoverBgColor;
+        @if ($hoverColor != "same") {
+            color: $hoverColor;
+        }
+    }
+
+    &:active {
+        box-shadow: 0 0 3px 0 $activeShadowColor;
+    }
+
+    &.disabled {
+        opacity: 0.4;
+
+        &:active {
+            box-shadow: none;
+        }
+
+        &:hover {
+            color: $color;
+            background: $bgColor;
+            cursor: not-allowed;
+        }
+    }
+}
+
+@mixin button-primary {
+    @include button-basic(#fff, #3498db, #2979af, #2979af);
+}
+
+@mixin button-secondary {
+    @include button-basic(#3498db, #fff, #3498db, #53b7e8, #fff);
+    border: solid 1px #3498db;
+}
+
+@mixin position($type, $t, $r, $b, $l) {
+    position: $type;
+    top: $t;
+    right: $r;
+    bottom: $b;
+    left: $l;
+}
+
+@mixin button-intense-filled {
+    $color-intense: #d4007b;
+    @include button-basic(
+        #fff,
+        $color-intense,
+        lighten($color-intense, 10%),
+        lighten($color-intense, 30%)
+    );
+}
+
+@mixin text-link {
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:visited {
+        color: #3498db;
+    }
+
+    &:hover {
+        color: #2979af;
+    }
+}
+
+@mixin text-link-external {
+    @include text-link;
+    display: inline-block;
+
+    &:after {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-left: 5px;
+        margin-bottom: -2px;
+        background: icons.icon("externalLinkSquare", #3498db) no-repeat 0 0;
+    }
+
+    &:hover {
+        &:after {
+            background-image: icons.icon("externalLinkSquare", #2979af);
+        }
+    }
+}
+
+@mixin lineClamp($lineClamp) {
+    display: -webkit-box;
+    -webkit-line-clamp: $lineClamp;
+    -webkit-box-orient: vertical;
+    white-space: pre-wrap;
+    overflow: hidden;
+}
+
+@mixin normalize-ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+@mixin selection-mark($background) {
+    content: " ";
+    position: absolute;
+    top: 5px;
+    right: 21px;
+    bottom: 5px;
+    left: auto;
+    border-radius: 50%;
+    width: 11px;
+    height: 11px;
+    margin: auto;
+    opacity: 1;
+    background: $background;
+    cursor: pointer;
+}

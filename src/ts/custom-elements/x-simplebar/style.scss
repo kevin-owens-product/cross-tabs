@@ -1,0 +1,6 @@
+@use "../../../node_modules/simplebar/dist/simplebar.min";
+// explicitly mustn't contain the `.css` extension ^
+
+x-simplebar {
+    display: block;
+}

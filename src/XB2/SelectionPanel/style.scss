@@ -1,0 +1,219 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+
+@mixin xb2-selection-panel-button {
+    position: relative;
+    display: inline-flex;
+    overflow: visible;
+    margin-left: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    height: 32px;
+    padding: 0 8px;
+
+    &--icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -8px;
+        width: 32px;
+        height: 32px;
+        overflow: hidden;
+    }
+
+    &:active {
+        color: P2Colors.$pink-dark;
+    }
+}
+
+// TODO: this is copy pasted from XB2/Detail/Table/style.scss
+// it should be extracted to one place
+
+$scrollbar-button-width: 16px;
+$scrollbar-button-margin-between-buttons: 4px;
+$scrollbar-button-margin-from-screen-edge: 6px;
+$scrollbar-button-margin-from-selection-panel: 6px;
+$selection-panel-height: 56px;
+
+.xb2 {
+    &__selection-panel {
+        @include zindex.layer("XB2DetailSelectionPanel"); // reusing z-index to be above
+        display: flex;
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 24px;
+        min-height: $selection-panel-height;
+        max-height: $selection-panel-height + 40px;
+        border-radius: 4px;
+
+        @media screen and (max-width: 1350px) {
+            max-height: 2 * $selection-panel-height + 40px;
+        }
+
+        opacity: 0;
+        transform: translate(0, 8px);
+        visibility: hidden;
+
+        transition-property: opacity, transform, visibility;
+        transition-duration: 150ms;
+        transition-timing-function: ease-out;
+        padding: 12px 12px 4px 12px;
+        background-color: P2Colors.$navy;
+        color: P2Colors.$white;
+
+        &--counter {
+            display: inline-flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            font-stretch: normal;
+            font-style: normal;
+            line-height: 1.43;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            height: 32px;
+
+            &--checkbox {
+                display: inline-flex;
+                align-items: center;
+
+                & > svg {
+                    color: P2Colors.$pink-dark;
+                    margin-right: 8px;
+                }
+            }
+        }
+
+        &.opened {
+            opacity: 1;
+            transform: translate(0, 0);
+            visibility: visible;
+        }
+
+        &--control-btn {
+            @include P2Components.secondary-button($on-colour-bg: true, $border: true);
+            @include xb2-selection-panel-button;
+
+            @include P2Components.tooltip;
+
+            &[data-title]:not([data-title=""]):hover:after {
+                width: max-content;
+                max-width: 300px;
+                white-space: initial;
+                text-align: left;
+                right: 0;
+                top: -16px;
+            }
+
+            &--action {
+                @include P2Components.primary-button-with-icon(
+                    $on-colour-bg: true,
+                    $icon-placement: "left"
+                );
+                @include xb2-selection-panel-button;
+            }
+
+            &--dropdown {
+                @include P2Components.nestable-dropdown;
+                font-size: 14px;
+                font-weight: 600;
+                font-style: normal;
+                line-height: 16px;
+                border-radius: 2px;
+                white-space: nowrap;
+                text-decoration: none;
+                cursor: pointer;
+                background-color: P2Colors.$white;
+                color: #000000;
+                position: relative;
+                display: inline-flex;
+                overflow: visible;
+                margin: 0 0 8px 8px;
+                align-items: center;
+                height: 32px;
+
+                &--trigger-button {
+                    display: flex;
+                    border-radius: 2px;
+
+                    &--left-icon {
+                        color: inherit;
+                    }
+                }
+
+                &--menu {
+                    margin-bottom: 40px;
+
+                    &--item {
+                        min-height: 40px;
+                    }
+                }
+            }
+
+            &--delete {
+                @include P2Components.primary-button-with-icon(
+                    $on-colour-bg: true,
+                    $icon-placement: "left"
+                );
+                @include xb2-selection-panel-button;
+
+                background: P2Colors.$pink-medium;
+                border-color: P2Colors.$pink-medium;
+                margin-left: 8px;
+                margin-bottom: 8px;
+                color: P2Colors.$white;
+
+                &:hover:not(:disabled),
+                &:active:not(:disabled) {
+                    background: P2Colors.$pink-dark;
+                    border-color: P2Colors.$pink-dark;
+                    color: P2Colors.$white;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                }
+            }
+
+            &--close {
+                position: absolute;
+                top: 10px;
+                right: 5px;
+                color: P2Colors.$white;
+
+                &:hover {
+                    color: P2Colors.$pink-medium;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                }
+            }
+        }
+
+        &--control-buttons {
+            display: inline-flex;
+            flex-grow: 2;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            &--group1 {
+                display: inline-flex;
+                flex-grow: initial;
+                flex-wrap: nowrap;
+            }
+
+            &--group2 {
+                display: inline-flex;
+                flex-grow: 2;
+                flex-wrap: wrap;
+                margin-right: 32px;
+            }
+        }
+    }
+}

@@ -1,0 +1,460 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/SearchInput/style" as SearchInput;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/SortingHeader/style" as SortingHeader;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/FullScreenLoader/style" as
+    FullScreenLoader;
+
+.xb2-list {
+    @include P2Components.management-page-header($side-padding: 32px, $max-width: auto);
+
+    font-family: P2Components.$p2-fonts;
+    padding: 0;
+    margin: 0 auto;
+    width: 100%;
+    color: P2Colors.$navy;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+
+    &.selection-opened {
+        padding-bottom: 85px;
+    }
+
+    &__sub-title {
+        display: grid;
+        place-items: center;
+    }
+
+    &__tabs {
+        @include P2Components.list-header-tabs($show-underline: false);
+        position: relative;
+
+        &--underline {
+            position: absolute;
+            top: 46px;
+            left: 0;
+            height: 2px;
+            background: P2Colors.$pink-dark;
+            width: 0;
+            transition: all linear 0.2s;
+
+            &.position-all {
+                width: 4em;
+                left: 0;
+            }
+
+            &.position-my {
+                width: 9em;
+                left: 66px;
+            }
+
+            &.position-shared {
+                width: 6em;
+                left: 207px;
+            }
+        }
+    }
+
+    &__view-toggle-btn {
+        @include P2Components.secondary-button($on-colour-bg: false, $border: false);
+        padding-top: 0px;
+        padding-bottom: 0px;
+        margin-right: 8px;
+    }
+
+    &__folder-breadcrumbs {
+        display: flex;
+        padding: 0 32px;
+        color: P2Colors.$navy;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+
+        &--link {
+            color: currentColor;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0;
+            font-weight: 600;
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                outline-offset: 2px;
+                border-radius: 4px;
+            }
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+        }
+
+        &--current-folder {
+            color: P2Colors.$pink-dark;
+        }
+    }
+
+    &__empty-list {
+        padding-top: 176px;
+        flex: 1;
+    }
+
+    &__ftue {
+        padding-top: 40px;
+    }
+
+    &__empty-list,
+    &__ftue {
+        display: flex;
+        flex-direction: column;
+        background-color: P2Colors.$teal-bg;
+        align-items: center;
+        padding-bottom: 40px;
+
+        &--title {
+            font-weight: bold;
+            font-size: 40px;
+            color: P2Colors.$navy;
+            margin-top: 16px;
+        }
+
+        &--message {
+            font-size: 18px;
+            line-height: 22px;
+            font-weight: normal;
+            max-width: 443px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        &--create-btn {
+            @include P2Components.primary-button-with-icon(
+                $on-colour-bg: false,
+                $icon-placement: "right"
+            );
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 1;
+            margin-top: 16px;
+        }
+    }
+
+    &__error {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-top: 24px;
+        width: 100%;
+        height: 320px;
+        background-color: #ebf0fa;
+
+        &--title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: P2Colors.$grey6;
+        }
+
+        &--message {
+            font-size: 16px;
+            text-align: center;
+            color: P2Colors.$grey6;
+            margin-top: 16px;
+        }
+    }
+
+    &__list {
+        padding: 0 32px 80px;
+        display: flex;
+        flex-direction: column;
+
+        &--header {
+            display: grid;
+            grid-template-columns:
+                minmax(200px, 55%) minmax(115px, 20%) minmax(145px, 15%)
+                minmax(117px, 10%);
+
+            font-size: 14px;
+            font-weight: 600;
+
+            &--sort {
+                @include SortingHeader.sorting-header;
+            }
+        }
+    }
+
+    &__projects {
+        &.any-selected {
+            user-select: none;
+        }
+    }
+
+    &__empty-results {
+        padding: 20px;
+        text-align: center;
+
+        &--small-text {
+            font-size: 16px;
+            font-weight: normal;
+            letter-spacing: 0.15px;
+            text-align: center;
+            color: P2Colors.$navy;
+        }
+
+        &--main-text {
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.5;
+            text-align: center;
+            color: P2Colors.$navy;
+
+            &--highlight {
+                color: P2Colors.$orange-medium;
+            }
+        }
+    }
+
+    &__reset-search-link {
+        color: P2Colors.$pink-dark;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            color: P2Colors.$pink-medium;
+        }
+    }
+
+    &__item {
+        display: block;
+        position: relative;
+        margin-bottom: 8px;
+        padding: 0;
+        color: P2Colors.$navy;
+
+        &--link {
+            display: grid;
+            grid-template-columns:
+                minmax(200px, 55%) minmax(115px, 20%) minmax(145px, 15%)
+                minmax(117px, 10%);
+            height: 48px;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: normal;
+            text-decoration: none;
+            cursor: pointer;
+            color: P2Colors.$navy;
+            border: 1px solid P2Colors.$grey4;
+            border-radius: 4px;
+            background-color: P2Colors.$white;
+            width: 100%;
+            padding: 0;
+
+            &.folder {
+                justify-items: start;
+            }
+
+            &:focus-visible {
+                box-shadow: inset 0 0 0 1px P2Colors.$pink-dark;
+                outline: none;
+                border: 1px solid P2Colors.$pink-dark;
+            }
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+
+            &.ghost {
+                display: inline-flex;
+            }
+
+            &.placeholder {
+                background-color: P2Colors.$grey4;
+
+                &:hover {
+                    color: P2Colors.$grey4;
+                }
+            }
+
+            &.drag-over {
+                border: 1px dashed P2Colors.$pink-dark;
+            }
+        }
+
+        &.selected &--link,
+        &--link:hover {
+            &:not(.drag-over) {
+                border-color: currentColor;
+                box-shadow: inset 0 0 0 1px currentColor;
+            }
+        }
+
+        &--link:hover,
+        &.selected &--link:hover {
+            color: P2Colors.$pink-medium;
+        }
+
+        &.selected &--link {
+            color: P2Colors.$pink-dark;
+        }
+
+        &--folder-icons {
+            // 56px = 32px + 32px - 8px (two icons next to each other, collapsing their margins)
+            display: flex;
+            min-width: 56px;
+            width: 56px;
+            color: currentColor;
+            padding-left: 8px;
+            margin-right: 13px;
+
+            & svg {
+                min-width: 32px;
+            }
+
+            & svg + svg {
+                margin-left: -8px;
+            }
+        }
+        &--group {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        &--icon {
+            min-width: 32px;
+            width: 32px;
+            height: 32px;
+            margin-left: -16px;
+            margin-right: 5px;
+            text-align: center;
+            display: flex;
+            color: currentColor;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            @include zindex.layer("XB2ListIconCooltipTarget");
+
+            &--tooltip {
+                cursor: help;
+            }
+        }
+
+        &--select {
+            @include P2Components.item-checkbox;
+
+            color: P2Colors.$navy;
+
+            &--input {
+                top: auto;
+                left: auto;
+            }
+
+            &--input:focus-visible + &--indicator {
+                outline: 2px solid P2Colors.$pink-dark;
+                border-radius: 4px;
+            }
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+        }
+
+        &--name {
+            display: flex;
+            flex-grow: 2;
+            text-align: left;
+            white-space: pre-wrap;
+            font-size: 14px;
+            font-weight: 600;
+            color: currentColor;
+            padding-right: 16px;
+            overflow-wrap: break-word;
+            @include mixins.lineClamp(1);
+        }
+
+        &--more-options-dropdown {
+            @include P2Components.nestable-dropdown;
+
+            &--trigger-ellipsis {
+                cursor: pointer;
+                position: absolute;
+                top: 8px;
+                right: 10px;
+            }
+        }
+
+        &--owner {
+            font-size: 12px;
+            color: P2Colors.$grey6;
+            color: #526482;
+
+            min-width: 115px;
+            padding-right: 16px;
+            display: -webkit-box;
+            overflow-wrap: break-word;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+
+        &--time-label {
+            font-size: 12px;
+            color: P2Colors.$navy;
+            padding-right: 16px;
+        }
+    }
+
+    &__match {
+        font-style: normal;
+        background: rgba(35, 103, 219, 0.1);
+    }
+
+    &__search-footer {
+        margin-top: 32px;
+        text-align: center;
+        color: P2Colors.$grey6;
+        font-size: 14px;
+    }
+
+    &__ghost {
+        position: fixed;
+        top: -8px;
+        left: 0;
+        opacity: 0.8;
+    }
+
+    &__ghost &__item--icon {
+        margin-left: 8px;
+    }
+
+    &__root-breadcrumb {
+        cursor: pointer;
+
+        &:hover {
+            color: P2Colors.$orange-medium;
+        }
+    }
+
+    &__breadcrumbs {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 0 32px;
+
+        &--greyed {
+            color: P2Colors.$pink-dark;
+        }
+    }
+
+    &__full-table-loading {
+        @include FullScreenLoader.styles;
+    }
+}

@@ -1,0 +1,220 @@
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+
+.share-modal-choose-one,
+.share-modal-choose-many {
+    &__container {
+        display: flex;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: var(--x-choose-many-modal-z-index, 100);
+        justify-content: center;
+        align-items: center;
+    }
+
+    &__modal {
+        font-family: P2Components.$p2-fonts;
+        position: relative;
+        width: 550px;
+        border-radius: 4px;
+        background-color: P2Colors.$white;
+        padding: 32px;
+        color: P2Colors.$navy;
+        font-size: 14px;
+        font-weight: normal;
+        font-stretch: normal;
+        font-style: normal;
+        line-height: 1.43;
+
+        &--header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        &--title {
+            font-size: 20px;
+            font-weight: 500;
+            font-stretch: normal;
+            font-style: normal;
+            line-height: 1.6;
+            letter-spacing: normal;
+            text-transform: none;
+            color: P2Colors.$navy;
+        }
+
+        &--batch-action {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px;
+            color: P2Colors.$navy;
+            cursor: pointer;
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+
+            &.disabled,
+            &.disabled:hover {
+                color: P2Colors.$grey4;
+                cursor: not-allowed;
+            }
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                border-radius: 4px;
+            }
+        }
+
+        &--legend {
+            margin: 20px 0;
+
+            &--colors {
+                display: flex;
+                flex-direction: row;
+                border: 1px solid P2Colors.$grey4;
+
+                &--color {
+                    flex-grow: 1;
+                    height: 36px;
+                    border: 0.5px solid P2Colors.$grey4;
+                }
+            }
+
+            &--labels {
+                display: flex;
+                justify-content: space-between;
+                font-size: 15px;
+                margin-top: 5px;
+            }
+        }
+
+        &--footer {
+            display: flex;
+            margin-top: 50px;
+            text-align: left;
+            justify-content: space-between;
+            align-items: center;
+
+            &--help-link {
+                display: flex;
+                align-items: center;
+                color: P2Colors.$navy;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+
+                &:hover {
+                    color: P2Colors.$pink-medium;
+                }
+            }
+
+            &--buttons {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            &--primary-button {
+                @include P2Components.primary-button($on-colour-bg: false);
+            }
+
+            &--secondary-button {
+                @include P2Components.secondary-button(
+                    $on-colour-bg: false,
+                    $border: false
+                );
+            }
+        }
+    }
+
+    &__items {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 12px;
+    }
+
+    &__item {
+        color: P2Colors.$navy;
+        margin-bottom: 13px;
+
+        &--label {
+            display: flex;
+            position: relative;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            overflow: hidden;
+            flex-direction: column;
+
+            &--input {
+                display: flex;
+                height: 14px;
+                position: absolute;
+                width: 14px;
+                left: 5px;
+
+                &:focus-visible {
+                    outline: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                }
+            }
+
+            &--name-icon {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            &--checkbox {
+                color: currentColor;
+                height: 32px;
+                z-index: 999;
+            }
+
+            &:hover {
+                color: P2Colors.$pink-medium;
+            }
+
+            &--input:checked ~ &--checkbox {
+                color: P2Colors.$pink-dark;
+            }
+        }
+
+        &--info {
+            font-size: 14px;
+            font-weight: normal;
+            padding-left: 8px;
+        }
+    }
+
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: rgba(P2Colors.$navy, 0.5);
+    }
+
+    &__radio-button-cont {
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+
+        &--radio-button {
+            @include P2Components.radio-button;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        &--description {
+            padding-left: 8px;
+        }
+    }
+}

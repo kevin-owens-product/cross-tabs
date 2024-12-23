@@ -1,0 +1,270 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/Scrollbar/style" as Scrollbar;
+
+$width: 424px;
+$padding: 24px;
+
+@keyframes loading-bar {
+    0%,
+    44%,
+    88.1%,
+    100% {
+        transform-origin: left;
+    }
+
+    0%,
+    100%,
+    88% {
+        transform: scaleX(0);
+    }
+
+    44.1%,
+    88% {
+        transform-origin: right;
+    }
+
+    33%,
+    44% {
+        transform: scaleX(1);
+    }
+}
+
+@mixin grouping-panel() {
+    width: $width;
+    background-color: P2Colors.$grey2;
+    display: flex;
+    flex-direction: column;
+    padding: $padding;
+    user-select: none;
+
+    &--header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    &--title {
+        font-weight: bold;
+        font-size: 20px;
+        color: P2Colors.$navy;
+        line-height: 32px;
+        flex: 1;
+    }
+
+    &--clear-all-btn {
+        @include P2Components.secondary-button($on-colour-bg: false, $border: false);
+    }
+
+    &--groupings {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 16px;
+    }
+
+    &--grouping {
+        @include P2Components.secondary-button($on-colour-bg: false, $border: true);
+        text-transform: uppercase;
+        position: relative;
+        overflow: visible;
+
+        &:not(:first-child) {
+            margin-left: 8px;
+        }
+
+        &[tooltip-content]:hover:before {
+            @include zindex.layer("XB2TableScrollTooltip");
+            @include P2Components.simple-tooltip;
+        }
+    }
+
+    &--items {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        width: 100%;
+        height: auto;
+
+        &.native-scroll {
+            overflow-y: auto;
+            margin-bottom: 5px;
+        }
+
+        &--content-scroll {
+            position: static;
+            overflow: auto;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        &.full-height {
+            flex: 1;
+        }
+    }
+
+    &--item-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        &:not(:first-child) {
+            margin-top: 8px;
+        }
+    }
+
+    &--item-operator {
+        padding: 0 8px;
+        font-weight: 600;
+        color: P2Colors.$navy;
+    }
+
+    &--item {
+        background-color: P2Colors.$white;
+        border-radius: 4px;
+        display: flex;
+        flex: 1;
+        flex-direction: row;
+        align-items: center;
+        color: P2Colors.$navy;
+        line-height: 20px;
+        font-size: 14px;
+        font-weight: normal;
+    }
+
+    &--names {
+        flex: 1;
+        padding: 11px 0;
+
+        &--subtitle {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.45;
+            color: P2Colors.$grey6;
+        }
+
+        &--title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: P2Colors.$navy;
+            padding: 0;
+
+            &.subtitle-only {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &--item-icon {
+        margin: 0 8px;
+        width: 32px;
+        height: 32px;
+    }
+
+    &--item-close-btn {
+        margin: 4px 10px 4px 4px;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+    }
+
+    &--placeholder {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='2' ry='2' stroke='%23abb8cf' stroke-width='2' stroke-dasharray='4%2c12' stroke-dashoffset='7' stroke-linecap='square'/%3e%3c/svg%3e"); // https://kovart.github.io/dashed-border-generator/
+        padding: 16px;
+    }
+
+    &--placeholder-message {
+        margin-top: 24px;
+        max-width: 220px;
+        color: P2Colors.$navy;
+    }
+
+    &--placeholder-text {
+        font-size: 16px;
+        line-height: 21px;
+
+        &.bold {
+            font-weight: 600;
+        }
+    }
+
+    &--loading-bar {
+        display: block;
+        position: relative;
+        width: 100%;
+        display: grid;
+        place-items: center;
+        margin-top: -4px;
+        height: 4px;
+        background-color: P2Colors.$pink-light;
+
+        &::before,
+        &::after {
+            content: "";
+            box-sizing: border-box;
+            position: absolute;
+        }
+
+        &::before {
+            height: 4px;
+            width: 100%;
+            background-color: P2Colors.$pink-dark;
+            animation: loading-bar 0.8s cubic-bezier(0, 0, 0.03, 0.9) infinite;
+        }
+    }
+
+    &--loading-state {
+        display: flex;
+        align-items: center;
+        color: P2Colors.$white;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 600;
+        background-color: P2Colors.$pink-medium;
+        padding: 10px;
+        border-radius: 0 0 4px 4px;
+    }
+
+    &--warning {
+        display: flex;
+        align-items: center;
+        padding: 16px 12px;
+        background-color: P2Colors.$yellow-medium;
+        font-size: 14px;
+        margin-top: -1px;
+
+        &--icon {
+            margin-right: 8px;
+            align-self: baseline;
+        }
+    }
+
+    &--buttons {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: row;
+    }
+
+    &--button {
+        @include P2Components.primary-button($on-colour-bg: false);
+
+        flex: 1;
+        justify-content: center;
+
+        &:not(:first-child) {
+            margin-left: 8px;
+        }
+    }
+}

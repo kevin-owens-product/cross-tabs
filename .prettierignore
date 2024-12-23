@@ -1,0 +1,11 @@
+node_modules/
+elm-stuff/
+build/
+deploy/
+redison/
+bin/
+*.json
+*.yaml
+*.yml
+*.md
+.husky/

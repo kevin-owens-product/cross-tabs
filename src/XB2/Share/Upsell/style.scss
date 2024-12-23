@@ -1,0 +1,136 @@
+@use "sass:math";
+
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Dialog/style" as Dialog;
+
+.upsell-dialog {
+    @mixin full-size {
+        // Q: where does this comes from
+        // A: it's fucking global fucking state
+        @include zindex.layer("UpsellDialog");
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    @include full-size;
+
+    &__overlay {
+        @include full-size;
+        background: #444955;
+        opacity: 0.7;
+    }
+
+    &__popup {
+        @include zindex.layer("UpsellDialogPopup");
+        $width: 620px;
+        $border-radius: 4px;
+
+        position: fixed;
+        top: 100px;
+        left: calc(50% - #{math.div($width, 2)});
+        width: $width;
+        background-color: #ffffff;
+        border-radius: $border-radius;
+
+        &--close-btn {
+            position: absolute;
+            top: 12px;
+            right: 22px;
+            color: Dialog.$color-grey1;
+            padding: 2px;
+        }
+
+        &--loader {
+            @include zindex.layer("UpsellDialogPopup");
+            content: "Processing...";
+            position: absolute;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(255, 255, 255, 0.8);
+            color: Dialog.$color-rhino;
+            animation: loadingIndicator 0.8s linear infinite;
+
+            & .spinner {
+                background: none;
+            }
+        }
+    }
+
+    &__inner {
+        display: flex;
+        color: Dialog.$color-rhino;
+
+        @mixin illustration {
+            background: url("/assets/vectors/bundles/upsell-cube-big.svg");
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+        }
+
+        &--heading {
+            font-size: 20px;
+            color: Dialog.$color-ebony-clay;
+
+            &--bundle-name {
+                color: Dialog.$color-gwi-pink;
+            }
+        }
+
+        &--left {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 34px 24px 24px 24px;
+            width: 50%;
+            min-height: 420px;
+            background-image: linear-gradient(30deg, #cfd3dd 5%, #eceef1 96%);
+        }
+
+        &--right {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 34px 24px 24px 24px;
+            width: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border-top-right-radius: Dialog.$border-radius;
+            border-bottom-right-radius: Dialog.$border-radius;
+
+            &-top {
+                margin-bottom: 16px;
+            }
+
+            &-description {
+                font-size: 13px;
+                flex-grow: 2;
+            }
+
+            &-bottom {
+                text-align: right;
+            }
+        }
+
+        &--get-in-touch-btn {
+            @include mixins.button-intense-filled;
+        }
+
+        &--graphic {
+            @include illustration;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+    }
+}

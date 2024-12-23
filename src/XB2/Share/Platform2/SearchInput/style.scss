@@ -1,0 +1,73 @@
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+
+@mixin search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px;
+    border: solid 1px P2Colors.$grey2;
+    background-color: P2Colors.$grey1;
+    height: 32px;
+    padding: 0 1px; // Symbolic padding for preventing jumps on :focus
+
+    &--input {
+        background-color: transparent;
+        outline: 0px;
+        border: 0px;
+        font-family: mixins.$p2-fonts;
+        font-size: 14px;
+        line-height: 1.5;
+        color: P2Colors.$grey6;
+        flex-grow: 1;
+    }
+
+    &--cross-icon {
+        color: P2Colors.$navy;
+        cursor: pointer;
+        height: 32px;
+
+        &:hover {
+            color: P2Colors.$pink-medium;
+        }
+    }
+
+    &--search-icon {
+        color: P2Colors.$grey5;
+        height: 32px;
+    }
+
+    &:hover {
+        border: solid 1px P2Colors.$pink-medium;
+    }
+
+    &:hover &--search-icon {
+        color: P2Colors.$pink-medium;
+    }
+
+    &:focus-within {
+        border: solid 2px P2Colors.$pink-dark;
+        padding: 0; // Resets space taken by border
+    }
+
+    &:focus-within &--search-icon {
+        color: P2Colors.$pink-dark;
+    }
+
+    &:focus-within &--search-icon:hover {
+        color: P2Colors.$pink-medium;
+    }
+
+    &.is-nonempty &--search-icon {
+        color: P2Colors.$pink-dark;
+    }
+
+    &.is-nonempty &--input {
+        color: P2Colors.$navy;
+        font-weight: 600;
+    }
+
+    &.is-nonempty &--search-icon:hover {
+        color: P2Colors.$pink-medium;
+    }
+}
