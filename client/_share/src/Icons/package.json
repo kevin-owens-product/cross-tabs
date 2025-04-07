@@ -1,9 +1,0 @@
-{
-  "name": "Icons",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "UNLICENSED",
-  "devDependencies": {
-    "@fortawesome/fontawesome-pro": "^5.6.3"
-  }
-}

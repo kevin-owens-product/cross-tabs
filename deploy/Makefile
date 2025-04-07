@@ -46,9 +46,7 @@ BUILD_DIR ?= $(ROOT_DIR)build
 
 P2_FILES = \
   $(BUILD_DIR)/crosstabs.js \
-  $(BUILD_DIR)/tv-study.js \
-  $(BUILD_DIR)/assets/crosstabs.css \
-  $(BUILD_DIR)/assets/tv-study.css
+  $(BUILD_DIR)/assets/crosstabs.css
 
 # P2.0 releases
 

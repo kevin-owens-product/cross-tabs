@@ -1,7 +1,6 @@
 {
     "entrypoints": [
-        "./client/crosstab-builder/XB2/src/Main.elm",
-        "./client/tv-study/TV2/src/TV2Main.elm"
+        "./client/crosstab-builder/XB2/src/Main.elm"
     ],
     "tools": {
         "elm": "0.19.1",

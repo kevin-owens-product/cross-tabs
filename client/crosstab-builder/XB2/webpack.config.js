@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { ESBuildMinifyPlugin } = require("esbuild-loader");
 
-const baseConfig = require("../../_share/webpack.default.config.ts");
+const baseConfig = require("../../webpack.default.config.ts");
 
 module.exports = (env, options) => {
     return baseConfig({

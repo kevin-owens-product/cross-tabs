@@ -162,7 +162,7 @@ module.exports = ({ appName, indexPath }) => {
         entry: entry,
         watch: isInWatchMode,
         output: {
-            path: path.join(__dirname, "../../build"),
+            path: path.join(__dirname, "../build"),
             filename: "[name].js",
             library: appName,
             libraryTarget: "amd",
@@ -176,11 +176,11 @@ module.exports = ({ appName, indexPath }) => {
             alias: {
                 "x-tag": path.resolve(
                     __dirname,
-                    "../../node_modules/x-tag/dist/x-tag-core.min.js"
+                    "../node_modules/x-tag/dist/x-tag-core.min.js"
                 ),
                 // css-loader handles only relative paths in url() now, so this alias
                 // enables us to use "absolute" paths (with `client/` as a root)
-                "/assets": path.resolve(__dirname, "../assets/")
+                "/assets": path.resolve(__dirname, "./assets/")
             },
             enforceExtension: false,
             extensions: [".ts", ".js", ".elm", ".scss"],

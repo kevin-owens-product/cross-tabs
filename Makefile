@@ -63,21 +63,11 @@ test_xb2:
 .PHONY: test_xb
 test_xb: test_xb2
 
-.SILENT: test_tv2
-.PHONY: test_tv2
-test_tv2:
-	echo "Run TV2 tests"
-	cd client/tv-study/TV2 && TARGET_ENV=test && find . -name '*.elm' | grep "^./tests" | xargs npx elm-test-rs $(TEST_OPTIONS) && cd -
-
-.SILENT: test_tv
-.PHONY: test_tv
-test_tv: test_tv2
-
 # All tests running
 
 .PHONY: test
 test: override TEST_OPTIONS = ""
-test: test_share test_xb test_tv
+test: test_xb
 
 # Coverage
 
@@ -96,12 +86,6 @@ cover_xb2:
 .SILENT: cover_xb
 .PHONY: cover_xb
 cover_xb: cover_xb2
-
-.SILENT: cover_tv2
-.PHONY: cover_tv2
-cover_tv2:
-	echo "Checking coverage of TV2"
-	cd client/tv-study/TV2 && TARGET_ENV=test && elm-coverage --open && cd -
 
 .SILENT: cover_tv
 .PHONY: cover_tv
@@ -146,10 +130,6 @@ build:
 build_xb2:
 	npx webpack --progress --config client/crosstab-builder/XB2/webpack.config.js
 
-.PHONY: build_tv2
-build_tv2:
-	npx webpack --progress --config client/tv-study/TV2/webpack.config.js
-
 .PHONY: build_for_p20
 build_for_p20: build_xb2 build_tv2
 
@@ -182,3 +162,9 @@ icons:
 .PHONY: pr
 pr: review review-styles format test
 	type -p gh > /dev/null && gh pr create -w || true
+
+.PHONY: lint
+lint: ## Lints the project with elm-review, eslint and stylelint.
+	@echo "\033[36mReviewing project...\033[0m"
+	npx elm-review client/
+	npx stylelint 'client/**/*.scss'
