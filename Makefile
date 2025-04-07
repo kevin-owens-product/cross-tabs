@@ -47,17 +47,11 @@ check_unused_scss_files:
 
 # Tests
 
-.SILENT: test_share
-.PHONY: test_share
-test_share:
-	echo "Run _share tests"
-	cd client/_share && TARGET_ENV=test && find . -name '*.elm' | grep "^./tests" | xargs npx elm-test-rs $(TEST_OPTIONS) && cd -
-
 .SILENT: test_xb2
 .PHONY: test_xb2
 test_xb2:
 	echo "Run crosstab-builder 2.0 tests"
-	cd client/crosstab-builder/XB2 && TARGET_ENV=test && find . -name '*.elm' | grep "^./tests" | xargs npx elm-test-rs $(TEST_OPTIONS) && cd -
+	cd src/crosstab-builder/XB2 && TARGET_ENV=test && find . -name '*.elm' | grep "^./tests" | xargs npx elm-test-rs $(TEST_OPTIONS) && cd -
 
 .SILENT: test_xb
 .PHONY: test_xb
@@ -71,17 +65,11 @@ test: test_xb
 
 # Coverage
 
-.SILENT: cover_share
-.PHONY: cover_share
-cover_share:
-	echo "Checking coverage of _share"
-	cd client/_share && elm-coverage --open && cd -
-
 .SILENT: cover_xb2
 .PHONY: cover_xb2
 cover_xb2:
 	echo "Checking coverage of crosstab-builder 2.0"
-	cd client/crosstab-builder/XB2 && elm-coverage --open && cd -
+	cd src/crosstab-builder/XB2 && elm-coverage --open && cd -
 
 .SILENT: cover_xb
 .PHONY: cover_xb
@@ -128,7 +116,7 @@ build:
 
 .PHONY: build_xb2
 build_xb2:
-	npx webpack --progress --config client/crosstab-builder/XB2/webpack.config.js
+	npx webpack --progress --config src/crosstab-builder/XB2/webpack.config.js
 
 .PHONY: build_for_p20
 build_for_p20: build_xb2 build_tv2
@@ -141,23 +129,23 @@ format:
 # To fix that, we search for all committed elm files and pass them explicitly to elm-review via xargs
 .PHONY: review
 review:
-	npx elm-review client/
+	npx elm-review src/
 
 .PHONY: review-watch
 review-watch:
-	npx elm-review client/ --watch
+	npx elm-review src/ --watch
 
 .PHONY: review-styles
 review-styles:
-	npx stylelint 'client/**/*.scss'
+	npx stylelint 'src/**/*.scss'
 
 .PHONY: fix-styles
 fix-styles:
-	npx stylelint --fix 'client/**/*.scss'
+	npx stylelint --fix 'src/**/*.scss'
 
 .PHONY: icons
 icons:
-	npx elm make --optimize --output icons.html ./client/_share/src/Icons/Overview.elm
+	npx elm make --optimize --output icons.html ./src/_share/src/Icons/Overview.elm
 
 .PHONY: pr
 pr: review review-styles format test
@@ -166,5 +154,5 @@ pr: review review-styles format test
 .PHONY: lint
 lint: ## Lints the project with elm-review, eslint and stylelint.
 	@echo "\033[36mReviewing project...\033[0m"
-	npx elm-review client/
-	npx stylelint 'client/**/*.scss'
+	npx elm-review src/
+	npx stylelint 'src/**/*.scss'

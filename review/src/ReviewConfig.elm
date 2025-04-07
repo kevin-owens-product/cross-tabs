@@ -57,12 +57,11 @@ config =
     , NoUnused.Exports.rule
         |> Rule.ignoreErrorsForFiles
             -- Library-like modules the API of which could seem incomplete if exports were removed
-            [ "client/_share/src/DragAndDrop/Reorder.elm"
-            , "client/crosstab-builder/XB2/src/XB2/Browser/Debug.elm"
+            [ "src/crosstab-builder/XB2/src/XB2/Browser/Debug.elm"
             ]
     , NoUnused.Modules.rule
         |> Rule.ignoreErrorsForFiles
-            [ "client/crosstab-builder/XB2/src/XB2/Browser/Debug.elm"
+            [ "src/crosstab-builder/XB2/src/XB2/Browser/Debug.elm"
             ]
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
@@ -82,10 +81,8 @@ config =
     , Simplify.rule Simplify.defaults
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForFiles
-            [ "client/_share/tests/Data/CoreTest.elm"
-            , "client/_share/tests/Notification/QueueTest.elm"
-            , "client/crosstab-builder/XB2/tests/XB2/ColumnLabelTest.elm"
-            , "client/crosstab-builder/XB2/tests/XB2/DetailTest.elm"
+            [ "src/crosstab-builder/XB2/tests/XB2/ColumnLabelTest.elm"
+            , "src/crosstab-builder/XB2/tests/XB2/DetailTest.elm"
             ]
     , NoDeprecated.rule NoDeprecated.defaults
     , NoMissingTypeExpose.rule
@@ -100,13 +97,12 @@ config =
     ]
         |> List.map
             (Rule.ignoreErrorsForDirectories
-                [ "client/_share/benchmarks"
-                , "client/crosstab-builder/XB2/src/XB2/Data/Zod"
+                [ "src/crosstab-builder/XB2/src/XB2/Data/Zod"
                 ]
             )
         |> List.map
             (Rule.ignoreErrorsForFiles
-                [ "client/crosstab-builder/XB2/src/XB2/Utils/Debug.elm" ]
+                [ "src/crosstab-builder/XB2/src/XB2/Utils/Debug.elm" ]
             )
 
 

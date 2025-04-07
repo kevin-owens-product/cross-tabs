@@ -1,7 +1,7 @@
 {
     "type": "application",
     "source-directories": [
-        "client/crosstab-builder/XB2/src"
+        "src/crosstab-builder/XB2/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {

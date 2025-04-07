@@ -68,7 +68,7 @@ module.exports = ({ appName, indexPath }) => {
                     options: {
                         sourceMap: true,
                         sassOptions: {
-                            includePaths: ["client"],
+                            includePaths: ["src"],
                             // Silencing deprecation warnings for now, but we should migrate to Dart Sass 2.0.0 soon
                             quietDeps: true,
                             silenceDeprecations: ["legacy-js-api"]
@@ -175,7 +175,7 @@ module.exports = ({ appName, indexPath }) => {
         resolve: {
             alias: {
                 // css-loader handles only relative paths in url() now, so this alias
-                // enables us to use "absolute" paths (with `client/` as a root)
+                // enables us to use "absolute" paths (with `src/` as a root)
                 "/assets": path.resolve(__dirname, "./assets/")
             },
             enforceExtension: false,

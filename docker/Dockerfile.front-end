@@ -31,7 +31,7 @@ COPY bin /pro/bin
 
 # A hack to be able to download dependencies without compiling our source code
 # ------
-# We want to avoid `COPY ./client /pro/client` before the `elm make` above all costs.
+# We want to avoid `COPY ./src /pro/src` before the `elm make` above all costs.
 # That would download the dependencies on every code change...
 # ------
 # Plan:
@@ -42,14 +42,14 @@ COPY bin /pro/bin
 COPY elm.json /pro/elm.json
 
 RUN mkdir -p \
-    client/crosstab-builder/XB2/src
+    src/crosstab-builder/XB2/src
 
-RUN printf "module DummyMain exposing (..)\nx = 1" > client/crosstab-builder/XB2/src/DummyMain.elm \
-    && elm make ./client/crosstab-builder/XB2/src/DummyMain.elm --output /dev/null
+RUN printf "module DummyMain exposing (..)\nx = 1" > src/crosstab-builder/XB2/src/DummyMain.elm \
+    && elm make ./src/crosstab-builder/XB2/src/DummyMain.elm --output /dev/null
     # ^ Now we have downloaded the dependencies in a layer that's before adding the source code!
     # That means dependencies will only download when elm.json changes, not when the source directories change.
 
-RUN rm -rf ./client/crosstab-builder/XB2/src/DummyMain.elm
+RUN rm -rf ./src/crosstab-builder/XB2/src/DummyMain.elm
 
 COPY webpack.config.js /pro/webpack.config.js
 COPY tsconfig.json /pro/tsconfig.json
@@ -57,4 +57,4 @@ COPY ./deploy /pro/deploy
 COPY Makefile /pro/Makefile
 
 # Most changed directory last... so that we reuse old layers more
-COPY ./client /pro/client
+COPY ./src /pro/src
