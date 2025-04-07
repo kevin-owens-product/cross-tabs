@@ -1,0 +1,74 @@
+@use "_share/src/zindex";
+@use "_share/src/Platform2/colors" as P2Colors;
+
+@mixin main-styles {
+    .p2-et {
+        &__dynamic-dropdown-menu {
+            @include zindex.layer("P2DropdownList");
+            width: auto;
+            height: 0px;
+            overflow: visible;
+
+            &--inner {
+                border-radius: 4px;
+                background-color: P2Colors.$white;
+            }
+
+            &.bottom-right &--inner {
+                position: relative;
+                left: calc(-100% + 26px);
+                top: 30px;
+            }
+
+            &.bottom-left &--inner {
+                position: relative;
+                left: -26px;
+                top: 30px;
+            }
+
+            &.right-top &--inner {
+                position: relative;
+                top: 0;
+                transform: translateY(-20%);
+                left: 30px;
+            }
+
+            &.right-center &--inner {
+                position: relative;
+                top: 0;
+                transform: translateY(-50%);
+                left: 30px;
+            }
+
+            &.right-bottom &--inner {
+                position: relative;
+                bottom: 0;
+                transform: translateY(calc(-100% + 26px));
+                left: 30px;
+            }
+
+            &.left-top &--inner {
+                position: relative;
+                top: 0;
+                transform: translateY(-20%);
+                right: calc(100% + 30px);
+            }
+
+            &.left-bottom &--inner {
+                position: relative;
+                bottom: 0;
+                transform: translateY(calc(-100% + 26px));
+                right: calc(100% + 30px);
+            }
+
+            &.left &--inner {
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+                right: calc(100% + 18px);
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+}

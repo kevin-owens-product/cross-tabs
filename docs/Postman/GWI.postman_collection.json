@@ -1,0 +1,653 @@
+{
+	"info": {
+		"_postman_id": "a2e51d5b-bbb9-4f46-88bc-ea05091355a0",
+		"name": "GWI",
+		"description": "In this postman collection we focus on the Aurora Team specialising in Elm.  \nEspecially on the calls made by the Crosstab application.\n\nRemember to update this Json and share it with the other devs if you add important content.\n\nTo get your bearer token, go to Network in your browser and copy it.\n\nThe bearer tokens you need to modify (use your own) are in the staging and production folders.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38303864"
+	},
+	"item": [
+		{
+			"name": "Crosstab staging",
+			"item": [
+				{
+					"name": "Crosstab Opened",
+					"item": [
+						{
+							"name": "incompatilities-bulk",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"cells\":[{\"attributes\":[{\"question_code\":\"q9a\",\"datapoint_code\":\"8\",\"namespace_code\":\"gwi-automotive\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"row_id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\",\"column_id\":\"438f898e-fc4f-4871-85cc-c157c89ff512\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"4\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"row_id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\",\"column_id\":\"154aac25-04ba-4952-8136-b50440e10583\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"row_id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\",\"column_id\":\"443b77a8-d83f-46e0-895f-7a651c74ae31\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"row_id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\",\"column_id\":\"e86898a1-2c42-4551-8dc9-32d7d385ab4e\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"row_id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\"},{\"attributes\":[{\"question_code\":\"q9a\",\"datapoint_code\":\"8\",\"namespace_code\":\"gwi-automotive\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"row_id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\",\"column_id\":\"438f898e-fc4f-4871-85cc-c157c89ff512\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"4\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"row_id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\",\"column_id\":\"154aac25-04ba-4952-8136-b50440e10583\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"row_id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\",\"column_id\":\"443b77a8-d83f-46e0-895f-7a651c74ae31\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"row_id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\",\"column_id\":\"e86898a1-2c42-4551-8dc9-32d7d385ab4e\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"row_id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\"},{\"attributes\":[{\"question_code\":\"q9a\",\"datapoint_code\":\"8\",\"namespace_code\":\"gwi-automotive\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"1\"}],\"row_id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\",\"column_id\":\"438f898e-fc4f-4871-85cc-c157c89ff512\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"4\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"1\"}],\"row_id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\",\"column_id\":\"154aac25-04ba-4952-8136-b50440e10583\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"1\"}],\"row_id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\",\"column_id\":\"443b77a8-d83f-46e0-895f-7a651c74ae31\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"},{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"1\"}],\"row_id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\",\"column_id\":\"e86898a1-2c42-4551-8dc9-32d7d385ab4e\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"1\"}],\"row_id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\"},{\"attributes\":[{\"question_code\":\"q9a\",\"datapoint_code\":\"8\",\"namespace_code\":\"gwi-automotive\"}],\"column_id\":\"438f898e-fc4f-4871-85cc-c157c89ff512\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"4\"}],\"column_id\":\"154aac25-04ba-4952-8136-b50440e10583\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"3\"}],\"column_id\":\"443b77a8-d83f-46e0-895f-7a651c74ae31\"},{\"attributes\":[{\"question_code\":\"q19\",\"datapoint_code\":\"11\",\"namespace_code\":\"gwi-alcohol\",\"suffix_code\":\"2\"}],\"column_id\":\"e86898a1-2c42-4551-8dc9-32d7d385ab4e\"}],\"filters\":{\"location_codes\":[\"s2_86\",\"s2_81\",\"s2_49\",\"s2_44\",\"s2_33\",\"s2_1\"],\"wave_codes\":[\"q4_2022\",\"q2_2024\"]},\"hard_filters_on\":false}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{staging_url}}/platform/v1/crosstabs/incompatibilities-bulk",
+									"host": [
+										"{{staging_url}}"
+									],
+									"path": [
+										"platform",
+										"v1",
+										"crosstabs",
+										"incompatibilities-bulk"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crosstab",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"columns\":[{\"id\":\"e86898a1-2c42-4551-8dc9-32d7d385ab4e\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_11\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"2\"]}},{\"id\":\"443b77a8-d83f-46e0-895f-7a651c74ae31\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_11\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"3\"]}},{\"id\":\"154aac25-04ba-4952-8136-b50440e10583\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_11\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"4\"]}},{\"id\":\"438f898e-fc4f-4871-85cc-c157c89ff512\",\"expression\":{\"question\":\"gwi-automotive.q9a\",\"datapoints\":[\"q9a_8\"],\"min_count\":1,\"not\":false}}],\"rows\":[{\"id\":\"bdc54f1b-0887-4922-9a97-4eca4edae6bb\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_1\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"1\"]}},{\"id\":\"fc665e31-c045-4881-aa95-9e3ad14be585\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_1\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"2\"]}},{\"id\":\"b9181024-957b-4b15-a4bd-c0d21251f691\",\"expression\":{\"question\":\"gwi-alcohol.q19\",\"datapoints\":[\"q19_1\"],\"min_count\":1,\"not\":false,\"suffixes\":[\"3\"]}}],\"locations\":[\"s2_1\",\"s2_33\",\"s2_44\",\"s2_49\",\"s2_81\",\"s2_86\"],\"waves\":[\"q2_2024\",\"q4_2022\"]}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{staging_url}}/v2/query/crosstab",
+									"host": [
+										"{{staging_url}}"
+									],
+									"path": [
+										"v2",
+										"query",
+										"crosstab"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Question",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{staging_url}}/v2/questions/gwi-plus.q5530?include=categories%2Cdatapoints",
+									"host": [
+										"{{staging_url}}"
+									],
+									"path": [
+										"v2",
+										"questions",
+										"gwi-plus.q5530"
+									],
+									"query": [
+										{
+											"key": "include",
+											"value": "categories%2Cdatapoints"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Category",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"category_id\":\"16058\",\"include\":{\"attribute_counter\":false}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{staging_url}}/platform/category",
+									"host": [
+										"{{staging_url}}"
+									],
+									"path": [
+										"platform",
+										"category"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Audience",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{staging_url}}/platform/v1/charts/uses/audience",
+									"host": [
+										"{{staging_url}}"
+									],
+									"path": [
+										"platform",
+										"v1",
+										"charts",
+										"uses",
+										"audience"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "LocationsV2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"namespaces\":[],\"include\":{\"regions\":true}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{staging_url}}/v2/locations/filter",
+							"host": [
+								"{{staging_url}}"
+							],
+							"path": [
+								"v2",
+								"locations",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LocationsV1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{staging_url}}/v1/surveys/locations",
+							"host": [
+								"{{staging_url}}"
+							],
+							"path": [
+								"v1",
+								"surveys",
+								"locations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "WavesV2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"namespaces\":[]}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{staging_url}}/v2/waves/filter",
+							"host": [
+								"{{staging_url}}"
+							],
+							"path": [
+								"v2",
+								"waves",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "WavesV1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{staging_url}}/v1/surveys/waves",
+							"host": [
+								"{{staging_url}}"
+							],
+							"path": [
+								"v1",
+								"surveys",
+								"waves"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Folders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{staging_url}}/v2/crosstabs/saved/folders",
+							"host": [
+								"{{staging_url}}"
+							],
+							"path": [
+								"v2",
+								"crosstabs",
+								"saved",
+								"folders"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder includes the calls using the staging url.",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Crosstab production",
+			"item": [
+				{
+					"name": "Crosstab Opened",
+					"item": [
+						{
+							"name": "incompatilities-bulk",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"cells\":[{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"45\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"column_id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"44\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"column_id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"32301\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"column_id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"43\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"column_id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"42\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"column_id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\"},{\"attributes\":[{\"question_code\":\"q5534\",\"datapoint_code\":\"4\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"45\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"column_id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"44\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"column_id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"32301\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"column_id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"43\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"column_id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"42\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"column_id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\"},{\"attributes\":[{\"question_code\":\"q5534\",\"datapoint_code\":\"3\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"45\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"column_id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"44\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"column_id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"32301\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"column_id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"43\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"column_id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"42\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"column_id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\"},{\"attributes\":[{\"question_code\":\"q5534\",\"datapoint_code\":\"2\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"35214034-21cc-40b7-8022-3580de37e2d8\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"45\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"column_id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"44\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"column_id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"32301\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"column_id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"43\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"column_id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"42\",\"namespace_code\":\"gwi-plus\"},{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"column_id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\"},{\"attributes\":[{\"question_code\":\"q5534\",\"datapoint_code\":\"1\",\"namespace_code\":\"gwi-plus\"}],\"row_id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"45\",\"namespace_code\":\"gwi-plus\"}],\"column_id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"44\",\"namespace_code\":\"gwi-plus\"}],\"column_id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"32301\",\"namespace_code\":\"gwi-plus\"}],\"column_id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"43\",\"namespace_code\":\"gwi-plus\"}],\"column_id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\"},{\"attributes\":[{\"question_code\":\"q5532e\",\"datapoint_code\":\"42\",\"namespace_code\":\"gwi-plus\"}],\"column_id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\"}],\"filters\":{\"location_codes\":[\"s2_91\",\"s2_86\",\"s2_49\",\"s2_44\",\"s2_39\",\"s2_34\",\"s2_33\",\"s2_2\"],\"wave_codes\":[\"q3_2023\",\"q3_2022\",\"q1_2024\",\"q1_2023\"]},\"hard_filters_on\":false}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{production_url}}/platform/v1/crosstabs/incompatibilities-bulk",
+									"host": [
+										"{{production_url}}"
+									],
+									"path": [
+										"platform",
+										"v1",
+										"crosstabs",
+										"incompatibilities-bulk"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crosstab",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"columns\":[{\"id\":\"b8abf902-b695-461a-b4bc-90922c15f3d8\",\"expression\":{\"question\":\"gwi-plus.q5532e\",\"datapoints\":[\"q5532e_42\"],\"min_count\":1,\"not\":false}},{\"id\":\"c44096d1-df47-4a7d-9c62-57311a36a268\",\"expression\":{\"question\":\"gwi-plus.q5532e\",\"datapoints\":[\"q5532e_43\"],\"min_count\":1,\"not\":false}},{\"id\":\"7c58fd5d-9caa-48f2-a119-a80463b1f37e\",\"expression\":{\"question\":\"gwi-plus.q5532e\",\"datapoints\":[\"q5532e_32301\"],\"min_count\":1,\"not\":false}},{\"id\":\"7b6bde5d-53c8-464f-9301-0e8cbe86a17a\",\"expression\":{\"question\":\"gwi-plus.q5532e\",\"datapoints\":[\"q5532e_44\"],\"min_count\":1,\"not\":false}},{\"id\":\"4b9b006e-4d3d-4234-8f79-35bd4961f5a5\",\"expression\":{\"question\":\"gwi-plus.q5532e\",\"datapoints\":[\"q5532e_45\"],\"min_count\":1,\"not\":false}}],\"rows\":[{\"id\":\"d6fc285b-f5a3-4996-ab99-e94e2f04a4bc\",\"expression\":{\"question\":\"gwi-plus.q5534\",\"datapoints\":[\"q5534_1\"],\"min_count\":1,\"not\":false}},{\"id\":\"35214034-21cc-40b7-8022-3580de37e2d8\",\"expression\":{\"question\":\"gwi-plus.q5534\",\"datapoints\":[\"q5534_2\"],\"min_count\":1,\"not\":false}},{\"id\":\"2a067d68-cb3b-45ac-bd24-fb5411bdd726\",\"expression\":{\"question\":\"gwi-plus.q5534\",\"datapoints\":[\"q5534_3\"],\"min_count\":1,\"not\":false}},{\"id\":\"0a39afa8-ab7c-472d-9aae-93eab9e2a927\",\"expression\":{\"question\":\"gwi-plus.q5534\",\"datapoints\":[\"q5534_4\"],\"min_count\":1,\"not\":false}}],\"locations\":[\"s2_2\",\"s2_33\",\"s2_34\",\"s2_39\",\"s2_44\",\"s2_49\",\"s2_86\",\"s2_91\"],\"waves\":[\"q1_2023\",\"q1_2024\",\"q3_2022\",\"q3_2023\"]}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{production_url}}/v2/query/crosstab",
+									"host": [
+										"{{production_url}}"
+									],
+									"path": [
+										"v2",
+										"query",
+										"crosstab"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Question",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{production_url}}/v2/questions/gwi-plus.q5530?include=categories%2Cdatapoints",
+									"host": [
+										"{{production_url}}"
+									],
+									"path": [
+										"v2",
+										"questions",
+										"gwi-plus.q5530"
+									],
+									"query": [
+										{
+											"key": "include",
+											"value": "categories%2Cdatapoints"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Category",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"category_id\":\"16058\",\"include\":{\"attribute_counter\":false}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{production_url}}/platform/category",
+									"host": [
+										"{{production_url}}"
+									],
+									"path": [
+										"platform",
+										"category"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Audience",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{production_url}}/platform/v1/charts/uses/audience",
+									"host": [
+										"{{production_url}}"
+									],
+									"path": [
+										"platform",
+										"v1",
+										"charts",
+										"uses",
+										"audience"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "LocationsV2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"namespaces\":[],\"include\":{\"regions\":true}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{production_url}}/v2/locations/filter",
+							"host": [
+								"{{production_url}}"
+							],
+							"path": [
+								"v2",
+								"locations",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LocationsV1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{production_url}}/v1/surveys/locations",
+							"host": [
+								"{{production_url}}"
+							],
+							"path": [
+								"v1",
+								"surveys",
+								"locations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "WavesV2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"namespaces\":[]}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{production_url}}/v2/waves/filter",
+							"host": [
+								"{{production_url}}"
+							],
+							"path": [
+								"v2",
+								"waves",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "WavesV1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{production_url}}/v1/surveys/waves",
+							"host": [
+								"{{production_url}}"
+							],
+							"path": [
+								"v1",
+								"surveys",
+								"waves"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Folders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{production_url}}/v2/crosstabs/saved/folders",
+							"host": [
+								"{{production_url}}"
+							],
+							"path": [
+								"v2",
+								"crosstabs",
+								"saved",
+								"folders"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder includes the calls using the production url.",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "staging_url",
+			"value": "https://api-staging.globalwebindex.com",
+			"type": "string"
+		},
+		{
+			"key": "production_url",
+			"value": "https://api.globalwebindex.com",
+			"type": "string"
+		}
+	]
+}

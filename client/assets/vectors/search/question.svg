@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .a, .b {
+        fill: #c7d2e8;
+      }
+
+      .b {
+        opacity: 0.4;
+      }
+    </style>
+  </defs>
+  <title>Results_QuestionSVG</title>
+  <g>
+    <path class="a" d="M14,2H2A2,2,0,0,0,0,4v8a2,2,0,0,0,2,2H14a2,2,0,0,0,2-2V4A2,2,0,0,0,14,2Zm0,10H2V11H14Zm0-2H12V8a1,1,0,0,0-2,0v2H9V6A1,1,0,0,0,7,6v4H6V7A1,1,0,0,0,4,7v3H2V4H14Z"/>
+    <rect class="b" x="2" y="11" width="12" height="1"/>
+  </g>
+</svg>

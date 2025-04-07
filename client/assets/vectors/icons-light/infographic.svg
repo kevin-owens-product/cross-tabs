@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 100 67" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+    <g id="infographic">
+        <g transform="matrix(4.16667,0,0,4.16667,-1190.16,-2108.74)">
+            <g>
+                <g transform="matrix(0.24,-0,-0,0.24,285.638,506.098)">
+                    <use xlink:href="#_Image1" x="20.449" y="12.607" width="59.103px" height="44.786px" transform="matrix(0.985045,0,0,0.995248,0,0)"/>
+                </g>
+                <path d="M302.461,517.599L292.815,517.599L292.815,511.398L302.461,511.398L302.461,517.599ZM302.461,510.709L292.815,510.709C292.435,510.709 292.126,511.018 292.126,511.398L292.126,517.599C292.126,517.979 292.435,518.288 292.815,518.288L302.461,518.288C302.841,518.288 303.15,517.979 303.15,517.599L303.15,511.398C303.15,511.018 302.841,510.709 302.461,510.709" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="299.016" y="514.843" width="2.756" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="299.016" y="512.087" width="2.756" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="299.016" y="516.221" width="0.689" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="300.394" y="516.221" width="1.378" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="299.016" y="513.465" width="0.689" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="300.394" y="513.465" width="1.378" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <path d="M297.638,514.498C297.638,514.849 297.532,515.175 297.351,515.447L297.841,515.936C298.142,515.534 298.327,515.04 298.327,514.498C298.327,513.284 297.427,512.29 296.26,512.121L296.26,512.81C297.046,512.97 297.638,513.665 297.638,514.498" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <path d="M294.193,514.498C294.193,513.665 294.785,512.97 295.571,512.81L295.571,512.121C294.404,512.29 293.504,513.284 293.504,514.498C293.504,515.83 294.584,516.909 295.915,516.909C296.457,516.909 296.951,516.725 297.354,516.423L296.864,515.934C296.592,516.114 296.266,516.22 295.915,516.22C294.964,516.22 294.193,515.449 294.193,514.498" style="fill:#e9edf6;fill-rule:nonzero;"/>
+            </g>
+        </g>
+
+    </g>
+
+</svg>

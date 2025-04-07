@@ -1,0 +1,44 @@
+/**
+    Faktum font
+
+    To be used only from within pro-next (not bundled with standalone
+    P2 applications), since P2 kernel already has its own Faktum
+    fonts:
+
+    https://github.com/GlobalWebIndex/platform2-kernel/blob/d48488e0b42e55c2cacec09e74a2387f9da15da0/app/fonts.scss
+*/
+
+@font-face {
+    font-family: "Faktum";
+    font-style: light;
+    font-weight: 300;
+    src: url("/assets/fonts/faktum/faktum-300-light.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Faktum";
+    font-style: normal;
+    font-weight: 400;
+    src: url("/assets/fonts/faktum/faktum-400-regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Faktum";
+    font-style: normal;
+    font-weight: 500;
+    src: url("/assets/fonts/faktum/faktum-500-medium.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Faktum";
+    font-style: normal;
+    font-weight: 600;
+    src: url("/assets/fonts/faktum/faktum-600-semibold.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Faktum";
+    font-style: bold;
+    font-weight: 700;
+    src: url("/assets/fonts/faktum/faktum-700-bold.otf") format("opentype");
+}

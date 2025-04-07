@@ -1,0 +1,5108 @@
+@use "sass:math";
+
+@use "crosstab-builder/XB2/src/XB2/Share/mixins";
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+
+$rowCellPadding: 7px;
+
+$scrollbar-track-margin-from-screen-edge: 8px;
+$scrollbar-track-margin-from-buttons: 6px;
+$scrollbar-track-width: 12px;
+$scrollbar-width: 8px;
+$scrollbar-button-width: 16px;
+$scrollbar-button-margin-between-buttons: 4px;
+$scrollbar-button-margin-from-screen-edge: 6px;
+$scrollbar-button-margin-from-selection-panel: 6px;
+// Used for lazy loading calculations
+$cell-width: 120px;
+
+$column-label-height: 40px;
+$row-label-width: 48px;
+
+@mixin xb2-table-resizing-cursor-ew($color) {
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#{$color}'%3E%3Cg%3E%3Cpath d='M8 9.846c.34 0 .615.276.615.616v3.437l1.411-1.411c.24-.24.63-.24.87 0 .241.24.241.63 0 .87l-2.46 2.462c-.002 0-.003.002-.004.003-.013.013-.027.025-.042.037-.007.007-.015.012-.023.018l-.025.018-.028.017-.024.014-.029.014-.025.012-.029.01-.028.01-.029.008-.03.007-.033.005-.026.004-.03.002L8 16l-.06-.003-.028-.004-.032-.005-.03-.007-.029-.008-.014-.004-.043-.016-.026-.012-.028-.014-.024-.014c-.01-.006-.019-.01-.028-.017l-.025-.018c-.008-.006-.016-.011-.023-.018l-.042-.037-2.465-2.465c-.24-.24-.24-.63 0-.87s.63-.24.87 0l1.412 1.41v-3.436c0-.34.275-.616.615-.616zm7.385-2.461c.34 0 .615.275.615.615 0 .34-.276.615-.615.615H.615C.275 8.615 0 8.34 0 8c0-.34.276-.615.615-.615zM8.06.003l.028.004.031.005.032.008.027.007.03.01.026.01.028.013.027.013c.009.004.017.01.026.015l.026.016.028.02.02.015c.016.013.03.027.045.041l2.462 2.462c.24.24.24.63 0 .87s-.63.24-.87 0L8.614 2.101v3.437c0 .34-.275.616-.615.616-.34 0-.615-.276-.615-.616V2.101L5.974 3.512c-.12.12-.278.18-.436.18-.157 0-.314-.06-.435-.18-.24-.24-.24-.63 0-.87L7.565.18l.002-.002L7.61.14l.022-.017.026-.02.027-.016.025-.014.028-.014.027-.012.027-.01.03-.01.027-.008.03-.007.033-.005.027-.004.03-.002L8.001 0l.06.003z' transform='translate(-316.000000, -564.000000) translate(323.999988, 572.000000) rotate(-270.000000) translate(-323.999988, -572.000000) translate(315.999988, 564.000012)'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E%0A")
+            8 0,
+        ew-resize;
+}
+
+@mixin xb2-table-resizing-cursor-ns($color) {
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#{$color}'%3E%3Cg%3E%3Cpath d='M8 9.846c.34 0 .615.276.615.616v3.437l1.411-1.411c.24-.24.63-.24.87 0 .241.24.241.63 0 .87l-2.46 2.462c-.002 0-.003.002-.004.003-.013.013-.027.025-.042.037-.007.007-.015.012-.023.018l-.025.018-.028.017-.024.014-.029.014-.025.012-.029.01-.028.01-.029.008-.03.007-.033.005-.026.004-.03.002L8 16l-.06-.003-.028-.004-.032-.005-.03-.007-.029-.008-.014-.004-.043-.016-.026-.012-.028-.014-.024-.014c-.01-.006-.019-.01-.028-.017l-.025-.018c-.008-.006-.016-.011-.023-.018l-.042-.037-2.465-2.465c-.24-.24-.24-.63 0-.87s.63-.24.87 0l1.412 1.41v-3.436c0-.34.275-.616.615-.616zm7.385-2.461c.34 0 .615.275.615.615 0 .34-.276.615-.615.615H.615C.275 8.615 0 8.34 0 8c0-.34.276-.615.615-.615zM8.06.003l.028.004.031.005.032.008.027.007.03.01.026.01.028.013.027.013c.009.004.017.01.026.015l.026.016.028.02.02.015c.016.013.03.027.045.041l2.462 2.462c.24.24.24.63 0 .87s-.63.24-.87 0L8.614 2.101v3.437c0 .34-.275.616-.615.616-.34 0-.615-.276-.615-.616V2.101L5.974 3.512c-.12.12-.278.18-.436.18-.157 0-.314-.06-.435-.18-.24-.24-.24-.63 0-.87L7.565.18l.002-.002L7.61.14l.022-.017.026-.02.027-.016.025-.014.028-.014.027-.012.027-.01.03-.01.027-.008.03-.007.033-.005.027-.004.03-.002L8.001 0l.06.003z' transform='translate(-316.000000, -564.000000) translate(323.999988, 572.000000) rotate(-180.000000) translate(-323.999988, -572.000000) translate(315.999988, 564.000012)'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E%0A")
+            0 8,
+        ns-resize;
+}
+
+@mixin xb2-metricsInRowsLineHeight {
+    line-height: calc(
+        (var(--total-row-height, 112px) - #{$rowCellPadding} - #{$rowCellPadding}) /
+            var(--metrics-count)
+    );
+    transition-property: line-height;
+    transition-duration: 100ms;
+    transition-timing-function: ease-out;
+}
+
+@mixin xb2-metricsInColsLineHeight {
+    transition-property: line-height;
+    transition-duration: 100ms;
+    transition-timing-function: ease-out;
+}
+@mixin xb2-header-dropdown-ellipsis($header) {
+    cursor: pointer;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    @if $header == "row" {
+        bottom: 16px;
+        left: calc(-#{$row-label-width} + 12px);
+    } @else if $header == "col" {
+        top: calc(-#{$column-label-height} + 4px);
+        right: 2px;
+    }
+
+    border-radius: 12px;
+
+    &:focus-visible {
+        outline: none;
+        background-color: P2Colors.$pink-dark;
+        color: #ffffff;
+    }
+
+    &--icon {
+        display: inline-block;
+        position: relative;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+
+        & > svg {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            transform: scale(1.3);
+        }
+
+        &:hover:not(.open) {
+            color: #ffffff;
+
+            &:before {
+                content: "";
+                position: absolute;
+                width: 24px;
+                height: 24px;
+                background: P2Colors.$pink-medium;
+                border-radius: 14px;
+            }
+        }
+
+        &.open {
+            color: P2Colors.$pink-dark;
+
+            & svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        &.sorted {
+            color: #a40f58;
+        }
+    }
+}
+
+@mixin xb2-thin-vertical-border {
+    border-right: 1px solid #abb8cfff;
+
+    &:last-child {
+        border-right: 1px solid #abb8cf00;
+    }
+}
+
+@mixin xb2-drag-handle($header) {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition-property: opacity, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+    transform: translate(-4px, -4px);
+
+    &:not(:hover) {
+        visibility: hidden;
+    }
+
+    &:hover {
+        color: P2Colors.$pink-medium;
+    }
+
+    @if $header == "row" {
+        left: calc(-#{$row-label-width} + 12px);
+        top: calc(50% - 12px);
+
+        &[data-metrics-count="1"],
+        &[data-metrics-count="2"] {
+            bottom: 6px;
+            left: calc(-#{$row-label-width} + 3px);
+        }
+
+        &[data-metrics-count="3"] {
+            top: 39px;
+            left: calc(-#{$row-label-width} + 3px);
+        }
+
+        &[data-metrics-count="4"] {
+            top: 36px;
+        }
+
+        .metrics-in-cols & {
+            bottom: 6px;
+            left: calc(-#{$row-label-width} + 3px);
+        }
+    } @else if $header == "col" {
+        top: -($column-label-height);
+        left: calc(50% - 16px);
+        transform: rotate(90deg);
+
+        .metrics-in-cols & {
+            top: -($column-label-height) + 6px;
+        }
+    }
+
+    color: P2Colors.$grey6;
+    text-align: left;
+    opacity: 1;
+    cursor: grab;
+}
+
+@mixin xb2-drag-grabbing-cursor {
+    cursor: default;
+    cursor: grabbing;
+}
+
+@mixin xb2-drag-drop-shifted-droppable($header) {
+    @include zindex.layer("XB2TableDragDropShiftedDroppable");
+
+    content: "";
+
+    position: absolute;
+    @if $header == "row" {
+        top: 50%;
+        right: 0;
+        bottom: -50%;
+        left: 0;
+    } @else if $header == "col" {
+        top: 0;
+        right: -50%;
+        bottom: 0;
+        left: 50%;
+    }
+
+    width: inherit;
+    height: inherit;
+
+    background-color: transparent;
+}
+
+@mixin xb2-drag-drop-mouseover($header) {
+    @if $header == "row" {
+        box-shadow: inset 0 -2px 0 0 #de1b76;
+    } @else if $header == "col" {
+        box-shadow: inset -1px 0 0 0 #de1b76;
+        border-right-color: #de1b76;
+    }
+    @include xb2-drag-grabbing-cursor();
+}
+
+@mixin xb2-select-checkbox($header) {
+    transition-property: opacity, transform, visibility;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+
+    position: absolute;
+    @if $header == "row" {
+        left: calc(-#{$row-label-width} + 8px);
+        top: 12px;
+
+        .metrics-in-cols & {
+            top: 0px;
+        }
+    } @else if $header == "col" {
+        left: 0px;
+        top: -($column-label-height);
+    }
+
+    width: 32px;
+    height: 32px;
+
+    cursor: pointer;
+
+    .group-box-non-empty &,
+    .selection-panel-opened & {
+        @include xb2-select-full-clickable-area();
+    }
+
+    &--input {
+        @include zindex.layer("P2CheckboxInput");
+
+        margin: 0;
+
+        position: absolute;
+        left: 9px;
+        top: 9px;
+
+        cursor: pointer;
+
+        opacity: 0;
+    }
+
+    &--indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        height: 32px;
+        width: 32px;
+
+        &--icon {
+            height: 32px;
+        }
+    }
+
+    &--input:checked ~ &--indicator {
+        color: #a40f58;
+    }
+}
+
+@mixin xb2-select-full-clickable-area() {
+    right: 0;
+    bottom: 0;
+
+    width: 32px;
+    height: 32px;
+}
+
+@mixin xb2-item-ghost {
+    &.ghost {
+        @include zindex.layer("XB2TableDragDropGhost");
+        will-change: transform;
+
+        opacity: 0.5;
+
+        position: fixed;
+        top: 0;
+        left: 0;
+
+        border: 0;
+        box-shadow:
+            5px 5px 10px 0px rgba(187, 187, 187, 1),
+            -5px -5px 10px 0px rgba(187, 187, 187, 1);
+    }
+
+    &--drag-multiple {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 8px;
+        top: 8px;
+
+        box-shadow:
+            5px 5px 10px 0px rgba(187, 187, 187, 1),
+            -5px -5px 10px 0px rgba(187, 187, 187, 1);
+    }
+
+    &.ghost &--content {
+        @include zindex.layer("XB2TableDragDropGhost");
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: P2Colors.$white;
+    }
+}
+
+// -------- XB Table styles
+
+.xb2-table {
+    $root: &;
+    $column-width-first: var(--first-table-column-width);
+    $column-header-height: var(--header-column-height);
+    $column-width-rest: 120px;
+    $column-view-width-rest: 120px;
+    $column-width-rest-metrics: 368px;
+    $table-border-gutter-size: 10px;
+    $row-names-width: 32px;
+
+    $padding-right: 52px;
+    $padding-bottom: 146px;
+
+    $selected-border: 1px solid P2Colors.$teal-dark;
+    $selected-double-border: 2px solid P2Colors.$teal-dark;
+
+    &__empty {
+        // Breakpoints
+        $sm-w: 896px;
+        $md-w: 1152px;
+        $lg-w: 1360px;
+        $xl-w: 1680px;
+
+        $sm-h: 504px;
+        $md-h: 638px;
+        $lg-h: 750px;
+        $xl-h: 980px;
+
+        // smallest screen as a default
+        --empty-table-content-margin-left: 80px;
+        --empty-table-content-margin-top: 48px;
+        --empty-table-content-width: 415px;
+        --empty-table-font-size: 32px;
+        --empty-table-image: none;
+        --empty-table-line-height: 37px;
+
+        // and then we get progressively wider and taller
+        @media (min-width: $sm-w) and (min-height: $sm-h) {
+            --empty-table-content-width: 333px;
+            --empty-table-font-size: 40px;
+            --empty-table-image: url("/assets/xb2/empty-table.svg");
+            --empty-table-line-height: 43px;
+        }
+
+        @media (min-width: $md-w) and (min-height: $md-h) {
+            --empty-table-font-size: 48px;
+            --empty-table-line-height: 51px;
+        }
+
+        // width
+        @media (min-width: $sm-w) {
+            --empty-table-content-margin-left: 56px;
+        }
+        @media (min-width: $xl-w) {
+            --empty-table-content-margin-left: 72px;
+        }
+
+        // heights
+        @media (min-height: $sm-h) {
+            --empty-table-content-margin-top: 71px;
+        }
+        @media (min-height: $md-h) {
+            --empty-table-content-margin-top: 113px;
+        }
+        @media (min-height: $lg-h) {
+            --empty-table-content-margin-top: 150px;
+        }
+        @media (min-height: $xl-h) {
+            --empty-table-content-margin-top: 286px;
+        }
+
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        background-image: var(--empty-table-image);
+        background-repeat: no-repeat;
+        background-position-y: 32px;
+        background-position-x: 453px;
+
+        &--content {
+            width: var(--empty-table-content-width);
+            margin: var(--empty-table-content-margin-top) 0 0
+                var(--empty-table-content-margin-left);
+        }
+
+        &--title {
+            line-height: var(--empty-table-line-height);
+            font-size: var(--empty-table-font-size);
+            font-weight: bold;
+            color: P2Colors.$navy;
+        }
+
+        &--button {
+            @include P2Components.onboarding($arrow-left: true);
+            @include P2Components.platform2Button-with-icon-on-right;
+            margin-top: 24px;
+
+            &--onboarding {
+                @include zindex.layer("OnboardingUnderModal");
+                top: 70px;
+                right: -305px;
+
+                &.empty {
+                    top: -163px;
+                    right: -240px;
+
+                    &:before {
+                        top: 164px;
+                    }
+                }
+
+                &::before {
+                    width: 15px;
+                    left: -30px;
+                    top: 30px;
+                    border-left: none;
+                    border-top: 15px solid transparent;
+                    border-bottom: 15px solid transparent;
+                    border-right: 19px solid P2Colors.$navy;
+                }
+            }
+        }
+    }
+
+    &__table-scroll {
+        position: relative;
+        flex: 1;
+        min-height: 0; // flex hack
+        width: 100%;
+        overflow: auto;
+
+        // animations
+        #{$root}__table-scroll-button,
+        .simplebar-track,
+        .simplebar-scrollbar {
+            transition-property: opacity, background-color;
+            transition-duration: 0.2s;
+            transition-timing-function: ease-in-out;
+        }
+
+        x-simplebar {
+            height: 100%;
+        }
+
+        .simplebar-content-wrapper {
+            height: 100%;
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+            }
+        }
+
+        .simplebar-track {
+            background-color: #abb8cf;
+            opacity: 1;
+            border-radius: 6px;
+            pointer-events: auto;
+            overflow: initial;
+        }
+
+        // overly specific selector to battle default SimpleBar styles
+
+        .simplebar-track.simplebar-horizontal {
+            left: calc(#{$column-width-first} + 7px);
+            right: $scrollbar-button-margin-from-screen-edge + 3 * $scrollbar-button-width +
+                2 * $scrollbar-button-margin-between-buttons +
+                $scrollbar-track-margin-from-buttons + 3;
+            bottom: $scrollbar-track-margin-from-screen-edge;
+            height: $scrollbar-track-width;
+
+            &:before {
+                content: "";
+                position: absolute;
+                display: inline-block;
+                left: -3px;
+                top: 0;
+                height: $scrollbar-track-width;
+                width: 8px;
+                border-top-left-radius: 6px;
+                border-bottom-left-radius: 6px;
+                background-color: #abb8cf;
+            }
+            box-shadow: 3px 0px 0 0px #abb8cf;
+
+            .simplebar-scrollbar {
+                height: $scrollbar-width;
+                top: math.div($scrollbar-track-width - $scrollbar-width, 2);
+                bottom: math.div($scrollbar-track-width - $scrollbar-width, 2);
+            }
+        }
+
+        .simplebar-track.simplebar-vertical {
+            // This can't be correct according to table, because col height is dynamic based on content
+            top: 137px;
+            bottom: $scrollbar-button-margin-from-screen-edge + 3 *
+                $scrollbar-button-width + 2 * $scrollbar-button-margin-between-buttons +
+                $scrollbar-track-margin-from-buttons + 3;
+            right: $scrollbar-track-margin-from-screen-edge;
+            width: $scrollbar-track-width;
+
+            &:before {
+                content: "";
+                position: absolute;
+                display: inline-block;
+                left: 0;
+                top: -3px;
+                width: $scrollbar-track-width;
+                height: 8px;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                background-color: #abb8cf;
+            }
+            box-shadow: 0px 3px 0 0px #abb8cf;
+
+            .simplebar-scrollbar {
+                width: $scrollbar-width;
+                left: math.div($scrollbar-track-width - $scrollbar-width, 2);
+                right: math.div($scrollbar-track-width - $scrollbar-width, 2);
+            }
+        }
+
+        .simplebar-scrollbar {
+            opacity: 1;
+            border-radius: 4px;
+            background-color: #526482;
+            position: relative;
+        }
+
+        x-simplebar.simplebar-dragging .simplebar-hover .simplebar-scrollbar {
+            background-color: #de1b76;
+
+            &:before {
+                background-color: #de1b76;
+            }
+        }
+
+        &.is-scrolling-top .simplebar-track.simplebar-vertical .simplebar-scrollbar {
+            background-color: #de1b76;
+
+            &:before {
+                background-color: #de1b76;
+            }
+        }
+
+        &.is-scrolling-left .simplebar-track.simplebar-horizontal .simplebar-scrollbar {
+            background-color: #de1b76;
+
+            &:before {
+                background-color: #de1b76;
+            }
+        }
+
+        #{$root}__table-scroll-additions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: P2Colors.$white;
+        }
+
+        #{$root}__table-scroll-tooltip {
+            opacity: 0;
+            transition-property: opacity;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
+
+            position: absolute;
+            @include zindex.layer("XB2TableScrollTooltip");
+            background-color: #19253b;
+            padding: 8px 12px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+
+            &:after {
+                position: absolute;
+                width: 0;
+                height: 0;
+                content: " ";
+                border: solid transparent;
+            }
+
+            &.vertical {
+                right: 20px;
+                top: 50%;
+                transform: translate(0, -50%);
+
+                &:after {
+                    left: 100%;
+                    top: 50%;
+                    border-top: 5px solid transparent;
+                    border-bottom: 5px solid transparent;
+                    border-left: 5px solid #19253b;
+                    transform: translate(0, -50%);
+                }
+            }
+
+            &.horizontal {
+                bottom: 20px;
+                left: 50%;
+                transform: translate(-50%, 0);
+
+                &:after {
+                    top: 100%;
+                    left: 50%;
+                    border-left: 5px solid transparent;
+                    border-right: 5px solid transparent;
+                    border-top: 5px solid #19253b;
+                    transform: translate(-50%, 0);
+                }
+            }
+        }
+
+        #{$root}__table-scroll-button {
+            @include zindex.layer("XB2TableScrollButton");
+            position: absolute;
+            flex: 0 0 16px;
+            width: $scrollbar-button-width;
+            height: $scrollbar-button-width;
+            background-color: P2Colors.$grey5;
+            font-size: 10px;
+            padding: 2px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 2px;
+            overflow: visible;
+
+            &:focus-visible {
+                outline: 2px solid P2Colors.$pink-dark;
+                outline-offset: 2px;
+            }
+
+            &:hover {
+                background-color: #de1b76;
+
+                &:before {
+                    @include zindex.layer("XB2TableScrollTooltip");
+                    content: attr(tooltip-content);
+                    position: absolute;
+                    background-color: #19253b;
+                    padding: 8px 12px;
+                    color: #ffffff;
+                    font-size: 14px;
+                    font-weight: 500;
+                    white-space: nowrap;
+
+                    bottom: calc(100% + 4px);
+                    right: 0;
+                }
+            }
+
+            &:active {
+                background-color: #133eab;
+            }
+
+            &.up,
+            &.down {
+                right: $scrollbar-button-margin-from-screen-edge;
+
+                &:hover:before {
+                    bottom: 0;
+                    right: calc(100% + 4px);
+                }
+
+                & svg {
+                    position: absolute;
+                    top: 6px;
+                    left: 5px;
+                }
+            }
+
+            &.left,
+            &.right {
+                bottom: $scrollbar-button-margin-from-screen-edge;
+
+                & svg {
+                    position: absolute;
+                    top: -2px;
+                    left: -3px;
+                }
+            }
+
+            &.up {
+                bottom: $scrollbar-button-margin-from-screen-edge + 2 *
+                    $scrollbar-button-width + 2 * $scrollbar-button-margin-between-buttons;
+            }
+
+            &.down {
+                bottom: $scrollbar-button-margin-from-screen-edge +
+                    $scrollbar-button-width + $scrollbar-button-margin-between-buttons;
+            }
+
+            &.left {
+                right: $scrollbar-button-margin-from-screen-edge + 2 *
+                    $scrollbar-button-width + 2 * $scrollbar-button-margin-between-buttons;
+            }
+
+            &.right {
+                right: $scrollbar-button-margin-from-screen-edge + $scrollbar-button-width +
+                    $scrollbar-button-margin-between-buttons;
+            }
+        }
+
+        x-simplebar.simplebar-dragging {
+            .simplebar-hover #{$root}__table-scroll-tooltip {
+                opacity: 1;
+            }
+
+            #{$root}__table-scroll-button {
+                background-color: #de1b76;
+            }
+        }
+
+        &.is-scrolling-top
+            x-simplebar.simplebar-dragging
+            .simplebar-track.simplebar-vertical {
+            #{$root}__table-scroll-tooltip {
+                opacity: 1;
+            }
+        }
+
+        &.is-scrolling-left
+            x-simplebar.simplebar-dragging
+            .simplebar-track.simplebar-horizontal {
+            #{$root}__table-scroll-tooltip {
+                opacity: 1;
+            }
+        }
+
+        &.hovered x-simplebar:not(.simplebar-dragging) {
+            #{$root}__table-scroll-button:not(:hover) {
+                background-color: P2Colors.$grey5;
+            }
+        }
+
+        // inactive styles override the active ones,
+        // but hover styles override the inactive ones
+
+        &.inactive:not(.hovered) {
+            .simplebar-track {
+                opacity: 0.2;
+                background-color: #abb8cf;
+            }
+
+            .simplebar-scrollbar {
+                opacity: 0.2;
+            }
+
+            #{$root}__table-scroll-button:not(:active):not(:hover) {
+                background-color: P2Colors.$grey5;
+            }
+        }
+    }
+
+    &__table-container {
+        position: relative;
+        padding: 0 $padding-right $padding-bottom 0;
+
+        &--resize-handler {
+            @include zindex.layer("XB2TableOverlay");
+            @include xb2-table-resizing-cursor-ew(#de1b76);
+
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            top: 0;
+            left: calc(#{$column-width-first} - 1px - 8px);
+            bottom: 0;
+            width: 16px;
+            color: #de1b76;
+            opacity: 0;
+            height: calc(
+                #{$column-header-height} + (var(--total-row-height) * (var(--rows-count)))
+            );
+
+            max-height: 100%;
+
+            &:hover {
+                opacity: 1;
+            }
+
+            &.is-resizing {
+                color: #a40f58;
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+                opacity: 1;
+
+                &.vertical {
+                    @include xb2-table-resizing-cursor-ns(#a40f58);
+                }
+            }
+
+            &--line {
+                width: 2px;
+                height: 100%;
+                background-color: currentColor;
+            }
+
+            &.vertical {
+                @include xb2-table-resizing-cursor-ns(#de1b76);
+
+                top: calc(#{$column-header-height} - 8px);
+                left: 0;
+                right: 0;
+                //we use the --total-col-width because of the col view
+                width: calc(
+                    #{$column-width-first} + (var(--total-col-width) *
+                                var(--columns-count))
+                );
+                max-width: 100%;
+                height: 16px;
+                align-items: center;
+            }
+
+            &.vertical &--line {
+                width: 100%;
+                height: 2px;
+            }
+        }
+
+        &.metrics-in-rows {
+            width: calc(
+                #{$column-width-first} + (#{$column-width-rest} * var(--columns-count)) + #{$padding-right}
+            );
+        }
+
+        &.metrics-in-cols {
+            width: calc(
+                #{$column-width-first} + (var(--total-col-width) * var(--columns-count)) +
+                    #{$padding-right}
+            );
+            min-width: calc(
+                #{$column-width-first} + (var(--total-col-width) * var(--columns-count)) +
+                    #{$padding-right}
+            );
+        }
+    }
+
+    &__table-overlay {
+        @include zindex.layer("XB2TableOverlay");
+        position: absolute;
+        background: P2Colors.$white;
+        opacity: 0.5;
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+    }
+
+    &__table {
+        display: grid;
+        grid-template-columns:
+            #{$column-width-first}
+            calc(var(--frozen-cols) * #{$cell-width})
+            1fr;
+        grid-template-rows:
+            var(--header-column-height)
+            calc(var(--frozen-rows) * var(--total-row-height))
+            auto;
+        grid-template-areas:
+            "corner frozen-total-cols cols"
+            "frozen-total-rows frozen-combined frozen-rows"
+            "rows frozen-cols cells";
+
+        .metrics-in-cols & {
+            grid-template-columns:
+                #{$column-width-first}
+                calc(var(--frozen-cols) * var(--total-col-width))
+                1fr;
+        }
+
+        &--frozen-rows {
+            z-index: 10;
+            grid-area: frozen-rows;
+            position: sticky;
+            top: var(--header-column-height);
+            display: grid;
+            grid-auto-rows: 1fr;
+            color: #191530;
+            font-size: 12px;
+            border-bottom: 3px solid P2Colors.$grey5;
+            overflow: hidden;
+
+            background: url("/assets/crosstab-builder/table-bg.svg") repeat;
+            background-size: $cell-width calc(2 * var(--total-row-height, 112px));
+
+            width: calc((var(--columns-count) - var(--frozen-cols)) * #{$cell-width});
+
+            .metrics-in-cols & {
+                background-size: var(--total-col-width)
+                    calc(2 * var(--total-row-height, 155px));
+                background-image: url("/assets/crosstab-builder/table-bg.svg");
+                width: calc(
+                    var(--total-col-width) * (var(--columns-count) - var(--frozen-cols))
+                );
+            }
+
+            .metrics-in-cols.metrics-1 & {
+                background-size:
+                    var(--total-col-width) calc(2 * var(--total-row-height, 112px)),
+                    $column-width-rest calc(2 * var(--total-row-height, 112px));
+            }
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                display: block;
+                position: absolute;
+
+                .metrics-in-rows & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translateX(calc((var(--top-left-col)) * #{$cell-width}));
+                }
+
+                .metrics-in-cols & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translateX(
+                        calc(var(--top-left-col) * var(--total-col-width))
+                    );
+                }
+            }
+
+            .metrics-in-cols.metrics-1 &--partial {
+                transform: translateX(calc(var(--top-left-col) * var(--total-col-width)));
+            }
+
+            cursor: default;
+
+            .is-header-resizing-row & {
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+            }
+
+            .is-header-resizing-column & {
+                @include xb2-table-resizing-cursor-ns(#a40f58);
+            }
+
+            .drag-drop-occuring & {
+                @include xb2-drag-grabbing-cursor();
+            }
+
+            &--row {
+                @include mixins.normalize-ul;
+                display: flex;
+
+                // Total row
+
+                &:first-child > &--item {
+                    font-weight: 700;
+                    color: #191530;
+                    border-top: none;
+                }
+
+                &.even {
+                    background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    background-color: #f5f7fc;
+                }
+
+                .table-hasnt-frozen-cols & > &--item {
+                    // Total col
+
+                    &:first-child {
+                        font-weight: 700;
+                        color: #191530;
+                        border-left: none;
+                        padding-right: 20px;
+                    }
+                }
+
+                &--item {
+                    position: relative;
+                    @include xb2-thin-vertical-border;
+
+                    --metrics-in-row-padding-right: 56px;
+                    --metrics-in-row-padding-rest: 8px;
+
+                    height: var(--total-row-height, 112px);
+
+                    // li reset
+                    margin: 0;
+
+                    padding: 8px;
+
+                    &--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &::first-line {
+                        font-weight: bold;
+                    }
+
+                    & span + &--value {
+                        // Boldness of first metric data in metrics in cols
+                        font-weight: bold;
+                    }
+
+                    &--value--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value:first-child {
+                        font-weight: bold;
+                    }
+
+                    &--average &--value:first-child {
+                        font-weight: inherit;
+                        padding: 8px 2px 8px 8px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                            padding-left: 0;
+                        }
+                    }
+
+                    &--average &--value:nth-child(2) {
+                        // Boldness disabled for average values
+                        font-weight: inherit;
+                        padding: 8px 8px 8px 2px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                        }
+                    }
+
+                    &--togglable-value {
+                        border-bottom: 1px dashed currentColor;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--warning-icon-total-vs-total {
+                        position: absolute;
+                        right: 4px;
+                        top: 5px;
+                        color: P2Colors.$navy;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &.is-alone {
+                            right: 4px;
+                            top: calc(50% - 12px);
+                        }
+
+                        .metrics-in-cols & {
+                            top: 14px;
+                            right: 8px;
+                            width: 24px;
+                        }
+                    }
+
+                    &--warning-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 1px;
+                        right: 0px;
+                        color: P2Colors.$navy;
+
+                        &:focus-visible,
+                        &:focus {
+                            outline: 2px solid P2Colors.$pink-dark;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &--target {
+                            // doing things this way to do hover and tooltip-showing at the same pixel positions
+                            display: flex;
+                            padding: 8px;
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                outline-offset: -8px;
+                            }
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+                        }
+
+                        cursor: pointer;
+
+                        .metrics-in-cols & {
+                            position: absolute;
+                            width: 32px;
+                            top: calc(50% - 16px);
+                            right: 4px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                        }
+
+                        .selected-above & {
+                            .metrics-in-cols & {
+                                top: 9px;
+                            }
+                            top: 0px;
+                        }
+
+                        .selected-row & {
+                            top: 0px;
+                            .metrics-in-cols & {
+                                top: calc(50% - 16px);
+                            }
+                        }
+                    }
+
+                    &--info-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 40px;
+                        left: 4px;
+                        color: #f6c26d;
+                        cursor: pointer;
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                            left: auto;
+                            right: 8px;
+                        }
+
+                        .metrics-in-cols & {
+                            left: auto;
+                            top: 8px;
+                            right: 0;
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        width: $column-width-rest;
+                        text-align: left;
+                        white-space: pre-wrap;
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+                            margin: 5px 0;
+
+                            height: 10px;
+                            width: 40px;
+                            float: left;
+                            clear: both;
+
+                            &:nth-child(2) {
+                                width: 56px;
+                            }
+
+                            &:first-child {
+                                width: 72px;
+                            }
+                        }
+                    }
+
+                    .metrics-in-cols & {
+                        @include xb2-metricsInColsLineHeight;
+
+                        --metrics-in-row-padding-right: 1px;
+                        --metrics-in-row-padding-rest: 1px;
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: flex-start;
+                        padding-right: 20px;
+                        padding-top: 10px;
+
+                        width: var(--total-col-width, 332px);
+                        min-width: $column-width-rest;
+
+                        &--value {
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+                            padding: 8px;
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+
+                            height: 1em;
+                            padding: 0 8px 0 32px;
+                            margin: 6px 8px 0 18px;
+                            font-size: 10px;
+                            width: 20px;
+                        }
+                    }
+
+                    &--average {
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        line-height: 1;
+                        width: 100%;
+                        height: 100%;
+                        align-items: top;
+                        text-decoration: underline;
+                        text-decoration-style: dashed;
+
+                        &--button {
+                            font-size: 12px;
+                            font-weight: 700;
+                            padding-left: 0;
+                            padding-right: 0;
+                            display: flex;
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                border-radius: 4px;
+                            }
+                        }
+
+                        .metrics-in-rows & {
+                            @include xb2-metricsInRowsLineHeight;
+
+                            justify-content: flex-start;
+                        }
+                    }
+
+                    &.selected-above {
+                        border-top: $selected-border;
+                        padding-top: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.selected-below {
+                        border-bottom: $selected-border;
+                        padding-bottom: calc(8px - 1px);
+                    }
+
+                    &.selected-left {
+                        border-left: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+                    }
+
+                    &.selected-right {
+                        border-right: $selected-border;
+                    }
+
+                    &.selected-column {
+                        border-left: $selected-border;
+                        border-right: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+                        background-color: P2Colors.$teal-bg;
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+
+                        &:last-of-type {
+                            border-right-width: 2px;
+                        }
+                    }
+
+                    &.selected-row {
+                        border-top: $selected-border;
+                        border-bottom: $selected-border;
+
+                        padding-top: calc(8px - 1px);
+                        padding-bottom: calc(8px - 1px);
+
+                        background-color: P2Colors.$teal-bg;
+
+                        &.last-row {
+                            border-bottom: $selected-double-border;
+
+                            padding-bottom: calc(8px - 1px);
+                        }
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.row-mouseover {
+                        @include xb2-drag-drop-mouseover("row");
+                    }
+
+                    &.column-mouseover {
+                        @include xb2-drag-drop-mouseover("col");
+                    }
+                }
+            }
+        }
+
+        &--frozen-total-rows {
+            z-index: 11;
+            grid-area: frozen-total-rows;
+            position: sticky;
+            top: var(--header-column-height);
+            left: 0;
+            border-bottom: 3px solid P2Colors.$grey5;
+            display: grid;
+            grid-auto-rows: 1fr;
+            overflow: hidden;
+            background: url("/assets/crosstab-builder/table-bg-1-bars.svg") repeat;
+            background-size: calc(100% + 2px) calc(2 * var(--total-row-height, 112px));
+            background-repeat: repeat-y;
+            background-position-x: -1px;
+            border-right: 1px solid #abb8cf;
+            height: calc(var(--total-row-height, 112px) * (var(--frozen-rows)));
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                @include mixins.normalize-ul;
+
+                display: flex;
+                flex-flow: column;
+                position: relative;
+                left: 0;
+                top: 0;
+
+                .forced-loading-state & {
+                    opacity: 0;
+                }
+            }
+
+            &--item {
+                position: relative;
+
+                color: #191530;
+
+                cursor: default;
+                word-break: break-word;
+
+                height: (var(--total-row-height, 112px));
+
+                border-top: 1px solid transparent;
+                border-color: transparent;
+                background-color: var(--row-background-color);
+
+                .is-header-resizing-row & {
+                    @include xb2-table-resizing-cursor-ew(#a40f58);
+                }
+
+                .is-header-resizing-column & {
+                    @include xb2-table-resizing-cursor-ns(#a40f58);
+                }
+
+                &.even {
+                    --row-background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    --row-background-color: #f5f7fc;
+                }
+
+                &.is-average {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23191530' fill-rule='evenodd' d='M23.111 15.35c.327 0 .597.24.643.554l.007.096v7c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L22.461 23v-7c0-.36.291-.65.65-.65zm-4.709 2.333c.326 0 .597.241.643.554l.007.096V23c0 .359-.291.65-.65.65-.326 0-.596-.24-.643-.554L17.752 23v-4.667c0-.359.291-.65.65-.65zm-9.513 2.042c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L8.24 23v-2.625c0-.36.291-.65.65-.65zm4.71-2.975c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L12.95 23v-5.6c0-.36.291-.65.65-.65zm9.975-8.206c.227.23.247.587.062.84l-.069.08L19.06 13.9c-.563.553-1.45.587-2.052.103l-.116-.104-.727-.715.02-.014c-.364.262-.812.417-1.296.417-.517 0-.993-.177-1.37-.472l.009.007-4.183 4.118c-.256.252-.668.249-.92-.007-.226-.23-.246-.587-.061-.84l.069-.08 4.344-4.276-.008-.027c-.056-.192-.086-.395-.086-.605 0-1.207.99-2.181 2.206-2.181 1.215 0 2.205.975 2.205 2.181 0 .21-.03.413-.085.605l-.045.137.84.826c.078.077.2.09.293.038l.051-.038 4.507-4.437c.256-.252.667-.249.92.007zm-8.685 1.981c-.503 0-.906.397-.906.881 0 .485.403.881.906.881.502 0 .905-.396.905-.88 0-.485-.403-.882-.905-.882z'/%3E%3C/svg%3E%0A");
+                    background-repeat: no-repeat;
+                    background-position: 8px 12px;
+
+                    .metrics-in-cols & {
+                        background-position: 18px 7px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        background-position: 8px 8px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        background-position: 0 12px;
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        background-position: 18px 7px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        background-position: 18px 7px;
+                    }
+                }
+
+                &--content {
+                    display: flex;
+                    flex-direction: row;
+                    height: var(--total-row-height, 112px);
+                    flex: 1;
+                }
+
+                &.non-totals:hover &--label {
+                    opacity: 0;
+
+                    .drag-drop-occuring & {
+                        opacity: 1;
+                    }
+                }
+
+                &.non-totals:hover &--label + &--main &--drag {
+                    visibility: visible;
+                }
+
+                &--label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-align: center;
+                    color: P2Colors.$grey6;
+                    height: 16px;
+                    max-width: 48px;
+                    padding: 0 21px 0 21px;
+                    white-space: nowrap;
+                    margin-top: 48px;
+
+                    .metrics-in-cols & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        margin-top: 40px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        padding: 20px 30px 0px 12px;
+                        margin-top: 32px;
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+                }
+
+                &--main {
+                    position: relative;
+                    padding: $rowCellPadding;
+                    padding-left: 0px;
+                    padding-right: 7px;
+
+                    height: 100%;
+                    width: 100%;
+
+                    &:not(.is-total) {
+                        cursor: pointer;
+
+                        .is-header-resizing-row & {
+                            @include xb2-table-resizing-cursor-ew(#a40f58);
+                        }
+
+                        .is-header-resizing-column & {
+                            @include xb2-table-resizing-cursor-ns(#a40f58);
+                        }
+
+                        .metrics-in-rows.metrics-3 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+
+                        .metrics-in-rows.metrics-2 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+                    }
+                }
+
+                &--select--input:focus-visible + &--select--indicator {
+                    border: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                    width: 22px;
+                    height: 22px;
+                    left: 5px;
+                    top: 5px;
+                }
+
+                &:has(&--select--input:focus-visible) &--tooltip {
+                    color: P2Colors.$pink-dark;
+                }
+
+                &--select--indicator {
+                    outline: none;
+                }
+
+                &--select:hover &--select--indicator--icon svg {
+                    color: P2Colors.$pink-medium;
+                }
+
+                &--icon {
+                    color: P2Colors.$pink-medium;
+                    align-items: baseline;
+                    margin-top: auto;
+                    display: flex;
+                }
+
+                &--caption:not(:hover) &--icon {
+                    visibility: hidden;
+                }
+
+                &.non-totals &--main:hover &--caption {
+                    &--name {
+                        color: P2Colors.$pink-medium;
+                    }
+
+                    &--subtitle {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                .metrics-in-rows & {
+                    &--main {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+
+                    &--caption {
+                        &--name {
+                            @include mixins.lineClamp(var(--title-lines, 1));
+
+                            &.title-only {
+                                @include mixins.lineClamp(
+                                    calc(var(--title-lines, 1) + var(--subtitle-lines, 1))
+                                );
+                            }
+
+                            text-align: left;
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        }
+
+                        &--subtitle {
+                            @include mixins.lineClamp(var(--subtitle-lines, 1));
+
+                            text-align: left;
+                            font-size: 12px;
+                            font-weight: 400;
+                        }
+
+                        line-height: 15px;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    &--metrics {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        &--cont {
+                            height: calc(
+                                var(--total-row-height, 112px) - #{$rowCellPadding} - #{$rowCellPadding}
+                            );
+                            min-width: 68px;
+                            margin-left: 16px;
+                            margin-right: 10px;
+                        }
+
+                        text-align: right;
+                        font-size: 12px;
+                        color: #191530;
+                        font-weight: 400;
+                        display: flex;
+                        flex-direction: column;
+
+                        &--label.sorted-by {
+                            color: #de1b76;
+                            font-weight: 600;
+                        }
+                    }
+                }
+
+                .metrics-in-cols & {
+                    display: flex;
+                    align-items: center;
+
+                    &.selected {
+                        padding-top: 1px;
+                    }
+
+                    &.selected-below {
+                        padding-top: 1px;
+                    }
+
+                    .is-total {
+                        top: 10px;
+                    }
+
+                    &--caption {
+                        line-height: 16px;
+
+                        &--name {
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            @include mixins.lineClamp(1);
+                        }
+
+                        &--subtitle {
+                            font-size: 12px;
+                            font-weight: 400;
+                            @include mixins.lineClamp(1);
+                        }
+                    }
+
+                    &--main {
+                        height: auto;
+                        width: auto;
+                        position: relative;
+                        padding: 8px 8px 0 0;
+                        display: flex;
+                        flex: 1;
+                    }
+                }
+
+                &--sorted-by {
+                    color: #de1b76;
+                    font-weight: 600;
+                }
+
+                &.selected-above {
+                    border-top: $selected-border;
+                }
+
+                &.selected-below {
+                    border-bottom: $selected-border;
+                }
+
+                &.selected {
+                    border-bottom: $selected-border;
+                    border-top: $selected-border;
+                    background-color: P2Colors.$teal-bg;
+
+                    &.last-header {
+                        border-bottom: $selected-double-border;
+                    }
+                }
+
+                &.selected &--caption {
+                    color: #a40f58;
+                }
+
+                &.selected &--caption--subtitle {
+                    font-weight: 600;
+                    display: flex;
+                }
+
+                &--select {
+                    @include xb2-select-checkbox("row");
+
+                    .metrics-in-cols & {
+                        top: 8px;
+                        left: -28px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        top: 8px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        top: 2px;
+                        left: calc(-#{$row-label-width} - 1px);
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        top: 8px;
+                        left: -28px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        top: 8px;
+                        left: -28px;
+                    }
+                }
+
+                &--drag {
+                    @include xb2-drag-handle("row");
+                }
+
+                &--ellipsis {
+                    @include xb2-header-dropdown-ellipsis("row");
+
+                    .metrics-in-cols & {
+                        bottom: 16px;
+                        left: calc(var(--first-table-column-width) - 75px);
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        bottom: 12px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        bottom: 28px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        bottom: 16px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        bottom: 16px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+                }
+
+                &.droppable:after {
+                    @include xb2-drag-drop-shifted-droppable("row");
+                }
+
+                &.mouseover {
+                    @include xb2-drag-drop-mouseover("row");
+                }
+
+                &.placeholder &--content {
+                    opacity: 0.3;
+                }
+
+                &.placeholder {
+                    @include xb2-drag-grabbing-cursor();
+                }
+
+                @include xb2-item-ghost();
+
+                .metrics-in-rows &.ghost {
+                    width: calc(#{$column-width-first} - 64px - 16px);
+                }
+
+                .metrics-in-cols &.ghost,
+                &.ghost.is-average {
+                    width: calc(#{$column-width-first} - 15px + 2px);
+                }
+            }
+        }
+
+        &--frozen-cols {
+            grid-area: frozen-cols;
+            left: var(--first-table-column-width);
+            z-index: 10;
+            border-right: 3px solid P2Colors.$grey5;
+            position: sticky;
+            top: var(--header-column-height);
+            display: grid;
+            grid-auto-rows: 1fr;
+            color: #191530;
+            font-size: 12px;
+            overflow: hidden;
+
+            background: url("/assets/crosstab-builder/table-bg.svg") repeat;
+            background-size: $cell-width calc(2 * var(--total-row-height, 112px));
+
+            width: calc((var(--frozen-cols)) * #{$cell-width});
+
+            .metrics-in-cols & {
+                background-size: var(--total-col-width)
+                    calc(2 * var(--total-row-height, 155px));
+                background-image: url("/assets/crosstab-builder/table-bg.svg");
+                width: calc(var(--total-col-width) * (var(--frozen-cols)));
+            }
+
+            .metrics-in-cols.metrics-1 & {
+                background-size:
+                    var(--total-col-width) calc(2 * var(--total-row-height, 112px)),
+                    $column-width-rest calc(2 * var(--total-row-height, 112px));
+            }
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                display: block;
+                position: absolute;
+
+                .metrics-in-rows & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translateY(
+                        calc(var(--top-left-row) * var(--total-row-height, 112px))
+                    );
+                }
+
+                .metrics-in-cols & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translateY(
+                        calc(var(--top-left-row) * var(--total-row-height, 112px))
+                    );
+                }
+            }
+
+            .metrics-in-cols.metrics-1 &--partial {
+                transform: translateY(
+                    calc(var(--top-left-row) * var(--total-row-height, 112px))
+                );
+            }
+
+            cursor: default;
+
+            .is-header-resizing-row & {
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+            }
+
+            .is-header-resizing-column & {
+                @include xb2-table-resizing-cursor-ns(#a40f58);
+            }
+
+            .drag-drop-occuring & {
+                @include xb2-drag-grabbing-cursor();
+            }
+
+            &--row {
+                @include mixins.normalize-ul;
+                display: flex;
+
+                // Total row
+
+                .table-hasnt-frozen-rows &:first-child > &--item {
+                    font-weight: 700;
+                    color: #191530;
+                    border-top: none;
+                }
+
+                &.even {
+                    background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    background-color: #f5f7fc;
+                }
+
+                & > &--item {
+                    // Total col
+
+                    &:first-child {
+                        font-weight: 700;
+                        color: #191530;
+                        border-left: none;
+                        padding-right: 20px;
+                    }
+                }
+
+                &--item {
+                    position: relative;
+                    @include xb2-thin-vertical-border;
+
+                    --metrics-in-row-padding-right: 56px;
+                    --metrics-in-row-padding-rest: 8px;
+
+                    height: var(--total-row-height, 112px);
+
+                    // li reset
+                    margin: 0;
+
+                    padding: 8px;
+
+                    &--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &::first-line {
+                        font-weight: bold;
+                    }
+
+                    & span + &--value {
+                        // Boldness of first metric data in metrics in cols
+                        font-weight: bold;
+                    }
+
+                    &--value--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value:first-child {
+                        font-weight: bold;
+                    }
+
+                    &--average &--value:first-child {
+                        font-weight: inherit;
+                        padding: 8px 2px 8px 8px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                            padding-left: 0;
+                        }
+                    }
+
+                    &--average &--value:nth-child(2) {
+                        // Boldness disabled for average values
+                        font-weight: inherit;
+                        padding: 8px 8px 8px 2px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                        }
+                    }
+
+                    &--togglable-value {
+                        border-bottom: 1px dashed currentColor;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--warning-icon-total-vs-total {
+                        position: absolute;
+                        right: 4px;
+                        top: 5px;
+                        color: P2Colors.$navy;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &.is-alone {
+                            right: 4px;
+                            top: calc(50% - 12px);
+                        }
+
+                        .metrics-in-cols & {
+                            top: 14px;
+                            right: 8px;
+                            width: 24px;
+                        }
+                    }
+
+                    &--warning-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 1px;
+                        right: 0px;
+                        color: P2Colors.$navy;
+
+                        &:focus-visible,
+                        &:focus {
+                            outline: 2px solid P2Colors.$pink-dark;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &--target {
+                            // doing things this way to do hover and tooltip-showing at the same pixel positions
+                            display: flex;
+                            padding: 8px;
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                outline-offset: -8px;
+                            }
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+                        }
+
+                        cursor: pointer;
+
+                        .metrics-in-cols & {
+                            position: absolute;
+                            width: 32px;
+                            top: calc(50% - 16px);
+                            right: 4px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                        }
+
+                        .selected-above & {
+                            .metrics-in-cols & {
+                                top: 9px;
+                            }
+                            top: 0px;
+                        }
+
+                        .selected-row & {
+                            top: 0px;
+                            .metrics-in-cols & {
+                                top: calc(50% - 16px);
+                            }
+                        }
+                    }
+
+                    &--info-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 40px;
+                        left: 4px;
+                        color: #f6c26d;
+                        cursor: pointer;
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                            left: auto;
+                            right: 8px;
+                        }
+
+                        .metrics-in-cols & {
+                            left: auto;
+                            top: 8px;
+                            right: 0;
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        width: $column-width-rest;
+                        text-align: left;
+                        white-space: pre-wrap;
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+                            margin: 5px 0;
+
+                            height: 10px;
+                            width: 40px;
+                            float: left;
+                            clear: both;
+
+                            &:nth-child(2) {
+                                width: 56px;
+                            }
+
+                            &:first-child {
+                                width: 72px;
+                            }
+                        }
+                    }
+
+                    .metrics-in-cols & {
+                        @include xb2-metricsInColsLineHeight;
+
+                        --metrics-in-row-padding-right: 1px;
+                        --metrics-in-row-padding-rest: 1px;
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: flex-start;
+                        padding-right: 20px;
+                        padding-top: 10px;
+
+                        width: var(--total-col-width, 332px);
+                        min-width: $column-width-rest;
+
+                        &--value {
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+                            padding: 8px;
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+
+                            height: 1em;
+                            padding: 0 8px 0 32px;
+                            margin: 6px 8px 0 18px;
+                            font-size: 10px;
+                            width: 20px;
+                        }
+                    }
+
+                    &--average {
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        line-height: 1;
+                        width: 100%;
+                        height: 100%;
+                        align-items: top;
+                        text-decoration: underline;
+                        text-decoration-style: dashed;
+
+                        &--button {
+                            font-size: 12px;
+                            font-weight: 700;
+                            padding-left: 0;
+                            padding-right: 0;
+                            display: flex;
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                border-radius: 4px;
+                            }
+                        }
+
+                        .metrics-in-rows & {
+                            @include xb2-metricsInRowsLineHeight;
+
+                            justify-content: flex-start;
+                        }
+                    }
+
+                    &.selected-above {
+                        border-top: $selected-border;
+                        padding-top: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.selected-below {
+                        border-bottom: $selected-border;
+                        padding-bottom: calc(8px - 1px);
+                    }
+
+                    &.selected-left {
+                        border-left: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+                    }
+
+                    &.selected-right {
+                        border-right: $selected-border;
+                    }
+
+                    &.selected-column {
+                        border-left: $selected-border;
+                        border-right: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+                        background-color: P2Colors.$teal-bg;
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                            &:last-of-type {
+                                border-right-width: 1px;
+                            }
+                        }
+
+                        &:last-of-type {
+                            border-right-width: 2px;
+                        }
+                    }
+
+                    &.selected-row {
+                        border-top: $selected-border;
+                        border-bottom: $selected-border;
+
+                        padding-top: calc(8px - 1px);
+                        padding-bottom: calc(8px - 1px);
+
+                        background-color: P2Colors.$teal-bg;
+
+                        &.last-row {
+                            border-bottom: $selected-double-border;
+
+                            padding-bottom: calc(8px - 1px);
+                        }
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.row-mouseover {
+                        @include xb2-drag-drop-mouseover("row");
+                    }
+
+                    &.column-mouseover {
+                        @include xb2-drag-drop-mouseover("col");
+                    }
+                }
+            }
+        }
+
+        &--frozen-total-cols {
+            z-index: 11;
+            grid-area: frozen-total-cols;
+            position: sticky;
+            top: 0;
+            left: var(--first-table-column-width);
+            border-right: 3px solid P2Colors.$grey5;
+            display: flex;
+            position: sticky;
+            background: url("/assets/crosstab-builder/table-bg-2-bars.svg") repeat;
+            background-size: $cell-width 200%;
+            background-position: left 100%;
+            border-bottom: 1px solid #abb8cf;
+            overflow: hidden;
+
+            width: calc(#{$cell-width} * (var(--frozen-cols)));
+
+            .metrics-in-cols & {
+                width: calc(var(--total-col-width) * var(--frozen-cols));
+                background-size:
+                    var(--total-col-width, 332px) var(--header-column-height, 112px),
+                    var(--total-col-width, 332px) 200%;
+                background-image: url("/assets/crosstab-builder/table-bg-loading-bar.svg"),
+                    url("/assets/crosstab-builder/table-bg.svg");
+                background-repeat: repeat-x;
+            }
+
+            &--partial {
+                @include mixins.normalize-ul;
+
+                display: flex;
+                position: relative;
+                left: 0;
+                top: 0;
+                background: #ffffff;
+
+                .forced-loading-state & {
+                    opacity: 0;
+                }
+            }
+
+            &--item {
+                position: relative;
+
+                @include xb2-thin-vertical-border;
+
+                cursor: default;
+                word-break: break-word;
+
+                border-left: 1px solid transparent;
+
+                text-align: left;
+                height: $column-header-height;
+
+                .is-header-resizing-row & {
+                    @include xb2-table-resizing-cursor-ew(#a40f58);
+                }
+
+                .is-header-resizing-column & {
+                    @include xb2-table-resizing-cursor-ns(#a40f58);
+                }
+
+                &--content {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                &.non-totals:hover &--label {
+                    opacity: 0;
+
+                    .drag-drop-occuring & {
+                        opacity: 1;
+                    }
+                }
+
+                &.non-totals:hover &--label + &--main &--drag {
+                    visibility: visible;
+                }
+
+                &--label {
+                    display: block;
+                    font-size: 12px;
+                    text-align: center;
+                    font-weight: 600;
+                    color: P2Colors.$grey6;
+                    height: $column-label-height;
+                    padding: 9px 0 0 0;
+                    width: 32px;
+                    margin: auto;
+
+                    .metrics-in-cols & {
+                        height: 32px;
+                    }
+                }
+
+                &:not(:first-child) &--main {
+                    .metrics-in-cols & {
+                        background-position: 18px 6px;
+                    }
+                }
+
+                &.is-average {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23191530' fill-rule='evenodd' d='M23.111 15.35c.327 0 .597.24.643.554l.007.096v7c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L22.461 23v-7c0-.36.291-.65.65-.65zm-4.709 2.333c.326 0 .597.241.643.554l.007.096V23c0 .359-.291.65-.65.65-.326 0-.596-.24-.643-.554L17.752 23v-4.667c0-.359.291-.65.65-.65zm-9.513 2.042c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L8.24 23v-2.625c0-.36.291-.65.65-.65zm4.71-2.975c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L12.95 23v-5.6c0-.36.291-.65.65-.65zm9.975-8.206c.227.23.247.587.062.84l-.069.08L19.06 13.9c-.563.553-1.45.587-2.052.103l-.116-.104-.727-.715.02-.014c-.364.262-.812.417-1.296.417-.517 0-.993-.177-1.37-.472l.009.007-4.183 4.118c-.256.252-.668.249-.92-.007-.226-.23-.246-.587-.061-.84l.069-.08 4.344-4.276-.008-.027c-.056-.192-.086-.395-.086-.605 0-1.207.99-2.181 2.206-2.181 1.215 0 2.205.975 2.205 2.181 0 .21-.03.413-.085.605l-.045.137.84.826c.078.077.2.09.293.038l.051-.038 4.507-4.437c.256-.252.667-.249.92.007zm-8.685 1.981c-.503 0-.906.397-.906.881 0 .485.403.881.906.881.502 0 .905-.396.905-.88 0-.485-.403-.882-.905-.882z'/%3E%3C/svg%3E%0A");
+                    background-repeat: no-repeat;
+                    background-position: 0 0;
+
+                    .metrics-in-cols & {
+                        background-position: 9px 4px;
+                    }
+                }
+
+                &--main {
+                    position: relative;
+                    padding: 0;
+                    height: calc(100% - #{$column-label-height});
+
+                    &:not(.is-total) {
+                        cursor: pointer;
+
+                        .is-header-resizing-column & {
+                            @include xb2-table-resizing-cursor-ns(#a40f58);
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        padding: 0 8px 8px 8px;
+                    }
+                }
+
+                &--select--input:focus-visible + &--select--indicator {
+                    border: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                    width: 22px;
+                    height: 22px;
+                    left: 5px;
+                    top: 5px;
+                }
+
+                &:has(&--select--input:focus-visible) &--caption {
+                    color: P2Colors.$pink-dark;
+                }
+
+                &--select--indicator {
+                    outline: none;
+                }
+
+                &--select:hover &--select--indicator--icon svg {
+                    color: P2Colors.$pink-medium;
+                }
+
+                &--tooltip {
+                    height: 100%;
+
+                    & x-cooltip-target {
+                        position: relative;
+                        height: 100%;
+                        overflow: hidden;
+                    }
+                }
+
+                &--caption {
+                    .not-resized-col-header &--name.title-only {
+                        @include mixins.lineClamp(calc(var(--title-lines, 1) + 3));
+                    }
+
+                    color: #191530;
+                    height: 100%;
+                    width: 100%;
+                }
+
+                .metrics-in-rows & {
+                    &--caption {
+                        line-height: 18px;
+                        flex-direction: column;
+
+                        &--name {
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: currentColor;
+                        }
+
+                        &--subtitle {
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+
+                            font-size: 12px;
+                            font-weight: 400;
+                            color: currentColor;
+                        }
+
+                        position: relative;
+                        line-height: 16px;
+                        padding-top: 6px;
+                    }
+
+                    display: flex;
+                    justify-content: flex-start;
+
+                    width: $column-width-rest;
+                }
+
+                $metrics-cont-height: 32px;
+
+                .metrics-in-cols & {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+
+                    width: var(--total-col-width, 332px);
+                    min-width: $column-width-rest;
+                    height: var(--header-column-height);
+
+                    padding: 0;
+
+                    background-position-y: 6px;
+
+                    &--tooltip {
+                        height: 100%;
+                    }
+
+                    &--caption {
+                        padding: 0 16px 0;
+                        line-height: 16px;
+                        flex-direction: column;
+
+                        &--name {
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: currentColor;
+                            cursor: pointer;
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+                        }
+
+                        &--subtitle {
+                            font-size: 12px;
+                            font-weight: 400;
+                            color: currentColor;
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+                        }
+                    }
+
+                    &--metrics {
+                        text-align: left;
+                        font-size: 12px;
+                        color: #191530;
+                        white-space: nowrap;
+                        padding-top: 8px;
+                        padding-bottom: 10px;
+                        display: flex;
+                        justify-content: space-around;
+                        padding-right: 20px;
+
+                        &--label {
+                            display: inline-block;
+                            padding: 0 8px;
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--cont {
+                            height: $metrics-cont-height;
+                        }
+                    }
+
+                    &--main {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                    }
+
+                    &--content {
+                        flex: 1;
+                    }
+                }
+
+                &.selected-left {
+                    border-left: $selected-border;
+                }
+
+                &.selected-right {
+                    border-right: $selected-border;
+                }
+
+                &.selected {
+                    border-left: $selected-border;
+                    border-right: $selected-border;
+                    background-color: P2Colors.$teal-bg;
+
+                    &.last-header {
+                        border-right: $selected-double-border;
+                    }
+                }
+
+                &.selected &--caption {
+                    color: #a40f58;
+                }
+
+                &.selected &--caption--subtitle {
+                    font-weight: 600;
+                }
+
+                &--select {
+                    @include xb2-select-checkbox("col");
+
+                    .metrics-in-cols & {
+                        top: -36px;
+                        left: 6px;
+                    }
+                }
+
+                &--select:hover &--select {
+                    &--indicator {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                &--icon {
+                    color: P2Colors.$pink-medium;
+                    align-items: baseline;
+                    margin-top: auto;
+                    display: flex;
+                }
+
+                &--caption:not(:hover) &--icon {
+                    visibility: hidden;
+                }
+
+                &.non-totals &--main:hover &--caption {
+                    &--name {
+                        color: P2Colors.$pink-medium;
+                    }
+
+                    &--subtitle {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                &--drag {
+                    @include xb2-drag-handle("col");
+                }
+
+                &--ellipsis {
+                    @include xb2-header-dropdown-ellipsis("col");
+
+                    .metrics-in-cols & {
+                        top: -32px;
+                        right: 12px;
+                    }
+                }
+
+                &.droppable:after {
+                    @include xb2-drag-drop-shifted-droppable("col");
+                }
+
+                &.droppable:last-child:after {
+                    width: calc(50% + #{$padding-right});
+                }
+
+                &.mouseover {
+                    @include xb2-drag-drop-mouseover("col");
+                }
+
+                &.placeholder &--content {
+                    opacity: 0.3;
+                }
+
+                &.placeholder {
+                    @include xb2-drag-grabbing-cursor();
+                }
+
+                &.next-to-placeholder {
+                    border-color: #abb8cf54;
+                }
+
+                @include xb2-item-ghost;
+            }
+        }
+
+        &--frozen-combined {
+            position: sticky;
+            grid-area: frozen-combined;
+            top: var(--header-column-height);
+            left: var(--first-table-column-width);
+            z-index: 11;
+            border-bottom: 3px solid P2Colors.$grey5;
+            border-right: 3px solid P2Colors.$grey5;
+            display: grid;
+            grid-auto-rows: 1fr;
+            color: #191530;
+            font-size: 12px;
+            border-bottom: 3px solid P2Colors.$grey5;
+            overflow: hidden;
+
+            background: url("/assets/crosstab-builder/table-bg.svg") repeat;
+            background-size: $cell-width calc(2 * var(--total-row-height, 112px));
+
+            width: calc((var(--frozen-cols)) * #{$cell-width});
+
+            .metrics-in-cols & {
+                background-size: var(--total-col-width)
+                    calc(2 * var(--total-row-height, 155px));
+                background-image: url("/assets/crosstab-builder/table-bg.svg");
+                width: calc(var(--total-col-width) * (var(--frozen-cols)));
+            }
+
+            .metrics-in-cols.metrics-1 & {
+                background-size:
+                    var(--total-col-width) calc(2 * var(--total-row-height, 112px)),
+                    $column-width-rest calc(2 * var(--total-row-height, 112px));
+            }
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                display: block;
+                position: absolute;
+
+                .metrics-in-rows & {
+                    top: var(--cells-top-offset, $cell-width);
+                }
+
+                .metrics-in-cols & {
+                    top: var(--cells-top-offset, $cell-width);
+                }
+            }
+
+            cursor: default;
+
+            .is-header-resizing-row & {
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+            }
+
+            .is-header-resizing-column & {
+                @include xb2-table-resizing-cursor-ns(#a40f58);
+            }
+
+            .drag-drop-occuring & {
+                @include xb2-drag-grabbing-cursor();
+            }
+
+            &--row {
+                @include mixins.normalize-ul;
+                display: flex;
+
+                // Total row
+
+                &:first-child > &--item {
+                    font-weight: 700;
+                    color: #191530;
+                    border-top: none;
+                    padding-right: 20px;
+                }
+
+                &.even {
+                    background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    background-color: #f5f7fc;
+                }
+
+                & > &--item {
+                    // Total col
+
+                    &:first-child {
+                        font-weight: 700;
+                        color: #191530;
+                        border-left: none;
+                        padding-right: 20px;
+                    }
+                }
+
+                &--item {
+                    position: relative;
+                    @include xb2-thin-vertical-border;
+
+                    --metrics-in-row-padding-right: 56px;
+                    --metrics-in-row-padding-rest: 8px;
+
+                    height: var(--total-row-height, 112px);
+
+                    // li reset
+                    margin: 0;
+
+                    padding: 8px;
+
+                    &--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &::first-line {
+                        font-weight: bold;
+                    }
+
+                    & span + &--value {
+                        // Boldness of first metric data in metrics in cols
+                        font-weight: bold;
+                    }
+
+                    &--value--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value:first-child {
+                        font-weight: bold;
+                    }
+
+                    &--average &--value:first-child {
+                        font-weight: inherit;
+                        padding: 8px 2px 8px 8px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                            padding-left: 0;
+                        }
+                    }
+
+                    &--average &--value:nth-child(2) {
+                        // Boldness disabled for average values
+                        font-weight: inherit;
+                        padding: 8px 8px 8px 2px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                        }
+                    }
+
+                    &--togglable-value {
+                        border-bottom: 1px dashed currentColor;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--warning-icon-total-vs-total {
+                        position: absolute;
+                        right: 4px;
+                        top: 5px;
+                        color: P2Colors.$navy;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &.is-alone {
+                            right: 4px;
+                            top: calc(50% - 12px);
+                        }
+
+                        .metrics-in-cols & {
+                            top: 14px;
+                            right: 8px;
+                            width: 24px;
+                        }
+                    }
+
+                    &--warning-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 1px;
+                        right: 0px;
+                        color: P2Colors.$navy;
+
+                        &:focus-visible,
+                        &:focus {
+                            outline: 2px solid P2Colors.$pink-dark;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &--target {
+                            // doing things this way to do hover and tooltip-showing at the same pixel positions
+                            display: flex;
+                            padding: 8px;
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                outline-offset: -8px;
+                            }
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+                        }
+
+                        cursor: pointer;
+
+                        .metrics-in-cols & {
+                            position: absolute;
+                            width: 32px;
+                            top: calc(50% - 16px);
+                            right: 4px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                        }
+
+                        .selected-above & {
+                            .metrics-in-cols & {
+                                top: 9px;
+                            }
+                            top: 0px;
+                        }
+
+                        .selected-row & {
+                            top: 0px;
+                            .metrics-in-cols & {
+                                top: calc(50% - 16px);
+                            }
+                        }
+                    }
+
+                    &--info-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 40px;
+                        left: 4px;
+                        color: #f6c26d;
+                        cursor: pointer;
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                            left: auto;
+                            right: 8px;
+                        }
+
+                        .metrics-in-cols & {
+                            left: auto;
+                            top: 8px;
+                            right: 0;
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        width: $column-width-rest;
+                        text-align: left;
+                        white-space: pre-wrap;
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+                            margin: 5px 0;
+
+                            height: 10px;
+                            width: 40px;
+                            float: left;
+                            clear: both;
+
+                            &:nth-child(2) {
+                                width: 56px;
+                            }
+
+                            &:first-child {
+                                width: 72px;
+                            }
+                        }
+                    }
+
+                    .metrics-in-cols & {
+                        @include xb2-metricsInColsLineHeight;
+
+                        --metrics-in-row-padding-right: 1px;
+                        --metrics-in-row-padding-rest: 1px;
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: flex-start;
+                        padding-right: 20px;
+                        padding-top: 10px;
+
+                        width: var(--total-col-width, 332px);
+                        min-width: $column-width-rest;
+
+                        &--value {
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+                            padding: 8px;
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+
+                            height: 1em;
+                            padding: 0 8px 0 32px;
+                            margin: 6px 8px 0 18px;
+                            font-size: 10px;
+                            width: 20px;
+                        }
+                    }
+
+                    &--average {
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        line-height: 1;
+                        width: 100%;
+                        height: 100%;
+                        align-items: top;
+                        text-decoration: underline;
+                        text-decoration-style: dashed;
+
+                        &--button {
+                            font-size: 12px;
+                            font-weight: 700;
+                            padding-left: 0;
+                            padding-right: 0;
+                            display: flex;
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                border-radius: 4px;
+                            }
+                        }
+
+                        .metrics-in-rows & {
+                            @include xb2-metricsInRowsLineHeight;
+
+                            justify-content: flex-start;
+                        }
+                    }
+
+                    &.selected-above {
+                        border-top: $selected-border;
+                        padding-top: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.selected-below {
+                        border-bottom: $selected-border;
+                        padding-bottom: calc(8px - 1px);
+                    }
+
+                    &.selected-left {
+                        border-left: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+                    }
+
+                    &.selected-right {
+                        border-right: $selected-border;
+                    }
+
+                    &.selected-column {
+                        border-left: $selected-border;
+                        border-right: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+                        background-color: P2Colors.$teal-bg;
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                            &:last-of-type {
+                                border-right-width: 1px;
+                            }
+                        }
+
+                        &:last-of-type {
+                            border-right-width: 2px;
+                        }
+                    }
+
+                    &.selected-row {
+                        border-top: $selected-border;
+                        border-bottom: $selected-border;
+
+                        padding-top: calc(8px - 1px);
+                        padding-bottom: calc(8px - 1px);
+
+                        background-color: P2Colors.$teal-bg;
+
+                        &.last-row {
+                            border-bottom: $selected-double-border;
+
+                            padding-bottom: calc(8px - 1px);
+                        }
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.row-mouseover {
+                        @include xb2-drag-drop-mouseover("row");
+                    }
+
+                    &.column-mouseover {
+                        @include xb2-drag-drop-mouseover("col");
+                    }
+                }
+            }
+        }
+
+        &--renaming-cells {
+            @include P2Components.onboarding($arrow-left: true);
+
+            &--onboarding {
+                @include zindex.layer("OnboardingUnderModal");
+                // Some calculations with magic numbers to make it appear correctly
+                top: calc((#{$column-header-height} + var(--total-row-height)) - 105px);
+                left: calc(#{$column-width-first} - 96px);
+                line-height: 18px;
+                padding: 0px;
+                border-radius: 4px;
+
+                &--title {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    margin-top: 24px;
+                    line-height: 24px;
+                }
+
+                &::before {
+                    width: 15px;
+                    left: -33px;
+                    border-left: none;
+                    border-top: 15px solid transparent;
+                    border-bottom: 15px solid transparent;
+                    border-right: 19px solid P2Colors.$navy;
+                    top: calc(50% - 15px);
+                    z-index: 1000;
+                }
+
+                &--tip {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    color: P2Colors.$white;
+                    font-size: 14px;
+                    font-weight: normal;
+                    margin-top: -8px;
+                }
+
+                &--got-it {
+                    margin-top: 16px;
+                    border-radius: 4px;
+                    margin-left: 24px;
+                    margin-bottom: 24px;
+                }
+            }
+        }
+
+        &--edit-ab-exp {
+            @include P2Components.onboarding($arrow-left: true);
+
+            &--onboarding {
+                @include zindex.layer("OnboardingUnderModal");
+                top: 0;
+                left: calc(
+                    #{$column-width-first} + (#{$column-width-rest} * 2) + 20px
+                ); /* pxs to leave margin for the arrow */
+                line-height: 18px;
+                padding: 0px;
+                border-radius: 4px;
+                text-align: left;
+
+                &--new-badge {
+                    padding: 1px 8px;
+                    font-size: 12px;
+                    border-radius: 16px;
+                    background-color: P2Colors.$pink-medium;
+                    font-weight: 600;
+                    margin-left: 24px;
+                    margin-top: 16px;
+                }
+
+                &--title {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    line-height: 24px;
+                }
+
+                &::before {
+                    width: 15px;
+                    left: -33px;
+                    border-left: none;
+                    border-top: 15px solid transparent;
+                    border-bottom: 15px solid transparent;
+                    border-right: 19px solid P2Colors.$navy;
+                    top: 2px;
+                    z-index: 1000;
+                }
+
+                &--tip {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    color: P2Colors.$white;
+                    font-size: 14px;
+                    font-weight: normal;
+                    margin-top: -8px;
+                    margin-bottom: 0px;
+                }
+
+                &--tip-second {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    color: P2Colors.$white;
+                    font-size: 14px;
+                    font-weight: normal;
+                    margin-top: 12px;
+                    margin-bottom: 0px;
+                }
+
+                &--got-it {
+                    margin-top: 16px;
+                    border-radius: 4px;
+                    margin-left: 24px;
+                    margin-bottom: 24px;
+                }
+
+                .metrics-in-cols & {
+                    left: calc(
+                        var(--first-table-column-width) + var(--total-col-width) * 2 + 6px
+                    );
+                    top: 0;
+                }
+            }
+
+            &.for-row &--onboarding {
+                @include zindex.layer("OnboardingUnderModal");
+                top: calc(
+                    (#{$column-header-height} + var(--total-row-height)) - 156px + 70px
+                ); /* 156px ::before position arrow point; 70px top margin to match point */
+                left: 60px;
+                line-height: 18px;
+                padding: 0px;
+                border-radius: 4px;
+                text-align: left;
+
+                .metrics-in-cols & {
+                    left: calc(#{$column-width-first} + 14px);
+                    top: calc((#{$column-header-height} + var(--total-row-height)) + 6px);
+
+                    &::before {
+                        top: 2px;
+                    }
+                }
+
+                .metrics-in-rows.metrics-4 & {
+                    top: calc(
+                        (#{$column-header-height} + var(--total-row-height)) - 156px +
+                            56px
+                    ); /* 156px ::before position arrow point; 56px top margin to match point */
+                }
+
+                .metrics-in-rows.metrics-3 & {
+                    top: calc(
+                        (#{$column-header-height} + var(--total-row-height)) - 156px +
+                            26px
+                    ); /* 156px ::before position arrow point; 56px top margin to match point */
+                    left: calc(#{$column-width-first} + 14px);
+                }
+
+                .metrics-in-rows.metrics-2 & {
+                    top: calc(
+                        (#{$column-header-height} + var(--total-row-height)) - 156px +
+                            10px
+                    ); /* 156px ::before position arrow point; 56px top margin to match point */
+                    left: calc(#{$column-width-first} + 14px);
+                }
+
+                .metrics-in-rows.metrics-1 & {
+                    top: calc(
+                        (#{$column-header-height} + var(--total-row-height)) - 156px +
+                            10px
+                    ); /* 156px ::before position arrow point; 56px top margin to match point */
+                    left: calc(#{$column-width-first} + 14px);
+                }
+
+                &--new-badge {
+                    padding: 1px 8px;
+                    font-size: 12px;
+                    border-radius: 16px;
+                    background-color: P2Colors.$pink-medium;
+                    font-weight: 600;
+                    margin-left: 24px;
+                    margin-top: 16px;
+                }
+
+                &--title {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    line-height: 24px;
+                }
+
+                &::before {
+                    width: 15px;
+                    left: -33px;
+                    border-left: none;
+                    border-top: 15px solid transparent;
+                    border-bottom: 15px solid transparent;
+                    border-right: 19px solid P2Colors.$navy;
+                    top: 156px;
+                    z-index: 1000;
+                }
+
+                &--tip {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    color: P2Colors.$white;
+                    font-size: 14px;
+                    font-weight: normal;
+                    margin-top: -8px;
+                    margin-bottom: 0px;
+                }
+
+                &--tip-second {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                    color: P2Colors.$white;
+                    font-size: 14px;
+                    font-weight: normal;
+                    margin-top: 12px;
+                    margin-bottom: 0px;
+                }
+
+                &--got-it {
+                    margin-top: 16px;
+                    border-radius: 4px;
+                    margin-left: 24px;
+                    margin-bottom: 24px;
+                }
+            }
+        }
+
+        &.selection-panel-opened {
+            user-select: none;
+        }
+
+        &--corner {
+            @include zindex.layer("XB2TableCorner");
+            grid-area: corner;
+            display: flex;
+
+            position: sticky;
+            left: 0;
+            top: 0;
+            background-color: #ffffff;
+
+            .is-header-resizing-row & {
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+            }
+
+            .is-header-resizing-column & {
+                @include xb2-table-resizing-cursor-ns(#a40f58);
+            }
+
+            &--borderlines {
+                margin-left: 0;
+                border-right: 1px solid #abb8cf;
+                border-bottom: 1px solid #abb8cf;
+                width: 100%;
+                position: relative;
+
+                &--metadata {
+                    padding: 10px 16px 64px 16px;
+                    height: var(--header-column-height);
+                    display: flex;
+                    flex-direction: column;
+                    font-size: 12px;
+                    justify-content: flex-end;
+
+                    &--datasets {
+                        margin-bottom: 8px;
+                        overflow: hidden;
+
+                        &--label {
+                            position: absolute;
+                        }
+
+                        &--text {
+                            @include mixins.lineClamp(var(--corner-datasets-line-clamp));
+
+                            font-size: 12px;
+                            color: P2Colors.$grey6;
+                            margin: 0;
+                            text-indent: 60px;
+
+                            &--tooltip {
+                                max-width: 400px;
+                            }
+                        }
+                    }
+                }
+
+                &--button {
+                    position: absolute;
+                    bottom: 16px;
+                    left: 16px;
+                    @include P2Components.primary-button-with-icon(
+                        $on-colour-bg: false,
+                        $icon-placement: "left"
+                    );
+                    /* We need to override the default border-radius for the 
+                        primary-button (2px) */
+                    border-radius: 4px;
+                }
+
+                &--tooltip {
+                    @include zindex.layer("P2Tooltip");
+                    display: none;
+                    position: absolute;
+                    bottom: 8px;
+                    left: 16px;
+                    right: 16px;
+                    transform: translate(0, 100%);
+                    font-weight: normal;
+                    padding: 4px 8px 5px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    background-color: #191530;
+                    color: #ffffff;
+                    line-height: 2;
+                }
+
+                &--button:hover + &--tooltip {
+                    display: block;
+                }
+            }
+        }
+
+        &--rows {
+            @include zindex.layer("XB2TableHeaders");
+            grid-area: rows;
+
+            display: grid;
+            grid-auto-rows: 1fr;
+
+            position: sticky;
+            overflow: hidden;
+            left: 0;
+            background-color: #ffffff;
+            background: url("/assets/crosstab-builder/table-bg-1-bars.svg") repeat;
+            background-size: calc(100% + 2px) calc(2 * var(--total-row-height, 112px));
+            background-repeat: repeat-y;
+            background-position-x: -1px;
+
+            border-right: 1px solid #abb8cf;
+
+            height: calc(
+                var(--total-row-height, 112px) * (var(--rows-count) - var(--frozen-rows))
+            );
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                @include mixins.normalize-ul;
+
+                display: flex;
+                flex-flow: column;
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: translateY(
+                    calc(var(--top-left-row) * var(--total-row-height, 112px))
+                );
+
+                .forced-loading-state & {
+                    opacity: 0;
+                }
+            }
+
+            &--item {
+                position: relative;
+
+                color: #191530;
+
+                cursor: default;
+                word-break: break-word;
+
+                height: (var(--total-row-height, 112px));
+
+                border-top: 1px solid transparent;
+                border-color: transparent;
+                background-color: var(--row-background-color);
+
+                .is-header-resizing-row & {
+                    @include xb2-table-resizing-cursor-ew(#a40f58);
+                }
+
+                .is-header-resizing-column & {
+                    @include xb2-table-resizing-cursor-ns(#a40f58);
+                }
+
+                &.even {
+                    --row-background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    --row-background-color: #f5f7fc;
+                }
+
+                &.is-average {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23191530' fill-rule='evenodd' d='M23.111 15.35c.327 0 .597.24.643.554l.007.096v7c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L22.461 23v-7c0-.36.291-.65.65-.65zm-4.709 2.333c.326 0 .597.241.643.554l.007.096V23c0 .359-.291.65-.65.65-.326 0-.596-.24-.643-.554L17.752 23v-4.667c0-.359.291-.65.65-.65zm-9.513 2.042c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L8.24 23v-2.625c0-.36.291-.65.65-.65zm4.71-2.975c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L12.95 23v-5.6c0-.36.291-.65.65-.65zm9.975-8.206c.227.23.247.587.062.84l-.069.08L19.06 13.9c-.563.553-1.45.587-2.052.103l-.116-.104-.727-.715.02-.014c-.364.262-.812.417-1.296.417-.517 0-.993-.177-1.37-.472l.009.007-4.183 4.118c-.256.252-.668.249-.92-.007-.226-.23-.246-.587-.061-.84l.069-.08 4.344-4.276-.008-.027c-.056-.192-.086-.395-.086-.605 0-1.207.99-2.181 2.206-2.181 1.215 0 2.205.975 2.205 2.181 0 .21-.03.413-.085.605l-.045.137.84.826c.078.077.2.09.293.038l.051-.038 4.507-4.437c.256-.252.667-.249.92.007zm-8.685 1.981c-.503 0-.906.397-.906.881 0 .485.403.881.906.881.502 0 .905-.396.905-.88 0-.485-.403-.882-.905-.882z'/%3E%3C/svg%3E%0A");
+                    background-repeat: no-repeat;
+                    background-position: 8px 12px;
+
+                    .metrics-in-cols & {
+                        background-position: 18px 7px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        background-position: 8px 8px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        background-position: 0 12px;
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        background-position: 18px 7px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        background-position: 18px 7px;
+                    }
+                }
+
+                &--content {
+                    display: flex;
+                    flex-direction: row;
+                    height: var(--total-row-height, 112px);
+                    flex: 1;
+                }
+
+                &.non-totals:hover &--label {
+                    opacity: 0;
+
+                    .drag-drop-occuring & {
+                        opacity: 1;
+                    }
+                }
+
+                &.non-totals:hover &--label + &--main &--drag {
+                    visibility: visible;
+                }
+
+                &--label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-align: center;
+                    color: P2Colors.$grey6;
+                    height: 16px;
+                    max-width: 48px;
+                    padding: 0 21px 0 21px;
+                    white-space: nowrap;
+                    margin-top: 48px;
+
+                    .metrics-in-cols & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        margin-top: 40px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        padding: 20px 30px 0px 12px;
+                        margin-top: 32px;
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        padding: 0px 30px 20px 12px;
+                        margin-top: 24px;
+                    }
+                }
+
+                &--main {
+                    position: relative;
+                    padding: $rowCellPadding;
+                    padding-left: 0px;
+                    padding-right: 7px;
+
+                    height: 100%;
+                    width: 100%;
+
+                    &:not(.is-total) {
+                        cursor: pointer;
+
+                        .is-header-resizing-row & {
+                            @include xb2-table-resizing-cursor-ew(#a40f58);
+                        }
+
+                        .is-header-resizing-column & {
+                            @include xb2-table-resizing-cursor-ns(#a40f58);
+                        }
+
+                        .metrics-in-rows.metrics-3 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+
+                        .metrics-in-rows.metrics-2 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            padding: 7px 20px 7px 0px;
+                        }
+                    }
+                }
+
+                &--select--input:focus-visible + &--select--indicator {
+                    border: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                    width: 22px;
+                    height: 22px;
+                    left: 5px;
+                    top: 5px;
+                }
+
+                &:has(&--select--input:focus-visible) &--tooltip {
+                    color: P2Colors.$pink-dark;
+                }
+
+                &--select--indicator {
+                    outline: none;
+                }
+
+                &--select:hover &--select--indicator--icon svg {
+                    color: P2Colors.$pink-medium;
+                }
+
+                &--icon {
+                    color: P2Colors.$pink-medium;
+                    align-items: baseline;
+                    margin-top: auto;
+                    display: flex;
+                }
+
+                &--caption:not(:hover) &--icon {
+                    visibility: hidden;
+                }
+
+                &.non-totals &--main:hover &--caption {
+                    &--name {
+                        color: P2Colors.$pink-medium;
+                    }
+
+                    &--subtitle {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                .metrics-in-rows & {
+                    &--main {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+
+                    &--caption {
+                        &--name {
+                            @include mixins.lineClamp(var(--title-lines, 1));
+
+                            &.title-only {
+                                @include mixins.lineClamp(
+                                    calc(var(--title-lines, 1) + var(--subtitle-lines, 1))
+                                );
+                            }
+
+                            text-align: left;
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        }
+
+                        &--subtitle {
+                            @include mixins.lineClamp(var(--subtitle-lines, 1));
+
+                            text-align: left;
+                            font-size: 12px;
+                            font-weight: 400;
+                        }
+
+                        line-height: 15px;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    &--metrics {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        &--cont {
+                            height: calc(
+                                var(--total-row-height, 112px) - #{$rowCellPadding} - #{$rowCellPadding}
+                            );
+                            min-width: 68px;
+                            margin-left: 16px;
+                            margin-right: 10px;
+                        }
+
+                        text-align: right;
+                        font-size: 12px;
+                        color: #191530;
+                        font-weight: 400;
+                        display: flex;
+                        flex-direction: column;
+
+                        &--label.sorted-by {
+                            color: #de1b76;
+                            font-weight: 600;
+                        }
+                    }
+                }
+
+                .metrics-in-cols & {
+                    display: flex;
+                    align-items: center;
+
+                    &.selected {
+                        padding-top: 1px;
+                    }
+
+                    &.selected-below {
+                        padding-top: 1px;
+                    }
+
+                    .is-total {
+                        top: 10px;
+                    }
+
+                    &--caption {
+                        line-height: 16px;
+                        &--name {
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            @include mixins.lineClamp(1);
+                        }
+
+                        &--subtitle {
+                            @include mixins.lineClamp(1);
+                            font-size: 12px;
+                            font-weight: 400;
+                        }
+                    }
+
+                    &--main {
+                        height: auto;
+                        width: auto;
+                        position: relative;
+                        padding: 8px 8px 0 0;
+                        display: flex;
+                        flex: 1;
+                    }
+                }
+
+                &--sorted-by {
+                    color: #de1b76;
+                    font-weight: 600;
+                }
+
+                &.selected-above {
+                    border-top: $selected-border;
+                }
+
+                &.selected-below {
+                    border-bottom: $selected-border;
+                }
+
+                &.selected {
+                    border-bottom: $selected-border;
+                    border-top: $selected-border;
+                    background-color: P2Colors.$teal-bg;
+
+                    &.last-header {
+                        border-bottom: $selected-double-border;
+                    }
+                }
+
+                &.selected &--caption {
+                    color: #a40f58;
+                }
+
+                &.selected &--caption--subtitle {
+                    font-weight: 600;
+                    display: flex;
+                }
+
+                &--select {
+                    @include xb2-select-checkbox("row");
+
+                    .metrics-in-cols & {
+                        top: 8px;
+                        left: -28px;
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        top: 8px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        top: 2px;
+                        left: calc(-#{$row-label-width} - 1px);
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        top: 8px;
+                        left: -28px;
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        top: 8px;
+                        left: -28px;
+                    }
+                }
+
+                &--drag {
+                    @include xb2-drag-handle("row");
+                }
+
+                &--ellipsis {
+                    @include xb2-header-dropdown-ellipsis("row");
+
+                    .metrics-in-cols & {
+                        bottom: 16px;
+                        left: calc(var(--first-table-column-width) - 75px);
+                    }
+
+                    .metrics-in-rows.metrics-4 & {
+                        bottom: 12px;
+                    }
+
+                    .metrics-in-rows.metrics-3 & {
+                        bottom: 28px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+
+                    .metrics-in-rows.metrics-2 & {
+                        bottom: 16px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+
+                    .metrics-in-rows.metrics-1 & {
+                        bottom: 16px;
+                        left: calc(#{$column-width-first} - #{$row-label-width} - 27px);
+                    }
+                }
+
+                &.droppable:after {
+                    @include xb2-drag-drop-shifted-droppable("row");
+                }
+
+                &.mouseover {
+                    @include xb2-drag-drop-mouseover("row");
+                }
+
+                &.placeholder &--content {
+                    opacity: 0.3;
+                }
+
+                &.placeholder {
+                    @include xb2-drag-grabbing-cursor();
+                }
+
+                @include xb2-item-ghost();
+
+                .metrics-in-rows &.ghost {
+                    width: calc(#{$column-width-first} - 64px - 16px);
+                }
+
+                .metrics-in-cols &.ghost,
+                &.ghost.is-average {
+                    width: calc(#{$column-width-first} - 15px + 2px);
+                }
+            }
+        }
+
+        &--cols {
+            @include zindex.layer("XB2TableHeaders");
+            grid-area: cols;
+
+            display: flex;
+
+            position: sticky;
+            top: 0;
+            background: url("/assets/crosstab-builder/table-bg-2-bars.svg") repeat;
+            background-size: $cell-width 200%;
+            background-position: left 100%;
+
+            border-bottom: 1px solid #abb8cf;
+
+            width: calc(#{$cell-width} * (var(--columns-count) - var(--frozen-cols)));
+
+            .metrics-in-cols & {
+                width: calc(
+                    var(--total-col-width) * (var(--columns-count) - var(--frozen-cols))
+                );
+                background-size:
+                    var(--total-col-width, 332px) var(--header-column-height, 112px),
+                    var(--total-col-width, 332px) 200%;
+                background-image: url("/assets/crosstab-builder/table-bg-loading-bar.svg"),
+                    url("/assets/crosstab-builder/table-bg.svg");
+                background-repeat: repeat-x;
+            }
+
+            &--partial {
+                @include mixins.normalize-ul;
+
+                display: flex;
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: translateX(calc((var(--top-left-col)) * #{$cell-width}));
+                background: #ffffff;
+
+                .forced-loading-state & {
+                    opacity: 0;
+                }
+
+                .metrics-in-cols & {
+                    transform: translateX(
+                        calc(var(--top-left-col) * var(--total-col-width))
+                    );
+                }
+            }
+
+            .metrics-in-cols.metrics-1 &--partial {
+                transform: translateX(calc(var(--top-left-col) * var(--total-col-width)));
+            }
+
+            &--item {
+                position: relative;
+
+                @include xb2-thin-vertical-border;
+
+                cursor: default;
+                word-break: break-word;
+
+                border-left: 1px solid transparent;
+
+                text-align: left;
+                height: $column-header-height;
+
+                .is-header-resizing-row & {
+                    @include xb2-table-resizing-cursor-ew(#a40f58);
+                }
+
+                .is-header-resizing-column & {
+                    @include xb2-table-resizing-cursor-ns(#a40f58);
+                }
+
+                &--content {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                &.non-totals:hover &--label {
+                    opacity: 0;
+
+                    .drag-drop-occuring & {
+                        opacity: 1;
+                    }
+                }
+
+                &.non-totals:hover &--label + &--main &--drag {
+                    visibility: visible;
+                }
+
+                &--label {
+                    display: block;
+                    font-size: 12px;
+                    text-align: center;
+                    font-weight: 600;
+                    color: P2Colors.$grey6;
+                    height: $column-label-height;
+                    padding: 9px 0 0 0;
+                    width: 32px;
+                    margin: auto;
+
+                    .metrics-in-cols & {
+                        height: 32px;
+                    }
+                }
+
+                &:not(:first-child) &--main {
+                    .metrics-in-cols & {
+                        background-position: 18px 6px;
+                    }
+                }
+
+                &.is-average {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23191530' fill-rule='evenodd' d='M23.111 15.35c.327 0 .597.24.643.554l.007.096v7c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L22.461 23v-7c0-.36.291-.65.65-.65zm-4.709 2.333c.326 0 .597.241.643.554l.007.096V23c0 .359-.291.65-.65.65-.326 0-.596-.24-.643-.554L17.752 23v-4.667c0-.359.291-.65.65-.65zm-9.513 2.042c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L8.24 23v-2.625c0-.36.291-.65.65-.65zm4.71-2.975c.326 0 .597.24.643.554l.007.096V23c0 .359-.29.65-.65.65-.326 0-.596-.24-.643-.554L12.95 23v-5.6c0-.36.291-.65.65-.65zm9.975-8.206c.227.23.247.587.062.84l-.069.08L19.06 13.9c-.563.553-1.45.587-2.052.103l-.116-.104-.727-.715.02-.014c-.364.262-.812.417-1.296.417-.517 0-.993-.177-1.37-.472l.009.007-4.183 4.118c-.256.252-.668.249-.92-.007-.226-.23-.246-.587-.061-.84l.069-.08 4.344-4.276-.008-.027c-.056-.192-.086-.395-.086-.605 0-1.207.99-2.181 2.206-2.181 1.215 0 2.205.975 2.205 2.181 0 .21-.03.413-.085.605l-.045.137.84.826c.078.077.2.09.293.038l.051-.038 4.507-4.437c.256-.252.667-.249.92.007zm-8.685 1.981c-.503 0-.906.397-.906.881 0 .485.403.881.906.881.502 0 .905-.396.905-.88 0-.485-.403-.882-.905-.882z'/%3E%3C/svg%3E%0A");
+                    background-repeat: no-repeat;
+                    background-position: 0 0;
+
+                    .metrics-in-cols & {
+                        background-position: 9px 4px;
+                    }
+                }
+
+                &--main {
+                    position: relative;
+                    padding: 0;
+                    height: calc(100% - #{$column-label-height});
+
+                    &:not(.is-total) {
+                        cursor: pointer;
+
+                        .is-header-resizing-column & {
+                            @include xb2-table-resizing-cursor-ns(#a40f58);
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        padding: 0 8px 8px 8px;
+                    }
+                }
+
+                &--select--input:focus-visible + &--select--indicator {
+                    border: 2px solid P2Colors.$pink-dark;
+                    border-radius: 4px;
+                    width: 22px;
+                    height: 22px;
+                    left: 5px;
+                    top: 5px;
+                }
+
+                &:has(&--select--input:focus-visible) &--caption {
+                    color: P2Colors.$pink-dark;
+                }
+
+                &--select--indicator {
+                    outline: none;
+                }
+
+                &--select:hover &--select--indicator--icon svg {
+                    color: P2Colors.$pink-medium;
+                }
+
+                &--tooltip {
+                    height: 100%;
+
+                    & x-cooltip-target {
+                        position: relative;
+                        height: 100%;
+                        overflow: hidden;
+                    }
+                }
+
+                &--caption {
+                    .not-resized-col-header &--name.title-only {
+                        @include mixins.lineClamp(calc(var(--title-lines, 1) + 3));
+                    }
+
+                    color: #191530;
+                    height: 100%;
+                    width: 100%;
+                }
+
+                .metrics-in-rows & {
+                    &--caption {
+                        line-height: 18px;
+                        flex-direction: column;
+
+                        &--name {
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: currentColor;
+                        }
+
+                        &--subtitle {
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+
+                            font-size: 12px;
+                            font-weight: 400;
+                            color: currentColor;
+                        }
+
+                        position: relative;
+                        line-height: 16px;
+                        padding-top: 6px;
+                    }
+
+                    display: flex;
+                    justify-content: flex-start;
+
+                    width: $column-width-rest;
+                }
+
+                $metrics-cont-height: 32px;
+
+                .metrics-in-cols & {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+
+                    width: var(--total-col-width, 332px);
+                    min-width: $column-width-rest;
+                    height: var(--header-column-height);
+
+                    padding: 0;
+
+                    background-position-y: 6px;
+
+                    &--tooltip {
+                        height: 100%;
+                    }
+
+                    &--caption {
+                        padding: 0 16px 0;
+                        line-height: 16px;
+                        flex-direction: column;
+
+                        &--name {
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: currentColor;
+                            cursor: pointer;
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+                        }
+
+                        &--subtitle {
+                            font-size: 12px;
+                            font-weight: 400;
+                            color: currentColor;
+                            @include mixins.lineClamp(var(--column-header-line-clamp));
+                        }
+                    }
+
+                    &--metrics {
+                        text-align: left;
+                        font-size: 12px;
+                        color: #191530;
+                        white-space: nowrap;
+                        padding-top: 8px;
+                        padding-bottom: 10px;
+                        display: flex;
+                        justify-content: space-around;
+                        padding-right: 20px;
+
+                        &--label {
+                            display: inline-block;
+                            padding: 0 8px;
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--cont {
+                            height: $metrics-cont-height;
+                        }
+                    }
+
+                    &--main {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                    }
+
+                    &--content {
+                        flex: 1;
+                    }
+                }
+
+                &.selected-left {
+                    border-left: $selected-border;
+                }
+
+                &.selected-right {
+                    border-right: $selected-border;
+                }
+
+                &.selected {
+                    border-left: $selected-border;
+                    border-right: $selected-border;
+                    background-color: P2Colors.$teal-bg;
+
+                    &.last-header {
+                        border-right: $selected-double-border;
+                    }
+                }
+
+                &.selected &--caption {
+                    color: #a40f58;
+                }
+
+                &.selected &--caption--subtitle {
+                    font-weight: 600;
+                }
+
+                &--select {
+                    @include xb2-select-checkbox("col");
+
+                    .metrics-in-cols & {
+                        top: -36px;
+                        left: 6px;
+                    }
+                }
+
+                &--select:hover &--select {
+                    &--indicator {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                &--icon {
+                    color: P2Colors.$pink-medium;
+                    align-items: baseline;
+                    margin-top: auto;
+                    display: flex;
+                }
+
+                &--caption:not(:hover) &--icon {
+                    visibility: hidden;
+                }
+
+                &.non-totals &--main:hover &--caption {
+                    &--name {
+                        color: P2Colors.$pink-medium;
+                    }
+
+                    &--subtitle {
+                        color: P2Colors.$pink-medium;
+                    }
+                }
+
+                &--drag {
+                    @include xb2-drag-handle("col");
+                }
+
+                &--ellipsis {
+                    @include xb2-header-dropdown-ellipsis("col");
+
+                    .metrics-in-cols & {
+                        top: -32px;
+                        right: 12px;
+                    }
+                }
+
+                &.droppable:after {
+                    @include xb2-drag-drop-shifted-droppable("col");
+                }
+
+                &.droppable:last-child:after {
+                    width: calc(50% + #{$padding-right});
+                }
+
+                &.mouseover {
+                    @include xb2-drag-drop-mouseover("col");
+                }
+
+                &.placeholder &--content {
+                    opacity: 0.3;
+                }
+
+                &.placeholder {
+                    @include xb2-drag-grabbing-cursor();
+                }
+
+                &.next-to-placeholder {
+                    border-color: #abb8cf54;
+                }
+
+                @include xb2-item-ghost;
+            }
+        }
+
+        &--cells {
+            @include zindex.layer("XB2TableCells");
+            grid-area: cells;
+
+            display: grid;
+            grid-auto-rows: 1fr;
+
+            color: #191530;
+            font-size: 12px;
+
+            background: url("/assets/crosstab-builder/table-bg.svg") repeat;
+            background-size: $cell-width calc(2 * var(--total-row-height, 112px));
+
+            width: calc((var(--columns-count) - var(--frozen-cols)) * #{$cell-width});
+
+            .metrics-in-cols & {
+                background-size: var(--total-col-width)
+                    calc(2 * var(--total-row-height, 155px));
+                background-image: url("/assets/crosstab-builder/table-bg.svg");
+                width: calc(
+                    (var(--columns-count) - var(--frozen-cols)) * var(--total-col-width)
+                );
+            }
+
+            .metrics-in-cols.metrics-1 & {
+                background-size:
+                    var(--total-col-width) calc(2 * var(--total-row-height, 112px)),
+                    $column-width-rest calc(2 * var(--total-row-height, 112px));
+            }
+
+            @for $i from 1 through 5 {
+                .metrics-in-rows.metrics-#{$i} & {
+                    background-image: url("/assets/crosstab-builder/table-bg-#{$i}-bars.svg");
+                }
+            }
+
+            &--partial {
+                display: block;
+                position: absolute;
+
+                .metrics-in-rows & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translate(
+                        calc((var(--top-left-col)) * #{$cell-width}),
+                        calc(var(--top-left-row) * var(--total-row-height, 112px))
+                    );
+                }
+
+                .metrics-in-cols & {
+                    top: var(--cells-top-offset, $cell-width);
+                    transform: translate(
+                        calc(var(--top-left-col) * var(--total-col-width)),
+                        calc(var(--top-left-row) * var(--total-row-height, 112px))
+                    );
+                }
+            }
+
+            .metrics-in-cols.metrics-1 &--partial {
+                transform: translate(
+                    calc(var(--top-left-col) * var(--total-col-width)),
+                    calc(var(--top-left-row) * var(--total-row-height, 112px))
+                );
+            }
+
+            cursor: default;
+
+            .is-header-resizing-row & {
+                @include xb2-table-resizing-cursor-ew(#a40f58);
+            }
+
+            .is-header-resizing-column & {
+                @include xb2-table-resizing-cursor-ns(#a40f58);
+            }
+
+            .drag-drop-occuring & {
+                @include xb2-drag-grabbing-cursor();
+            }
+
+            &--row {
+                @include mixins.normalize-ul;
+                display: flex;
+
+                // Total row
+
+                .table-hasnt-frozen-rows &:not(.scrolled-y):first-child > &--item {
+                    font-weight: 700;
+                    color: #191530;
+                    border-top: none;
+                    padding-right: 20px;
+                }
+
+                &.even {
+                    background-color: #ffffff;
+                }
+
+                &:not(.even) {
+                    background-color: #f5f7fc;
+                }
+
+                .table-hasnt-frozen-cols &:not(.scrolled-x) > &--item {
+                    // Total col
+
+                    &:first-child {
+                        font-weight: 700;
+                        color: #191530;
+                        border-left: none;
+                        padding-right: 20px;
+                    }
+                }
+
+                &--item {
+                    position: relative;
+                    @include xb2-thin-vertical-border;
+
+                    --metrics-in-row-padding-right: 56px;
+                    --metrics-in-row-padding-rest: 8px;
+
+                    height: var(--total-row-height, 112px);
+
+                    // li reset
+                    margin: 0;
+
+                    padding: 8px;
+
+                    &--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+                        display: block;
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &::first-line {
+                        font-weight: bold;
+                    }
+
+                    & span + &--value {
+                        // Boldness of first metric data in metrics in cols
+                        font-weight: bold;
+                    }
+
+                    &--value--sample {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value--size {
+                        border-bottom: 1px dashed currentColor;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                            border-bottom: 1px dashed P2Colors.$pink-medium;
+                        }
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding-left: 0;
+                        padding-right: 0;
+
+                        .metrics-in-cols & {
+                            padding-top: 0;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid P2Colors.$pink-dark;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    &--value:first-child {
+                        font-weight: bold;
+                    }
+
+                    &--average &--value:first-child {
+                        font-weight: inherit;
+                        padding: 8px 2px 8px 8px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                            padding-left: 0;
+                        }
+                    }
+
+                    &--average &--value:nth-child(2) {
+                        // Boldness disabled for average values
+                        font-weight: inherit;
+                        padding: 8px 8px 8px 2px;
+                        min-width: 0;
+
+                        .metrics-in-rows & {
+                            padding-top: 0;
+                        }
+                    }
+
+                    &--togglable-value {
+                        border-bottom: 1px dashed currentColor;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+                    }
+
+                    &--warning-icon-total-vs-total {
+                        position: absolute;
+                        right: 4px;
+                        top: 5px;
+                        color: P2Colors.$navy;
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &.is-alone {
+                            right: 4px;
+                            top: calc(50% - 12px);
+                        }
+
+                        .metrics-in-cols & {
+                            top: 14px;
+                            right: 8px;
+                            width: 24px;
+                        }
+                    }
+
+                    &--warning-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 1px;
+                        right: 0px;
+                        color: P2Colors.$navy;
+
+                        &:focus-visible,
+                        &:focus {
+                            outline: 2px solid P2Colors.$pink-dark;
+                        }
+
+                        &:hover {
+                            color: P2Colors.$pink-medium;
+                        }
+
+                        &--target {
+                            // doing things this way to do hover and tooltip-showing at the same pixel positions
+                            display: flex;
+                            padding: 8px;
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                outline-offset: -8px;
+                            }
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+                        }
+
+                        cursor: pointer;
+
+                        .metrics-in-cols & {
+                            position: absolute;
+                            width: 32px;
+                            top: calc(50% - 16px);
+                            right: 4px;
+                        }
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                        }
+
+                        .selected-above & {
+                            .metrics-in-cols & {
+                                top: 9px;
+                            }
+
+                            top: 0px;
+                        }
+
+                        .selected-row & {
+                            top: 0px;
+                            .metrics-in-cols & {
+                                top: calc(50% - 16px);
+                            }
+                        }
+                    }
+
+                    &--info-icon {
+                        @include P2Components.tooltip;
+
+                        &:hover:after {
+                            top: 60px;
+                            left: 60px;
+                        }
+
+                        position: absolute;
+                        top: 40px;
+                        left: 4px;
+                        color: #f6c26d;
+                        cursor: pointer;
+
+                        .metrics-in-rows.metrics-1 & {
+                            top: calc(50% - 32px / 2);
+                            left: auto;
+                            right: 8px;
+                        }
+
+                        .metrics-in-cols & {
+                            left: auto;
+                            top: 8px;
+                            right: 0;
+                        }
+                    }
+
+                    .metrics-in-rows & {
+                        @include xb2-metricsInRowsLineHeight;
+
+                        width: $column-width-rest;
+                        text-align: left;
+                        white-space: pre-wrap;
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+                            margin: 5px 0;
+
+                            height: 10px;
+                            width: 40px;
+                            float: left;
+                            clear: both;
+
+                            &:nth-child(2) {
+                                width: 56px;
+                            }
+
+                            &:first-child {
+                                width: 72px;
+                            }
+                        }
+                    }
+
+                    .metrics-in-cols & {
+                        @include xb2-metricsInColsLineHeight;
+
+                        --metrics-in-row-padding-right: 1px;
+                        --metrics-in-row-padding-rest: 1px;
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: flex-start;
+                        padding-right: 20px;
+                        padding-top: 10px;
+
+                        width: var(--total-col-width, 332px);
+                        min-width: $column-width-rest;
+
+                        &--value {
+                            text-align: center;
+
+                            min-width: calc(100% / var(--metrics-count, 5));
+                            padding: 8px;
+
+                            &.sorted-by {
+                                color: #de1b76;
+                            }
+                        }
+
+                        &--loader-bar {
+                            @include P2Components.animated-loader;
+
+                            height: 1em;
+                            padding: 0 8px 0 32px;
+                            margin: 6px 8px 0 18px;
+                            font-size: 10px;
+                            width: 20px;
+                        }
+                    }
+
+                    &--average {
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                        line-height: 1;
+                        width: 100%;
+                        height: 100%;
+                        align-items: top;
+                        text-decoration: underline;
+                        text-decoration-style: dashed;
+
+                        &--button {
+                            font-size: 12px;
+                            font-weight: 700;
+                            padding-left: 0;
+                            padding-right: 0;
+                            display: flex;
+
+                            &:hover {
+                                color: P2Colors.$pink-medium;
+                            }
+
+                            &:focus-visible {
+                                outline: 2px solid P2Colors.$pink-dark;
+                                border-radius: 4px;
+                            }
+                        }
+
+                        .metrics-in-rows & {
+                            @include xb2-metricsInRowsLineHeight;
+
+                            justify-content: flex-start;
+                        }
+                    }
+
+                    &.selected-above {
+                        border-top: $selected-border;
+                        padding-top: calc(8px - 1px);
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.selected-below {
+                        border-bottom: $selected-border;
+                        padding-bottom: calc(8px - 1px);
+                    }
+
+                    &.selected-left {
+                        border-left: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+                    }
+
+                    &.selected-right {
+                        border-right: $selected-border;
+                    }
+
+                    &.selected-column {
+                        border-left: $selected-border;
+                        border-right: $selected-border;
+                        /* We change the padding to 1px less to avoid the cell 
+                        displacement */
+                        padding-right: calc(8px - 1px);
+                        padding-left: calc(8px - 1px);
+                        background-color: P2Colors.$teal-bg;
+
+                        .metrics-in-cols & {
+                            padding-right: 20px;
+                        }
+
+                        &:last-of-type {
+                            border-right-width: 2px;
+                        }
+                    }
+
+                    &.selected-row {
+                        border-top: $selected-border;
+                        border-bottom: $selected-border;
+
+                        padding-top: calc(8px - 1px);
+                        padding-bottom: calc(8px - 1px);
+
+                        background-color: P2Colors.$teal-bg;
+
+                        &.last-row {
+                            border-bottom: $selected-double-border;
+
+                            padding-bottom: calc(8px - 1px);
+                        }
+
+                        .metrics-in-cols & {
+                            padding-top: 9px;
+                        }
+                    }
+
+                    &.row-mouseover {
+                        @include xb2-drag-drop-mouseover("row");
+                    }
+
+                    &.column-mouseover {
+                        @include xb2-drag-drop-mouseover("col");
+                    }
+                }
+            }
+        }
+    }
+
+    &__average-item-dropdown {
+        @include P2Components.nestable-dropdown;
+    }
+
+    &__header-item-dropdown {
+        @include P2Components.nestable-dropdown;
+
+        &--menu--item {
+            min-height: 40px;
+        }
+    }
+
+    &__sorted-by {
+        font-weight: 600;
+        color: #de1b76;
+
+        .heatmap-active & {
+            color: #191530;
+        }
+
+        &.total {
+            font-weight: 700;
+        }
+    }
+}

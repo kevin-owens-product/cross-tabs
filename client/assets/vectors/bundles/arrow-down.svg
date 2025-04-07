@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="10" height="60" viewBox="0 0 10 60">
+
+<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" y="0" viewBox="0 0 10 5">
+    <path fill="#3498db" fill-rule="nonzero" d="M1.599.202A1 1 0 0 0 .4 1.804L4.411 4.8a1 1 0 0 0 1.199-.002l3.991-3A1 1 0 1 0 8.4.201L5.007 2.75 1.6.2z"/>
+</svg>
+
+
+<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" y="55" viewBox="0 0 10 5">
+    <path fill="#fff" fill-rule="nonzero" d="M1.599.202A1 1 0 0 0 .4 1.804L4.411 4.8a1 1 0 0 0 1.199-.002l3.991-3A1 1 0 1 0 8.4.201L5.007 2.75 1.6.2z"/>
+</svg>
+
+</svg>

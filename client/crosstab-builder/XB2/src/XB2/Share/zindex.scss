@@ -1,0 +1,151 @@
+/* Layers are sorted from topmost down - it. the first item in this list
+ * will have the highest z-index
+ */
+$layers: (
+    "MixinWrongUsageProtection",
+    /* dialog popups are used also for errors which has to be always on top */
+        "DialogPopup",
+    "DialogPopupOverlay",
+    "EmberDialogHighest",
+    "EmberDialog",
+    "EmberTooltip",
+    "EmberFancyboxWrap",
+    "EmberFancyboxOpened",
+    "EmberFancyboxOverlay",
+    "EmberAudienceBuilderQueryDataNavigation",
+    "EmberAudienceBuilderToggleGroupsContainerActive",
+    "EmberNanoScroller",
+    "EmberModalCenteredWrapper",
+    "EmberModalCenteredOverlay",
+    "EmberModalCentered",
+    "EmberSidePanel",
+    "EmberTetherTooltipOpen",
+    "EmberDropdownMenu",
+    "EmberModalOverlay",
+    "EmberAppLoading",
+    "Dashboard2DraggedGhost",
+    "P2Drawer",
+    "P2DrawerOverlay",
+    "P2AutocompleteInputSuggestions",
+    "EmberOverlay",
+    "GlobalLoading",
+    "Fullscreen",
+    "UserSettingsDefaultSpinner",
+    "UpsellDialogLoader",
+    "HomeScreenVideo",
+    "HomeScreenVideoOverlay",
+    "Cooltip",
+    "DashboardWidgetDropdown",
+    "CBHeaderPopup",
+    "XBMoreOptionsDropdown",
+    "XB2MoreOptionsDropdown",
+    "XBModalOverlay",
+    "P2Tooltip",
+    "Onboarding",
+    "P2ModalHeader",
+    "P2ModalContent",
+    "P2ModalOverlay",
+    "OnboardingUnderModal",
+    "XBSharedProjectWarning",
+    "XB2SharedProjectWarning",
+    "XBDetailDropdownList",
+    "P2DropdownList",
+    "MenuPopup",
+    "D2DropdownAndOverElements",
+    "DashboardFilterDropdown",
+    "DashboardOverlay",
+    "ElmImageBox",
+    "UpsellDialogPaymentDetailsHoverError",
+    "UpsellDialogPopup",
+    "UpsellDialog",
+    "CBCommandBarMenu",
+    "CBOptionsBarWrapper",
+    "TaggedListFilterSortPopup",
+    "TaggedListFilterSticky",
+    "MenuBrowserSwitchesBtnActive",
+    "Menu",
+    "TVResultsModal",
+    "GeminiScrollbar",
+    // d3scription z-index is 100 by default and configurable, but d3-charts don't configure it and don't allow the user of d3-charts to configure it. So let's just make this value *less than that,* to avoid scrollbar obscuring the d3 tooltip.
+    "XBDebugInfo",
+    "XB2DebugInfo",
+    "XBDetailGroupingBox",
+    "XB2DetailGroupingBox",
+    "XBDetailSelectionPanel",
+    "XB2DetailSelectionPanel",
+    "Notifications",
+    "XBTableOverlay",
+    "XB2TableOverlay",
+    "XBTableScrollTooltip",
+    "XB2TableScrollTooltip",
+    "XBTableScrollButton",
+    "XB2TableScrollButton",
+    "XBBrowserDragDropGhost",
+    "XB2BrowserDragDropGhost",
+    "XBTableDragDropGhost",
+    "XB2TableDragDropGhost",
+    "XBTableDragDropPinhead",
+    "XB2TableDragDropPinhead",
+    "XBTableCorner",
+    "XB2TableCorner",
+    "XBTableDragDropShiftedDroppable",
+    "XB2TableDragDropShiftedDroppable",
+    "XBTableHeaders",
+    "XB2TableHeaders",
+    "XBTableCells",
+    "XB2TableCells",
+    /* TV2 edit table */ "TV2TableHeaderCorner",
+    "TV2TableHeader",
+    "TV2TableHeaderLeft",
+    "Filters",
+    /* dashboards header containts z-index because of some sort of IE11 issue (this is edge case when screen is super small below 820px) */
+        /* headers needs to be above header border*/ "DashboardWidgetHeader",
+    "WidgetEditDimensionButtons",
+    "DashboardWidgetHeaderBorder"
+);
+
+$fixedZindexLayers: (
+    "XBDetailCheckboxInput": -200,
+    "P2CheckboxInput": -200,
+    "XBTableRowsAfter": -1,
+    "XB2TableRowsAfter": -1,
+    "GeminiScrollbarResizeTrigger": -100,
+    "EmberSortableItem": 0,
+    "P2DrawerFooter": 0,
+    "XBDropdownNested": 1,
+    "XB2ListIconCooltipTarget": 1,
+    "XB2BasesChevrons": 27,
+    "FiltersResetButton": 1,
+    /* these are icky (should be somewhere in the automatically generated layers), but hey, it's legacy, we hate it, would hate to break it with an innocent refactoring. Better be safe and keep the numbers that were there before: */
+        "EmberAudienceControls": 1,
+    "EmberSidePanelSearch": 1,
+    "EmberSettings": 1,
+    "EmberSettingsMenuButton": 1,
+    "EmberSortableItemDragging": 1,
+    "EmberAudienceBuilderDropZone": 2,
+    "EmberAudienceBuilderControls": 2,
+    "EmberAppHeader": 2,
+    "EmberAppMenu": 3,
+    "EmberAppCooltip": 3,
+    "EmberAudienceBuilderDropZoneActive": 5,
+    "EmberDropdownWidgetMenu": 99,
+    "EmberSidePanelRemoveButton": 999,
+    "EmberSidePanelFiltersLockIcon": 999,
+    "EmberDialogNotice": 1000
+);
+
+@function _layerToZIndex($name) {
+    @if index($layers, $name) == null {
+        @if map-get($fixedZindexLayers, $name) == null {
+            @error 'Invalid layer name :[ #{$name} ] #{index($fixedZindexLayers, $name)}. Please define it in $layers or $fixedZindexLayers';
+        } @else {
+            @return map-get($fixedZindexLayers, $name);
+        }
+    } @else {
+        @return length($layers) - index($layers, $name) + 1;
+    }
+}
+
+@mixin layer($name) {
+    z-index: _layerToZIndex($name);
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 100 67" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+    <g id="reports">
+        <g transform="matrix(4.16667,0,0,4.16667,-1191.59,-1870.47)">
+            <g>
+                <g transform="matrix(0.24,-0,-0,0.24,285.982,448.913)">
+                    <use xlink:href="#_Image1" x="27.607" y="9.746" width="44.786px" height="50.51px" transform="matrix(0.995249,0,0,0.990398,0,0)"/>
+                </g>
+                <path d="M301.083,461.043C301.083,461.076 301.057,461.102 301.024,461.102L294.941,461.102C294.908,461.102 294.882,461.076 294.882,461.043L294.882,453.583C294.882,453.55 294.908,453.524 294.941,453.524L301.024,453.524C301.057,453.524 301.083,453.55 301.083,453.583L301.083,461.043ZM301.024,452.835L294.941,452.835C294.528,452.835 294.193,453.169 294.193,453.583L294.193,461.043C294.193,461.456 294.528,461.791 294.941,461.791L301.024,461.791C301.437,461.791 301.772,461.456 301.772,461.043L301.772,453.583C301.772,453.169 301.437,452.835 301.024,452.835" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="299.016" y="456.969" width="1.378" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="295.571" y="456.969" width="2.756" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="295.571" y="458.347" width="0.689" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="295.571" y="459.725" width="2.067" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="298.327" y="459.725" width="2.067" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <rect x="296.949" y="458.347" width="3.445" height="0.689" style="fill:#e9edf6;fill-rule:nonzero;"/>
+                <path d="M299.705,454.213L296.26,454.213C295.88,454.213 295.571,454.522 295.571,454.902L295.571,455.591C295.571,455.971 295.88,456.28 296.26,456.28L299.705,456.28C300.085,456.28 300.394,455.971 300.394,455.591L300.394,454.902C300.394,454.522 300.085,454.213 299.705,454.213" style="fill:#e9edf6;fill-rule:nonzero;"/>
+            </g>
+        </g>
+
+    </g>
+
+</svg>

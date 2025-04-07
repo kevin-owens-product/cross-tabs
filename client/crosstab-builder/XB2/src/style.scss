@@ -1,0 +1,163 @@
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/Notification/style" as Notification;
+@use "crosstab-builder/XB2/src/XB2/Detail/style" as Detail;
+@use "crosstab-builder/XB2/src/XB2/List/style" as List;
+@use "crosstab-builder/XB2/src/XB2/Modal/style" as Modal;
+@use "crosstab-builder/XB2/src/XB2/SelectionPanel/style" as SelectionPanel;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/Scrollbar/style" as Scrollbar;
+@use "crosstab-builder/XB2/src/XB2/Share/Platform2/Dropdown/DropdownMenu/style" as
+    DropdownMenu;
+
+.xb2-wrapper {
+    height: 100%;
+}
+
+x-et-splash-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+}
+
+@include P2Components.cooltipP2Override();
+@include DropdownMenu.main-styles();
+
+.xb2-app {
+    height: 100%;
+
+    // HACKS!
+
+    button,
+    select,
+    input {
+        font-family: P2Components.$p2-fonts;
+    }
+
+    font-family: P2Components.$p2-fonts;
+
+    &__notifications {
+        @include Notification.notifications();
+    }
+
+    &__unsaved-changes {
+        position: relative;
+        display: flex;
+        padding: 12px;
+        margin: 0 auto;
+        font-size: 14px;
+        font-weight: 600;
+        align-items: center;
+
+        flex-direction: row;
+        width: 540px;
+        line-height: 32px;
+        color: P2Colors.$navy;
+        background: P2Colors.$yellow-medium;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+
+        &--link {
+            @include P2Components.secondary-button($on-colour-bg: true, $border: true);
+
+            color: inherit;
+            border-color: currentColor;
+            flex-shrink: 0;
+            min-width: 60px;
+            justify-content: center;
+
+            &:hover {
+                color: P2Colors.$white;
+                background: P2Colors.$navy;
+                border-color: P2Colors.$navy;
+            }
+        }
+
+        &--icon {
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+        }
+
+        &--content {
+            margin-right: auto;
+        }
+    }
+
+    &__list-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    &__attributes-browser-modal {
+        &--onboarding {
+            @include zindex.layer("P2ModalOverlay");
+            display: grid;
+            place-items: center;
+            position: absolute;
+            width: 120%;
+            height: 100%;
+            top: 0;
+            left: -111px;
+
+            &--modal {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 24px;
+                gap: 28px;
+                width: 304px;
+                background-color: P2Colors.$navy;
+                border-radius: 0px 0px 4px 4px;
+                font-size: 14px;
+                color: P2Colors.$white;
+
+                &--new-badge {
+                    padding: 1px 8px;
+                    font-size: 12px;
+                    border-radius: 16px;
+                    background-color: P2Colors.$pink-medium;
+                }
+
+                &--title {
+                    margin-top: -12px;
+                    margin-bottom: -12px;
+                    font-size: 20px;
+                    font-weight: 600;
+                    line-height: 1.2;
+                    color: P2Colors.$white;
+                }
+
+                &--buttons {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 8px;
+
+                    &--skip-tour {
+                        @include P2Components.secondary-button(
+                            $on-colour-bg: false,
+                            $border: false
+                        );
+                        background-color: P2Colors.$white;
+                        height: 32px;
+
+                        &:hover {
+                            background-color: P2Colors.$grey2;
+                        }
+                    }
+
+                    &--got-it {
+                        @include P2Components.primary-button($on-colour-bg: false);
+                    }
+                }
+            }
+        }
+    }
+}

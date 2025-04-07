@@ -1,0 +1,62 @@
+FROM node:lts
+LABEL maintainer="GWI Platform Team"
+
+# Update package references
+RUN apt-get update && rm -rf /var/lib/apt/lists/*
+
+# Add ssh key to access private repos
+RUN --mount=type=ssh mkdir -p ~/.ssh && chmod 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+# Install global dependencies
+RUN --mount=type=ssh yarn global add elm@latest-0.19.1 \
+    'git+ssh://git@github.com/GlobalWebIndex/platform-tools.git#fbef486a39aec45fdc7596bc6c8f903a984c8563'
+
+# Copy project files
+WORKDIR /pro
+
+COPY .npmrc /pro/.npmrc
+COPY .prettierrc /pro/.prettierrc
+COPY .prettierignore /pro/.prettierignore
+COPY .stylelintrc.js /pro/.stylelintrc.js
+COPY elm-tooling.json /pro/elm-tooling.json
+COPY yarn.lock /pro/yarn.lock
+COPY package.json /pro/package.json
+COPY .babelrc /pro/.babelrc
+COPY postcss.config.js /pro/postcss.config.js
+
+# Install package.json dependencies
+RUN --mount=type=ssh yarn
+
+COPY bin /pro/bin
+
+# A hack to be able to download dependencies without compiling our source code
+# ------
+# We want to avoid `COPY ./client /pro/client` before the `elm make` above all costs.
+# That would download the dependencies on every code change...
+# ------
+# Plan:
+# * `mkdir -p` the source directories
+# * create a dummy Elm module in one of them
+# * compile that one
+
+COPY elm.json /pro/elm.json
+
+RUN mkdir -p \
+    client/_share/src \
+    client/crosstab-builder/XB2/src \
+    client/tv-study/TV2/src
+
+RUN printf "module DummyMain exposing (..)\nx = 1" > client/tv-study/TV2/src/DummyMain.elm \
+    && elm make ./client/tv-study/TV2/src/DummyMain.elm --output /dev/null
+    # ^ Now we have downloaded the dependencies in a layer that's before adding the source code!
+    # That means dependencies will only download when elm.json changes, not when the source directories change.
+
+RUN rm -rf ./client/tv-study/TV2/src/DummyMain.elm
+
+COPY webpack.config.js /pro/webpack.config.js
+COPY tsconfig.json /pro/tsconfig.json
+COPY ./deploy /pro/deploy
+COPY Makefile /pro/Makefile
+
+# Most changed directory last... so that we reuse old layers more
+COPY ./client /pro/client

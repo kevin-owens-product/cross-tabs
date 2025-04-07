@@ -1,7 +1,9 @@
 {
     "type": "application",
     "source-directories": [
-        "src"
+        "client/_share/src",
+        "client/crosstab-builder/XB2/src",
+        "client/tv-study/TV2/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {
@@ -14,7 +16,6 @@
             "Janiczek/browser-extra": "1.1.0",
             "Janiczek/elm-bidict": "3.1.0",
             "Janiczek/elm-list-cartesian": "1.0.2",
-            "NoRedInk/elm-compare": "2.0.0",
             "TSFoster/elm-uuid": "4.2.0",
             "annaghi/dnd-list": "6.0.1",
             "cuducos/elm-format-number": "9.0.1",
@@ -31,9 +32,9 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
+            "elm-community/array-extra": "2.6.0",
             "elm-community/basics-extra": "4.1.0",
             "elm-community/dict-extra": "2.4.0",
-            "elm-community/easing-functions": "2.0.0",
             "elm-community/html-extra": "3.4.0",
             "elm-community/json-extra": "4.3.0",
             "elm-community/list-extra": "8.7.0",
@@ -49,10 +50,8 @@
             "rtfeldman/elm-hex": "1.0.0",
             "rtfeldman/elm-iso8601-date-strings": "1.1.4",
             "ryan-haskell/date-format": "1.0.0",
-            "stoeffel/set-extra": "1.2.3",
             "turboMaCk/any-dict": "3.0.0",
             "turboMaCk/any-set": "1.6.1",
-            "turboMaCk/elm-continue": "1.0.2",
             "turboMaCk/glue": "6.2.0",
             "turboMaCk/lazy-tree-with-zipper": "3.4.1",
             "turboMaCk/non-empty-list-alias": "1.4.0",
@@ -74,7 +73,6 @@
     },
     "test-dependencies": {
         "direct": {
-            "Janiczek/architecture-test": "2.1.2",
             "elm-explorations/test": "2.2.0"
         },
         "indirect": {}

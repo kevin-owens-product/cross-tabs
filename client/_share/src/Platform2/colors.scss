@@ -1,0 +1,61 @@
+/* Intended usage:
+
+@use '_share/src/Platform2/colors' as P2Colors;
+
+.foo {
+  color: P2Colors.$navy;
+}
+
+-------------------
+
+Colors shown in Slack: https://globalwebindex.slack.com/archives/C6K52V0QN/p1629974327007400?thread_ts=1629973463.003500&cid=C6K52V0QN
+
+Figma: https://www.figma.com/file/UWolqTaUfCqM7btpQ3jGxi/P2.0-Design-System?node-id=1%3A2
+
+Zeplin: https://zpl.io/bPyQ71D
+
+*/
+
+$grey1: #f7faff;
+$grey2: #dfe7f5;
+$grey3: #ced9eb;
+$grey4: #abb8cf;
+$grey5: #7989a6;
+$grey6: #526482;
+$navy: #191530;
+$navy2: #191430;
+$white: #ffffff;
+$black-20p: #cccccc;
+$black-30p: #b3b3b3;
+$navy-20p: #d1d0d6;
+$navy-50p: #8c8a98;
+$blue-bg: #b9e1f9;
+$blue-dark: #003c71;
+$blue-light: #7bccf1;
+$blue-medium: #007cb6;
+$green-bg: #d3efd4;
+$green-dark: #1b4f3c;
+$green-light: #76deab;
+$green-medium: #008851;
+$teal-bg: #b9e9ed;
+$teal-dark: #154b5b;
+$teal-light: #78d5e1;
+$teal-medium: #008291;
+$yellow-dark: #976d19;
+$yellow-medium: #f6c26d;
+$orange-bg: #f9d2c4;
+$orange-dark: #892937;
+$orange-light: #f99c90;
+$orange-medium: #da3441;
+$pink-bg: #ffcaea;
+$pink-dark: #a40f58;
+$pink-light: #f690c4;
+$pink-medium: #de1b76;
+$purple-bg: #debeeb;
+$purple-dark: #512179;
+$purple-light: #c693dc;
+$purple-medium: #963cbd;
+$violet-bg: #bfbfef;
+$violet-dark: #333688;
+$violet-light: #9ba0e2;
+$violet-medium: #5461c8;
