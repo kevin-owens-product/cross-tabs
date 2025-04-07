@@ -2,7 +2,7 @@
   "name": "platform2-crosstabs",
   "description": "An app to visualize two-dimensional tables of data points and audiences",
   "author": "GlobalWebIndex",
-  "main": "dist/app.js",
+  "main": "build/app.js",
   "private": true,
   "scripts": {
     "start": "make start",
