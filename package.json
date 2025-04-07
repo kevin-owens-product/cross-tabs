@@ -1,24 +1,31 @@
 {
-  "name": "pro-next",
-  "description": "Things that make new professionals.",
+  "name": "platform2-crosstabs",
+  "description": "An app to visualize two-dimensional tables of data points and audiences",
+  "author": "GlobalWebIndex",
   "main": "dist/app.js",
   "private": true,
   "scripts": {
     "start": "make start",
     "test": "make test",
-    "postinstall": "elm-tooling install",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:watch": "make test_watch",
+    "test:coverage": "make test_coverage",
+    "build": "make build",
+    "lint": "make lint",
+    "lint:fix": "make lint_fix",
+    "lint:watch": "make lint_watch",
+    "format": "make format",
+    "postinstall": "elm-tooling install"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/globalwebindex/pro-next.git"
+    "url": "git+https://github.com/GlobalWebIndex/platform2-crosstabs.git"
   },
-  "author": "GWI",
+  "homepage": "https://github.com/GlobalWebIndex/platform2-crosstabs#readme",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/globalwebindex/pro-next/issues"
+    "url": "https://github.com/GlobalWebIndex/platform2-crosstabs/issues"
   },
-  "homepage": "https://github.com/globalwebindex/pro-next#readme",
   "devDependencies": {
     "@babel/core": "^7.23.6",
     "@babel/preset-env": "^7.23.6",
@@ -73,8 +80,7 @@
     "url-loader": "^4.1.1",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "x-tag": "^1"
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "@emotion/react": "11.10.5",

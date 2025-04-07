@@ -1,4 +1,4 @@
-import { register } from "../../_helpers/webcomponents";
+import * as Utils from "../../utils";
 
 const ACTIVE_ELLIPSIS_CLASS = "active-ellipsis";
 
@@ -255,4 +255,4 @@ class XCooltip extends HTMLElement {
     }
 }
 
-register("x-cooltip", XCooltip);
+Utils.register("x-cooltip", XCooltip);

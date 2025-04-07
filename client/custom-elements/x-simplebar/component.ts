@@ -1,6 +1,6 @@
 import SimpleBar from "simplebar";
 
-import { register } from "../../_helpers/webcomponents";
+import * as Utils from "../../utils";
 
 const getElementWindow = (element) =>
     !element || !element.ownerDocument || !element.ownerDocument.defaultView
@@ -150,4 +150,4 @@ class SimpleBarComponent extends HTMLElement {
     }
 }
 
-register("x-simplebar", SimpleBarComponent);
+Utils.register("x-simplebar", SimpleBarComponent);

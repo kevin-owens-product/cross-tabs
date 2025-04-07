@@ -1,7 +1,7 @@
 import d3 from "d3";
 import d3scription, { Tip } from "d3scription-fork";
 
-import { register } from "../../_helpers/webcomponents";
+import * as Utils from "../../utils";
 
 function initObservers() {
     this.tipShown = false;
@@ -168,4 +168,4 @@ export default class XD3scription extends HTMLElement {
     }
 }
 
-register("x-d3scription", XD3scription);
+Utils.register("x-d3scription", XD3scription);

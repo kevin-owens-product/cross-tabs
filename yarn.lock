@@ -9263,11 +9263,6 @@ ws@^8.13.0, ws@^8.18.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
   integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
-x-tag@^1:
-  version "1.5.11"
-  resolved "https://registry.yarnpkg.com/x-tag/-/x-tag-1.5.11.tgz#b75167837cdccdc3fa1eb9af56b730a1f0225539"
-  integrity sha512-77qlVqw+rRSagBjLo2EZmyI6anUSzsqZY2LKpsjN0iV1hisfrXEZ17H+6Gi3veW+XeQkIGxtnb3n/sw6HtTGsA==
-
 xmlhttprequest@1:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/xmlhttprequest/-/xmlhttprequest-1.8.0.tgz#67fe075c5c24fef39f9d65f5f7b7fe75171968fc"

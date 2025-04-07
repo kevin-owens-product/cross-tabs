@@ -1,5 +1,5 @@
 import ResizeObserver from "resize-observer-polyfill";
-import { register } from "../../_helpers/webcomponents";
+import * as Utils from "../../utils";
 
 /**
  * <x-resize-observer target-selector=".my-target">
@@ -144,4 +144,4 @@ class XResizeObserver extends HTMLElement {
     }
 }
 
-register("x-resize-observer", XResizeObserver);
+Utils.register("x-resize-observer", XResizeObserver);
