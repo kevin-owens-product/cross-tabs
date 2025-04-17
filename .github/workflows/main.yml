@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "stylelint check"
           echo "==============="
-          npx stylelint 'client/**/*.scss'
+          npx stylelint 'src/**/*.scss'
 
           echo "Validate format"
           echo "==============="
