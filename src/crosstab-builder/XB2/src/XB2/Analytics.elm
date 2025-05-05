@@ -335,6 +335,7 @@ type Event
     | ListSorted { sorting : String }
     | TabsClicked { tab : String }
     | ManagementPageDragAndDropUsed
+    | ManagementPageOpened
     | AffixAttributesOrAudiences AffixedFrom
     | CopyLink { projectId : XBData.XBProjectId, projectName : String }
     | RespondentNumberChanged
@@ -1626,6 +1627,12 @@ encodeEvent flags route place event =
 
         ManagementPageDragAndDropUsed ->
             ( "P2 - Crosstabs - drag and drop"
+            , Encode.object
+                (placeAttr place :: encodeCrosstabIdAttributeFromRoute route)
+            )
+
+        ManagementPageOpened ->
+            ( "P2 - Crosstabs Management - Opened"
             , Encode.object
                 (placeAttr place :: encodeCrosstabIdAttributeFromRoute route)
             )

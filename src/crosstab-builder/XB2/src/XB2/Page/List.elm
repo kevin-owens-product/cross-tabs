@@ -271,8 +271,8 @@ type alias Model =
     }
 
 
-init : Config msg -> XBUserSettings -> ( Model, Cmd msg )
-init config settings =
+init : Config msg -> Flags -> XB2.Router.Route -> XBUserSettings -> ( Model, Cmd msg )
+init config flags route settings =
     { currentTime = Nothing
     , activeDropdown = DropdownMenu.init
     , sortingDropdownOpened = False
@@ -292,6 +292,7 @@ init config settings =
             else
                 Cmd.addTrigger config.setXB2ListFTUESeen
            )
+        |> Cmd.add (Analytics.trackEvent flags route Place.CrosstabBuilderList Analytics.ManagementPageOpened)
 
 
 getLoadedCrosstab : XBProjectFullyLoaded -> Model -> Maybe AudienceCrosstab

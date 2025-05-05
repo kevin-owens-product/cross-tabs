@@ -1419,7 +1419,7 @@ updateXBStore config flags xbMsg route p2Store model =
                 |> Glue.Lazy.updateWith detail
                     (Detail.updateSharedProjectWarning settings)
                 |> Glue.Lazy.ensure list
-                    (always <| XBList.init config.listConfig settings)
+                    (always <| XBList.init config.listConfig flags route settings)
 
         XBStore.XBUserSettingsUpdated _ ->
             ( model, Cmd.none )
