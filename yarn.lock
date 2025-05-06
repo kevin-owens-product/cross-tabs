@@ -1137,10 +1137,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.16.17.tgz#c5a1a4bfe1b57f0c3e61b29883525c6da3e5c091"
   integrity sha512-y+EHuSchhL7FjHgvQL/0fnnFmO4T1bhvWANX6gcnqTjtnKWbTvUMCpGnv2+t+31d7RzyEAYAd4u2fnIhHL6N/Q==
 
-"@globalwebindex/platform2-lib@1.13.2":
-  version "1.13.2"
-  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-lib/1.13.2/fca35fa6ef66bf973ae2e48544ff0261cff8d0b3#fca35fa6ef66bf973ae2e48544ff0261cff8d0b3"
-  integrity sha512-vbdBMwkgRnZ3KGqw0yPkTxMP9IXbH+CO7tB3XXak4oPkMcxpDid2y6mPRvzIldzW0uIXdO3MSz2Y3Y3uR0x3IQ==
+"@globalwebindex/platform2-lib@4.0.0":
+  version "4.0.0"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-lib/4.0.0/209f90b96b392a43be7475300b1e119620327e54#209f90b96b392a43be7475300b1e119620327e54"
+  integrity sha512-4os/j9CrFoUgfMUS8ke/RM2KA2Gs36XH9uU5/bvElWbMzT7DZzpaur8vcsuXdWJqGQapTpQnpIZlg6DdmXST3A==
   dependencies:
     axios "^0.27.2"
     zod "^3.21.4"
@@ -1154,14 +1154,14 @@
     lodash "^4.17.21"
     zod "^3.21.4"
 
-"@globalwebindex/platform2-react-ui-components@15.13.4":
-  version "15.13.4"
-  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/15.13.4/9d3c2db795a8b7e7fbd80b4ba706d9f86b8dac03#9d3c2db795a8b7e7fbd80b4ba706d9f86b8dac03"
-  integrity sha512-wfq1agWzZLZn9NoNIIZ8sgAyf6CpICqUq0jNMtQemoWf9VyhgkqOxtlHTyvFI95vjU3aTS512DpTrccI0K9gEA==
+"@globalwebindex/platform2-react-ui-components@16.7.0":
+  version "16.7.0"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/16.7.0/e730f9c5f566ccfd8f845e8a0cb568cbf20a9007#e730f9c5f566ccfd8f845e8a0cb568cbf20a9007"
+  integrity sha512-WfHJO7PVNktf2mtVVn81oEdOwgnKlYXO73AyWUVvFYP3bwmPX7O5bH6kjz7FjnCm0bScu+RHM6nOn3bAg+/jHw==
   dependencies:
     "@emotion/react" "^11.10.5"
     "@emotion/styled" "^11.10.5"
-    "@globalwebindex/platform2-lib" "1.13.2"
+    "@globalwebindex/platform2-lib" "4.0.0"
     "@mui/material" "5.11.4"
     "@mui/x-date-pickers" "^5.0.14"
     "@sentry/react" "7.31.1"
@@ -1178,14 +1178,14 @@
     ua-parser-js "^1.0.33"
     zod "3.21.4"
 
-"@globalwebindex/platform2-web-components@git+ssh://git@github.com/globalwebindex/platform2-web-components#v2.2.4":
+"@globalwebindex/platform2-web-components@git+ssh://git@github.com/globalwebindex/platform2-web-components#v2.2.6":
   version "0.1.0-alpha.1"
-  resolved "git+ssh://git@github.com/globalwebindex/platform2-web-components#c85a380ee7f2fd7d0d27909171b297f9802e51e1"
+  resolved "git+ssh://git@github.com/globalwebindex/platform2-web-components#7862534efd8b14b6a9c60f297c34ecd2e5787a90"
   dependencies:
     "@emotion/react" "11.10.5"
     "@emotion/styled" "11.10.5"
-    "@globalwebindex/platform2-lib" "1.13.2"
-    "@globalwebindex/platform2-react-ui-components" "15.13.4"
+    "@globalwebindex/platform2-lib" "4.0.0"
+    "@globalwebindex/platform2-react-ui-components" "16.7.0"
     "@mui/material" "5.11.4"
     "@sentry/react" "7.31.1"
     "@webcomponents/webcomponentsjs" "^2.5.0"
