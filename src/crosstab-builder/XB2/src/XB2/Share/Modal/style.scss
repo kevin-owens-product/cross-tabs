@@ -1,16 +1,18 @@
 @use "crosstab-builder/XB2/src/XB2/Share/Platform2/colors" as P2Colors;
 @use "crosstab-builder/XB2/src/XB2/Share/Platform2/components" as P2Components;
+@use "crosstab-builder/XB2/src/XB2/Share/zindex";
 
 .share-modal-choose-one,
 .share-modal-choose-many {
     &__container {
+        @include zindex.layer("P2ModalOverlay");
+
         display: flex;
         position: fixed;
         top: 0;
         right: 0;
         bottom: 0;
         left: 0;
-        z-index: var(--x-choose-many-modal-z-index, 100);
         justify-content: center;
         align-items: center;
     }
