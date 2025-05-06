@@ -264,7 +264,13 @@ init flags_ =
                 initHelp flags
 
             else
-                ( Err (AppLocked { isAppMounted = False }), Cmd.none )
+                ( Err (AppLocked { isAppMounted = False })
+                , Analytics.track
+                    ( "P2 - Crosstabs Management - Opened"
+                    , Encode.object
+                        [ ( "splash_screen", Encode.bool True ) ]
+                    )
+                )
 
         Err err ->
             ( Err <| InitializationError err, Cmd.none )

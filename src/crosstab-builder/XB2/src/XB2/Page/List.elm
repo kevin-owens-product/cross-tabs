@@ -292,7 +292,7 @@ init config flags route settings =
             else
                 Cmd.addTrigger config.setXB2ListFTUESeen
            )
-        |> Cmd.add (Analytics.trackEvent flags route Place.CrosstabBuilderList Analytics.ManagementPageOpened)
+        |> Cmd.add (Analytics.trackEvent flags route Place.CrosstabBuilderList (Analytics.ManagementPageOpened { splashScreen = False }))
 
 
 getLoadedCrosstab : XBProjectFullyLoaded -> Model -> Maybe AudienceCrosstab

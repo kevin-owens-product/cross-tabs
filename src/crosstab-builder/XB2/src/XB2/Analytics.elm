@@ -335,7 +335,7 @@ type Event
     | ListSorted { sorting : String }
     | TabsClicked { tab : String }
     | ManagementPageDragAndDropUsed
-    | ManagementPageOpened
+    | ManagementPageOpened { splashScreen : Bool }
     | AffixAttributesOrAudiences AffixedFrom
     | CopyLink { projectId : XBData.XBProjectId, projectName : String }
     | RespondentNumberChanged
@@ -1631,10 +1631,10 @@ encodeEvent flags route place event =
                 (placeAttr place :: encodeCrosstabIdAttributeFromRoute route)
             )
 
-        ManagementPageOpened ->
+        ManagementPageOpened { splashScreen } ->
             ( "P2 - Crosstabs Management - Opened"
             , Encode.object
-                (placeAttr place :: encodeCrosstabIdAttributeFromRoute route)
+                (( "splash_screen", Encode.bool splashScreen ) :: placeAttr place :: encodeCrosstabIdAttributeFromRoute route)
             )
 
         AffixAttributesOrAudiences affixedFrom ->
