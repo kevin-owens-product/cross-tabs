@@ -4861,6 +4861,7 @@ moveToFolderContents xbFolders config { projects, selectedFolderId, initialFolde
                                 [ Events.onClickPreventDefault config.closeModal
                                 , Attrs.attribute "aria-label" "Close modal"
                                 , WeakCss.nestMany [ "move-to-folder-modal", "header-with-tabs", "close" ] moduleClass
+                                , Attrs.attribute "aria-label" "Close move to folder modal"
                                 ]
                                 [ XB2.Share.Icons.icon [ XB2.Share.Icons.width 32 ] P2Icons.cross ]
                             ]
