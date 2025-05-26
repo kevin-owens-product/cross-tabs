@@ -32,6 +32,7 @@ module XB2.Page.Detail exposing
     , projectDestroyed
     , projectUpdated
     , reopeingProject
+    , saveChangesAndGoBackToProjectList
     , saveEditedProject
     , savingAudience
     , setCollapsedHeader
@@ -1187,6 +1188,26 @@ confirmBeforeLeave model =
 
 showUnsavedChangesDialog : msg -> Model -> Maybe (Cmd msg)
 showUnsavedChangesDialog action model =
+    if confirmBeforeLeave model then
+        case model.unsaved of
+            Unsaved ->
+                Nothing
+
+            Saved _ ->
+                Nothing
+
+            Edited _ ->
+                Just <| Cmd.perform action
+
+            UnsavedEdited ->
+                Just <| Cmd.perform action
+
+    else
+        Nothing
+
+
+saveChangesAndGoBackToProjectList : msg -> Model -> Maybe (Cmd msg)
+saveChangesAndGoBackToProjectList action model =
     if confirmBeforeLeave model then
         case model.unsaved of
             Unsaved ->

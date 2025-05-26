@@ -376,7 +376,7 @@ interruptRoutingCmd route state =
             Nothing
 
         Router.ProjectList ->
-            Crosstabs.showUnsavedChangesDialog xbConfig Router.ProjectList state.xb2Model
+            Crosstabs.saveProjectAndNavigateToListIfProjectIsUnsaved xbConfig state.xb2Model
 
         Router.ExternalUrl urlString ->
             Crosstabs.showUnsavedChangesDialog xbConfig

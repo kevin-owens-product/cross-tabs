@@ -13,6 +13,7 @@ module Crosstabs exposing
     , init
     , onP2StoreChange
     , onP2StoreError
+    , saveProjectAndNavigateToListIfProjectIsUnsaved
     , showUnsavedChangesDialog
     , subscriptions
     , update
@@ -337,6 +338,31 @@ showUnsavedChangesDialog config newRoute { detailModel } =
                 dModel
         )
         detailModel
+
+
+saveProjectAndNavigateToListIfProjectIsUnsaved :
+    Config msg
+    -> Model
+    -> Maybe (Cmd msg)
+saveProjectAndNavigateToListIfProjectIsUnsaved config { detailModel } =
+    Maybe.andThen
+        (\dModel ->
+            Detail.saveChangesAndGoBackToProjectList
+                (config.msg (SaveProjectAndNavigateTo Router.ProjectList))
+                dModel
+        )
+        detailModel
+        |> Maybe.map
+            (\cmd ->
+                Cmd.batch
+                    [ cmd
+                    , Cmd.perform <|
+                        config.msg <|
+                            CreateListNotification P2Icons.tick
+                                Nothing
+                                (Html.text "Project saved")
+                    ]
+            )
 
 
 
