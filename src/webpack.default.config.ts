@@ -3,6 +3,7 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { ESBuildMinifyPlugin } = require("esbuild-loader");
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
 module.exports = ({ appName, indexPath }) => {
     const isInDevMode = process.env.TARGET_ENV === "development";
@@ -208,6 +209,9 @@ module.exports = ({ appName, indexPath }) => {
                 "process.env": {
                     TARGET_ENV: JSON.stringify(process.env.TARGET_ENV) || '"development"' // determines Env in Flags
                 }
+            }),
+            sentryWebpackPlugin({
+                applicationKey: appName
             })
         ],
         devServer: {

@@ -51,6 +51,10 @@ if (process.env.TARGET_ENV !== "development" && !Boolean(window.Sentry)) {
             Sentry.replayIntegration({
                 maskAllText: false,
                 blockAllMedia: false
+            }),
+            Sentry.thirdPartyErrorFilterIntegration({
+                filterKeys: ["crosstabs"],
+                behaviour: "drop-error-if-contains-third-party-frames"
             })
         ],
         tracesSampleRate: 0,
@@ -58,15 +62,7 @@ if (process.env.TARGET_ENV !== "development" && !Boolean(window.Sentry)) {
         environment: process.env.TARGET_ENV,
 
         replaysSessionSampleRate: 0,
-        replaysOnErrorSampleRate: 1.0,
-
-        // Filter events to only include those from the /crosstabs path
-        beforeSend(event) {
-            if (window.location.pathname.startsWith("/crosstabs")) {
-                return event;
-            }
-            return null;
-        }
+        replaysOnErrorSampleRate: 1.0
     });
 }
 
