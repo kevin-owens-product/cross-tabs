@@ -2780,7 +2780,18 @@ setShouldBeLoadedForSorting { axis, mode } =
         ByOtherAxisAverage id _ ->
             setShouldBeLoadedRowOrCol id
 
-        _ ->
+        ByTotalsMetric _ _ ->
+            case axis of
+                Rows ->
+                    ACrosstab.setLoadNotAskedTotalRows
+
+                Columns ->
+                    ACrosstab.setLoadNotAskedTotalColumns
+
+        ByName _ ->
+            identity
+
+        NoSort ->
             identity
 
 
@@ -2802,7 +2813,18 @@ allNotDoneCellsForSorting { axis, mode } crosstab =
         ByOtherAxisAverage id _ ->
             notLoadedRowsOrCols id
 
-        _ ->
+        ByTotalsMetric _ _ ->
+            case axis of
+                Rows ->
+                    ACrosstab.totalsNotDoneForRowCount crosstab
+
+                Columns ->
+                    ACrosstab.totalsNotDoneForColumnCount crosstab
+
+        ByName _ ->
+            0
+
+        NoSort ->
             0
 
 

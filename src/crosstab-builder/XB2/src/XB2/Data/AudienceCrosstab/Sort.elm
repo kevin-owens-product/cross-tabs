@@ -38,10 +38,11 @@ convertSortToSortConfig sort =
 sortAxisBy :
     SortConfig
     -> BaseAudience
+    -> AnyDict ( AudienceItemId.ComparableId, String ) ( AudienceItem.AudienceItem, BaseAudience ) AC.Cell
     -> AnyDict AudienceItemId.ComparableId AudienceItemId Key
     -> CrosstabTable
     -> CrosstabTable
-sortAxisBy { axis, mode } base keyMapping crosstab =
+sortAxisBy { axis, mode } base totals keyMapping crosstab =
     case mode of
         NoSort ->
             crosstab
@@ -96,6 +97,17 @@ sortAxisBy { axis, mode } base keyMapping crosstab =
                         sortByOtherAxis axis direction valueForKey crosstab
                     )
                 |> Maybe.withDefault crosstab
+
+        ByTotalsMetric metric direction ->
+            let
+                valueForKey : Key -> Float
+                valueForKey key =
+                    Dict.Any.get ( key.item, base ) totals
+                        |> Maybe.andThen (.data >> AC.getAvAData)
+                        |> Maybe.map (AudienceIntersect.getValue metric)
+                        |> Maybe.withDefault (infinityForDirection direction)
+            in
+            sortByOtherAxis axis direction valueForKey crosstab
 
 
 sortListBy : SortDirection -> (a -> comparable) -> List a -> List a

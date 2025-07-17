@@ -269,6 +269,7 @@ type alias Config model msg =
     , resetSortForAxis : Axis -> msg
     , resetSortByName : msg
     , sortByOtherAxisMetric : SortConfig -> msg
+    , sortByTotalsMetric : SortConfig -> msg
     , sortByOtherAxisAverage : SortConfig -> msg
     , sortByName : Axis -> SortDirection -> msg
 
@@ -2268,6 +2269,9 @@ sortByNameDropdownView config model { isDropdownOpen, isHeaderCollapsed } =
                 ( ByOtherAxisMetric _ _ _, _, _ ) ->
                     Nothing
 
+                ( ByTotalsMetric _ _, _, _ ) ->
+                    Nothing
+
                 ( ByOtherAxisAverage _ _, _, _ ) ->
                     Nothing
 
@@ -2293,6 +2297,9 @@ sortByNameDropdownView config model { isDropdownOpen, isHeaderCollapsed } =
                                     XB2.Share.Icons.icon [] P2Icons.sort
 
                                 ( ByOtherAxisMetric _ _ _, _ ) ->
+                                    Html.nothing
+
+                                ( ByTotalsMetric _ _, _ ) ->
                                     Html.nothing
 
                                 ( ByOtherAxisAverage _ _, _ ) ->
@@ -3329,6 +3336,12 @@ reorderMetrics sort metrics =
         ( _, ByOtherAxisMetric _ metric _ ) ->
             thisOneFirstIfVisible metric
 
+        ( ByTotalsMetric metric _, _ ) ->
+            thisOneFirstIfVisible metric
+
+        ( _, ByTotalsMetric metric _ ) ->
+            thisOneFirstIfVisible metric
+
         ( ByOtherAxisAverage _ _, _ ) ->
             metrics
 
@@ -3434,6 +3447,9 @@ averageItemDropdown triggers params =
 
                 ByOtherAxisAverage id _ ->
                     id == AudienceItem.getId params.key.item
+
+                ByTotalsMetric _ _ ->
+                    False
 
                 ByName _ ->
                     False
@@ -3560,6 +3576,7 @@ viewHeaderDropdown :
         , remoteUserSettings : RemoteData.WebData XBUserSettings
         , headerIndex : Int
         , numberOfRowsAndCols : { rows : Int, cols : Int }
+        , isTotalsHeader : Bool
         }
     -> Html msg
 viewHeaderDropdown triggers params =
@@ -3604,6 +3621,9 @@ viewHeaderDropdown triggers params =
                 ByOtherAxisMetric id _ _ ->
                     id == AudienceItem.getId params.key.item
 
+                ByTotalsMetric _ _ ->
+                    AudienceItemId.total == AudienceItem.getId params.key.item
+
                 ByOtherAxisAverage _ _ ->
                     False
 
@@ -3619,12 +3639,29 @@ viewHeaderDropdown triggers params =
 
         isSortingByThisMetricDirection : Metric -> SortDirection -> Bool
         isSortingByThisMetricDirection metric sortDirection =
-            sortForOtherAxis == ByOtherAxisMetric (AudienceItem.getId params.key.item) metric sortDirection
+            sortForOtherAxis
+                == ByOtherAxisMetric (AudienceItem.getId params.key.item) metric sortDirection
+                || (sortForOtherAxis
+                        == ByTotalsMetric metric sortDirection
+                        && AudienceItemId.total
+                        == AudienceItem.getId params.key.item
+                   )
 
         isSortingByThisDirection : SortDirection -> Bool
         isSortingByThisDirection sortDirection =
+            -- Debug.todo "here check for totals too 2"
             List.foldl
-                (\metric acc -> acc || (sortForOtherAxis == ByOtherAxisMetric (AudienceItem.getId params.key.item) metric sortDirection))
+                (\metric acc ->
+                    acc
+                        || (sortForOtherAxis
+                                == ByOtherAxisMetric (AudienceItem.getId params.key.item) metric sortDirection
+                                || (sortForOtherAxis
+                                        == ByTotalsMetric metric sortDirection
+                                        && AudienceItemId.total
+                                        == AudienceItem.getId params.key.item
+                                   )
+                           )
+                )
                 False
                 Metric.allMetrics
 
@@ -3665,10 +3702,17 @@ viewHeaderDropdown triggers params =
                                     }
                            Hence why we're sorting *the other axis* in this msg:
                         -}
-                        (triggers.config.sortByOtherAxisMetric
-                            { mode = ByOtherAxisMetric (AudienceItem.getId params.key.item) metric Ascending
-                            , axis = otherAxis
-                            }
+                        (if params.isTotalsHeader then
+                            triggers.config.sortByTotalsMetric
+                                { mode = ByTotalsMetric metric Ascending
+                                , axis = otherAxis
+                                }
+
+                         else
+                            triggers.config.sortByOtherAxisMetric
+                                { mode = ByOtherAxisMetric (AudienceItem.getId params.key.item) metric Ascending
+                                , axis = otherAxis
+                                }
                         )
                   ]
                 , [ DropdownItem.class dropdownMenuClass
@@ -3677,10 +3721,17 @@ viewHeaderDropdown triggers params =
                   , DropdownItem.selected (isSortingByThisMetricDirection metric Descending)
                   , DropdownItem.onClick
                         -- same as above
-                        (triggers.config.sortByOtherAxisMetric
-                            { mode = ByOtherAxisMetric (AudienceItem.getId params.key.item) metric Descending
-                            , axis = otherAxis
-                            }
+                        (if params.isTotalsHeader then
+                            triggers.config.sortByTotalsMetric
+                                { mode = ByTotalsMetric metric Descending
+                                , axis = otherAxis
+                                }
+
+                         else
+                            triggers.config.sortByOtherAxisMetric
+                                { mode = ByOtherAxisMetric (AudienceItem.getId params.key.item) metric Descending
+                                , axis = otherAxis
+                                }
                         )
                   ]
                 ]
@@ -3772,27 +3823,27 @@ viewHeaderDropdown triggers params =
                 [ Html.div
                     [ dropdownMenuClass
                         |> WeakCss.withActiveStates
-                            [ if params.headerClass == "rows" || params.headerClass == "frozen-total-rows" then
+                            [ if params.headerClass == "rows" || params.headerClass == "frozen-total-rows" || params.isTotalsHeader then
                                 "expand-right"
 
                               else
                                 "expand-left"
                             ]
                     ]
-                    [ DropdownItem.view
+                    [ DropdownItem.viewIf (not params.isTotalsHeader)
                         [ DropdownItem.class dropdownMenuClass
                         , DropdownItem.label "View/rename"
                         , DropdownItem.onClick (triggers.config.viewGroupExpression ( params.direction, params.key ))
                         , DropdownItem.leftIcon P2Icons.fileSearch
                         ]
-                    , DropdownItem.view
+                    , DropdownItem.viewIf (not params.isTotalsHeader)
                         [ DropdownItem.class dropdownMenuClass
                         , DropdownItem.label "Edit expression"
                         , DropdownItem.onClick (triggers.config.openEditTableForSingle ( params.direction, params.key ))
                         , DropdownItem.leftIcon P2Icons.edit
                         ]
                     , Html.viewIf haveAllNeededDatasets <|
-                        DropdownItem.view
+                        DropdownItem.viewIf (not params.isTotalsHeader)
                             [ DropdownItem.class dropdownMenuClass
                             , DropdownItem.onClick (triggers.config.openSaveAsAudienceModal ( params.direction, params.key ))
                             , DropdownItem.label "Save as a new audience"
@@ -3817,7 +3868,7 @@ viewHeaderDropdown triggers params =
                                    ]
                             )
                         ]
-                    , DropdownItem.view
+                    , DropdownItem.viewIf (not params.isTotalsHeader)
                         [ DropdownItem.class dropdownMenuClass
                         , DropdownItem.label "Freeze"
                         , DropdownItem.leftIcon P2Icons.freeze
@@ -3827,7 +3878,7 @@ viewHeaderDropdown triggers params =
                             freezeDropdownChildrenView
                         ]
                     , DropdownItem.separator dropdownMenuClass
-                    , DropdownItem.view
+                    , DropdownItem.viewIf (not params.isTotalsHeader)
                         [ DropdownItem.class dropdownMenuClass
                         , DropdownItem.onClick (triggers.config.duplicateAudience ( params.direction, params.key ))
                         , DropdownItem.label <|
@@ -3841,7 +3892,7 @@ viewHeaderDropdown triggers params =
                                    )
                         , DropdownItem.leftIcon P2Icons.duplicate
                         ]
-                    , DropdownItem.view
+                    , DropdownItem.viewIf (not params.isTotalsHeader)
                         [ DropdownItem.class dropdownMenuClass
                         , DropdownItem.onClick (triggers.config.removeAudience ( params.direction, params.key ))
                         , DropdownItem.label <|
@@ -3938,40 +3989,43 @@ keyedHeaderView triggers params =
 
         sortDirection : Maybe SortDirection
         sortDirection =
-            if isTotalsHeader then
-                Nothing
+            let
+                sortingForThisKey : AxisSort
+                sortingForThisKey =
+                    case params.direction of
+                        Column ->
+                            params.sort.rows
 
-            else
-                let
-                    sortingForThisKey : AxisSort
-                    sortingForThisKey =
-                        case params.direction of
-                            Column ->
-                                params.sort.rows
+                        Row ->
+                            params.sort.columns
+            in
+            case sortingForThisKey of
+                ByOtherAxisMetric id _ sDirection ->
+                    if id == AudienceItem.getId params.key.item then
+                        Just sDirection
 
-                            Row ->
-                                params.sort.columns
-                in
-                case sortingForThisKey of
-                    ByOtherAxisMetric id _ sDirection ->
-                        if id == AudienceItem.getId params.key.item then
-                            Just sDirection
-
-                        else
-                            Nothing
-
-                    ByOtherAxisAverage id sDirection ->
-                        if id == AudienceItem.getId params.key.item then
-                            Just sDirection
-
-                        else
-                            Nothing
-
-                    ByName _ ->
+                    else
                         Nothing
 
-                    NoSort ->
+                ByTotalsMetric _ sDirection ->
+                    if AudienceItemId.total == AudienceItem.getId params.key.item then
+                        Just sDirection
+
+                    else
                         Nothing
+
+                ByOtherAxisAverage id sDirection ->
+                    if id == AudienceItem.getId params.key.item then
+                        Just sDirection
+
+                    else
+                        Nothing
+
+                ByName _ ->
+                    Nothing
+
+                NoSort ->
+                    Nothing
 
         isSortByThisKey : Bool
         isSortByThisKey =
@@ -4123,22 +4177,21 @@ keyedHeaderView triggers params =
                             ]
 
                         else
-                            (Html.viewIf (not isTotalsHeader) <|
-                                Html.Lazy.lazy2 viewHeaderDropdown
-                                    { config = triggers.config }
-                                    { p2Store = params.p2Store
-                                    , sort = params.sort
-                                    , direction = params.direction
-                                    , frozenRowsAndColumns = params.frozenRowsAndColumns
-                                    , headerClass = headerClass
-                                    , key = params.key
-                                    , staticId = staticId
-                                    , dropdownMenu = params.dropdownMenu
-                                    , remoteUserSettings = params.remoteUserSettings
-                                    , headerIndex = params.index
-                                    , numberOfRowsAndCols = params.numberOfRowsAndCols
-                                    }
-                            )
+                            Html.Lazy.lazy2 viewHeaderDropdown
+                                { config = triggers.config }
+                                { p2Store = params.p2Store
+                                , sort = params.sort
+                                , direction = params.direction
+                                , frozenRowsAndColumns = params.frozenRowsAndColumns
+                                , headerClass = headerClass
+                                , key = params.key
+                                , staticId = staticId
+                                , dropdownMenu = params.dropdownMenu
+                                , remoteUserSettings = params.remoteUserSettings
+                                , headerIndex = params.index
+                                , numberOfRowsAndCols = params.numberOfRowsAndCols
+                                , isTotalsHeader = isTotalsHeader
+                                }
                                 :: metricsView params.sort params.key headerClass params.metrics params.metricsTransposition
                        )
             ]
@@ -4560,6 +4613,16 @@ cellView p =
 
                 ( _, ByOtherAxisMetric id metric _ ) ->
                     ( AudienceItem.getId p.row.item == id
+                    , Just metric
+                    )
+
+                ( ByTotalsMetric metric _, _ ) ->
+                    ( AudienceItem.getId p.column.item == AudienceItemId.total
+                    , Just metric
+                    )
+
+                ( _, ByTotalsMetric metric _ ) ->
+                    ( AudienceItem.getId p.row.item == AudienceItemId.total
                     , Just metric
                     )
 

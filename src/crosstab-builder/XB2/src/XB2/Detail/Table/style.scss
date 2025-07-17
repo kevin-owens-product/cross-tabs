@@ -1601,6 +1601,16 @@ $row-label-width: 48px;
                     height: 100%;
                     width: 100%;
 
+                    .metrics-in-rows.metrics-3 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+                    .metrics-in-rows.metrics-2 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+                    .metrics-in-rows.metrics-1 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+
                     &:not(.is-total) {
                         cursor: pointer;
 
@@ -1610,18 +1620,6 @@ $row-label-width: 48px;
 
                         .is-header-resizing-column & {
                             @include xb2-table-resizing-cursor-ns(#a40f58);
-                        }
-
-                        .metrics-in-rows.metrics-3 & {
-                            padding: 7px 20px 7px 0px;
-                        }
-
-                        .metrics-in-rows.metrics-2 & {
-                            padding: 7px 20px 7px 0px;
-                        }
-
-                        .metrics-in-rows.metrics-1 & {
-                            padding: 7px 20px 7px 0px;
                         }
                     }
                 }
@@ -1739,10 +1737,6 @@ $row-label-width: 48px;
 
                     &.selected-below {
                         padding-top: 1px;
-                    }
-
-                    .is-total {
-                        top: 10px;
                     }
 
                     &--caption {
@@ -3849,6 +3843,16 @@ $row-label-width: 48px;
                     height: 100%;
                     width: 100%;
 
+                    .metrics-in-rows.metrics-3 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+                    .metrics-in-rows.metrics-2 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+                    .metrics-in-rows.metrics-1 & {
+                        padding: 7px 20px 7px 0px;
+                    }
+
                     &:not(.is-total) {
                         cursor: pointer;
 
@@ -3858,18 +3862,6 @@ $row-label-width: 48px;
 
                         .is-header-resizing-column & {
                             @include xb2-table-resizing-cursor-ns(#a40f58);
-                        }
-
-                        .metrics-in-rows.metrics-3 & {
-                            padding: 7px 20px 7px 0px;
-                        }
-
-                        .metrics-in-rows.metrics-2 & {
-                            padding: 7px 20px 7px 0px;
-                        }
-
-                        .metrics-in-rows.metrics-1 & {
-                            padding: 7px 20px 7px 0px;
                         }
                     }
                 }
@@ -3987,10 +3979,6 @@ $row-label-width: 48px;
 
                     &.selected-below {
                         padding-top: 1px;
-                    }
-
-                    .is-total {
-                        top: 10px;
                     }
 
                     &--caption {

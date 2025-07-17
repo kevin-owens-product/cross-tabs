@@ -292,8 +292,11 @@ exportResult sortConfig_ audienceCrosstab_ baseAudience heatmapMetric questions 
                     let
                         keyMapping =
                             ACrosstab.getKeyMapping ac
+
+                        crosstabTotals =
+                            ACrosstab.getTotals ac
                     in
-                    ACrosstab.updateCrosstab (Sort.sortAxisBy sortConfig baseAudience keyMapping) ac
+                    ACrosstab.updateCrosstab (Sort.sortAxisBy sortConfig baseAudience crosstabTotals keyMapping) ac
 
                 Nothing ->
                     ac

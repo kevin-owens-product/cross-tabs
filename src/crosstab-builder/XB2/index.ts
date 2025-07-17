@@ -28,6 +28,8 @@ import * as Sentry from "@sentry/browser";
 
 import "regenerator-runtime/runtime";
 
+import * as ElmDebugger from "elm-debug-transformer";
+
 require("@webcomponents/webcomponentsjs/webcomponents-bundle.js");
 require("@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js");
 // styles
@@ -40,6 +42,8 @@ require("../../custom-elements/x-cooltip/style.scss");
 require("../../custom-elements/x-simplebar/component.ts");
 require("../../custom-elements/x-simplebar/style.scss");
 require("../../custom-elements/x-resize-observer/component.ts");
+
+ElmDebugger.register({ limit: 1000000 });
 
 // Sentry
 // @ts-ignore

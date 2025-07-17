@@ -4629,13 +4629,28 @@ sortCrosstabDataForAxis ({ axis, mode } as sortConfig) crosstabData =
                     ( ByOtherAxisMetric _ _ _, ByOtherAxisMetric _ _ _ ) ->
                         setSortForAxis otherAxis NoSort
 
-                    ( ByOtherAxisAverage _ _, ByOtherAxisMetric _ _ _ ) ->
-                        setSortForAxis otherAxis NoSort
-
                     ( ByOtherAxisMetric _ _ _, ByOtherAxisAverage _ _ ) ->
                         setSortForAxis otherAxis NoSort
 
+                    ( ByOtherAxisMetric _ _ _, ByTotalsMetric _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
+                    ( ByOtherAxisAverage _ _, ByOtherAxisMetric _ _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
                     ( ByOtherAxisAverage _ _, ByOtherAxisAverage _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
+                    ( ByOtherAxisAverage _ _, ByTotalsMetric _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
+                    ( ByTotalsMetric _ _, ByOtherAxisMetric _ _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
+                    ( ByTotalsMetric _ _, ByOtherAxisAverage _ _ ) ->
+                        setSortForAxis otherAxis NoSort
+
+                    ( ByTotalsMetric _ _, ByTotalsMetric _ _ ) ->
                         setSortForAxis otherAxis NoSort
 
                     _ ->
@@ -4652,6 +4667,10 @@ sortCrosstabDataForAxis ({ axis, mode } as sortConfig) crosstabData =
 
             else
                 refreshOrderBeforeSorting axis
+
+        crosstabTotals =
+            currentCrosstabFromData crosstabData
+                |> ACrosstab.getTotals
     in
     crosstabData
         |> -- important that this happens before reorder
@@ -4660,7 +4679,7 @@ sortCrosstabDataForAxis ({ axis, mode } as sortConfig) crosstabData =
             (setSortForAxis axis mode)
         |> resetOtherAxis
         |> updateAudienceCrosstab
-            (ACrosstab.updateCrosstab (Sort.sortAxisBy sortConfig base keyMapping))
+            (ACrosstab.updateCrosstab (Sort.sortAxisBy sortConfig base crosstabTotals keyMapping))
 
 
 resetSortForAxis : Axis -> Model -> Model
@@ -5559,7 +5578,18 @@ allNotDoneCellsForSorting sortConfigs crosstab =
                     ByOtherAxisAverage id _ ->
                         notLoadedRowsOrCols id
 
-                    _ ->
+                    ByTotalsMetric _ _ ->
+                        case axis of
+                            Rows ->
+                                ACrosstab.totalsNotDoneForRowCount crosstab
+
+                            Columns ->
+                                ACrosstab.totalsNotDoneForColumnCount crosstab
+
+                    ByName _ ->
+                        0
+
+                    NoSort ->
                         0
                   )
         )
@@ -8565,6 +8595,7 @@ tableConfig xbModel maybeProject xbStore =
     , resetSortForAxis = Edit << ResetSortForAxis
     , resetSortByName = Edit ResetSortByName
     , sortByOtherAxisMetric = ShowSortingDialog
+    , sortByTotalsMetric = ShowSortingDialog
     , sortByOtherAxisAverage = ShowSortingDialog
     , sortByName =
         \axis direction ->

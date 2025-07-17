@@ -1,5 +1,6 @@
 module XB2.SortTest exposing (suite)
 
+import Dict.Any as AnyDict
 import Expect
 import Fuzz exposing (Fuzzer)
 import List.Extra as List
@@ -61,6 +62,7 @@ suite =
                             , mode = NoSort
                             }
                             base
+                            (AnyDict.empty ACrosstab.totalKeyToComparable)
                             keyMapping
                         |> getHeadersFor axis
                         |> Expect.equal (getHeadersFor axis crosstab)
@@ -84,6 +86,7 @@ suite =
                             , mode = ByName direction
                             }
                             base
+                            (AnyDict.empty ACrosstab.totalKeyToComparable)
                             keyMapping
                         |> getHeadersFor axis
                         |> List.map (keyName >> String.toLower)
@@ -138,6 +141,7 @@ suite =
                                 ByOtherAxisAverage id direction
                             }
                             BaseAudience.default
+                            (AnyDict.empty ACrosstab.totalKeyToComparable)
                             keyMapping
                         |> getHeadersFor axis
                         |> List.map keyName
@@ -183,6 +187,7 @@ suite =
                                 ByOtherAxisMetric id metric direction
                             }
                             BaseAudience.default
+                            (AnyDict.empty ACrosstab.totalKeyToComparable)
                             keyMapping
                         |> getHeadersFor axis
                         |> List.map keyName

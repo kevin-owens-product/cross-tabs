@@ -49,6 +49,7 @@
     "d3-charts": "git+ssh://git@github.com/globalwebindex/d3-charts#4.3.9",
     "d3-charts-2": "git+ssh://git@github.com/globalwebindex/d3-charts#d2-1.0.38",
     "debounce": "^1.2.0",
+    "elm-debug-transformer": "1.2.1",
     "elm-hot-webpack-loader": "^1.1.8",
     "elm-review": "^2.8.2",
     "elm-tooling": "^1.10.0",

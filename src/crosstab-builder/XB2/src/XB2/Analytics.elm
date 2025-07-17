@@ -777,6 +777,9 @@ encodeSortConfig sortConfig =
 
                 Sort.ByOtherAxisMetric _ metric _ ->
                     ( "metric", Metric.label metric )
+
+                Sort.ByTotalsMetric metric _ ->
+                    ( "metric", Metric.label metric )
     in
     [ ( "type", Encode.string sortType )
     , ( "entity", Encode.string entity )

@@ -160,9 +160,14 @@ module XB2.Data.AudienceCrosstab exposing
     , setCellsVisibility
     , setColumnShouldBeLoaded
     , setFocusToBase
+    , setLoadNotAskedTotalColumns
+    , setLoadNotAskedTotalRows
     , setRowShouldBeLoaded
     , switchRowsAndColumns
     , toggleBaseAudience
+    , totalKeyToComparable
+    , totalsNotDoneForColumnCount
+    , totalsNotDoneForRowCount
     , unwrapCrosstabBase
     , updateCrosstab
     , value
@@ -2449,6 +2454,27 @@ setCellsVisibility recalculate visibleCells (AudienceCrosstab ac) =
         AudienceCrosstab { ac | visibleCells = visibleCells }
 
 
+setLoadNotAskedTotalRows : AudienceCrosstab -> AudienceCrosstab
+setLoadNotAskedTotalRows (AudienceCrosstab r) =
+    let
+        crosstabRows =
+            Crosstab.getRows r.crosstab
+                |> List.map keyToComparable
+                |> Set.fromList
+    in
+    updateTotals
+        (Dict.Any.map
+            (\( item, _ ) cell ->
+                if Set.member (audienceItemToComparable item) crosstabRows && isCellNotAsked cell then
+                    { cell | shouldBeLoaded = True }
+
+                else
+                    cell
+            )
+        )
+        (AudienceCrosstab r)
+
+
 setRowShouldBeLoaded : AudienceItemId -> AudienceCrosstab -> AudienceCrosstab
 setRowShouldBeLoaded rowId audienceCrosstab =
     updateCrosstab
@@ -2465,6 +2491,27 @@ setRowShouldBeLoaded rowId audienceCrosstab =
             )
         )
         audienceCrosstab
+
+
+setLoadNotAskedTotalColumns : AudienceCrosstab -> AudienceCrosstab
+setLoadNotAskedTotalColumns (AudienceCrosstab r) =
+    let
+        crosstabColumns =
+            Crosstab.getColumns r.crosstab
+                |> List.map keyToComparable
+                |> Set.fromList
+    in
+    updateTotals
+        (Dict.Any.map
+            (\( item, _ ) cell ->
+                if Set.member (audienceItemToComparable item) crosstabColumns && isCellNotAsked cell then
+                    { cell | shouldBeLoaded = True }
+
+                else
+                    cell
+            )
+        )
+        (AudienceCrosstab r)
 
 
 setColumnShouldBeLoaded : AudienceItemId -> AudienceCrosstab -> AudienceCrosstab
@@ -3561,6 +3608,22 @@ notDoneForColumnCount id (AudienceCrosstab r) =
         |> Dict.Any.size
 
 
+totalsNotDoneForColumnCount : AudienceCrosstab -> Int
+totalsNotDoneForColumnCount (AudienceCrosstab r) =
+    let
+        crosstabColumns =
+            Crosstab.getColumns r.crosstab
+                |> List.map keyToComparable
+                |> Set.fromList
+    in
+    Dict.Any.filter
+        (\( item, _ ) cell ->
+            Set.member (audienceItemToComparable item) crosstabColumns && not (isCellDone cell)
+        )
+        r.totals
+        |> Dict.Any.size
+
+
 notDoneForRowCount : AudienceItemId -> AudienceCrosstab -> Int
 notDoneForRowCount id (AudienceCrosstab r) =
     Crosstab.getValues r.crosstab
@@ -3569,6 +3632,22 @@ notDoneForRowCount id (AudienceCrosstab r) =
                 (AudienceItem.getId row.item == id)
                     && not (isCellDone cell)
             )
+        |> Dict.Any.size
+
+
+totalsNotDoneForRowCount : AudienceCrosstab -> Int
+totalsNotDoneForRowCount (AudienceCrosstab r) =
+    let
+        crosstabRows =
+            Crosstab.getRows r.crosstab
+                |> List.map keyToComparable
+                |> Set.fromList
+    in
+    Dict.Any.filter
+        (\( item, _ ) cell ->
+            Set.member (audienceItemToComparable item) crosstabRows && not (isCellDone cell)
+        )
+        r.totals
         |> Dict.Any.size
 
 

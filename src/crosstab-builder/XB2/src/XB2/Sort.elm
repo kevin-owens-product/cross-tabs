@@ -35,6 +35,7 @@ type alias Sort =
 
 type AxisSort
     = ByOtherAxisMetric AudienceItemId Metric SortDirection
+    | ByTotalsMetric Metric SortDirection
     | ByOtherAxisAverage AudienceItemId SortDirection
     | ByName SortDirection
     | NoSort
@@ -83,6 +84,11 @@ axisSortDecoder =
                     "by_other_axis_metric" ->
                         Decode.succeed ByOtherAxisMetric
                             |> Decode.andMap (Decode.field "audience_item_id" AudienceItemId.decoder)
+                            |> Decode.andMap (Decode.field "metric" Metric.decoder)
+                            |> Decode.andMap (Decode.field "direction" directionDecoder)
+
+                    "by_totals_metric" ->
+                        Decode.succeed ByTotalsMetric
                             |> Decode.andMap (Decode.field "metric" Metric.decoder)
                             |> Decode.andMap (Decode.field "direction" directionDecoder)
 
@@ -141,6 +147,13 @@ encodeAxis sort =
                 , ( "direction", encodeDirection direction )
                 ]
 
+        ByTotalsMetric metric direction ->
+            Encode.object
+                [ ( "type", Encode.string "by_totals_metric" )
+                , ( "metric", Metric.encode metric )
+                , ( "direction", encodeDirection direction )
+                ]
+
         ByOtherAxisAverage id direction ->
             Encode.object
                 [ ( "type", Encode.string "by_other_axis_average" )
@@ -191,6 +204,9 @@ isSorting axisSort =
         ByOtherAxisMetric _ _ _ ->
             True
 
+        ByTotalsMetric _ _ ->
+            True
+
         ByOtherAxisAverage _ _ ->
             True
 
@@ -212,6 +228,9 @@ isSortingByName axisSort =
         ByOtherAxisMetric _ _ _ ->
             False
 
+        ByTotalsMetric _ _ ->
+            False
+
         ByOtherAxisAverage _ _ ->
             False
 
@@ -226,6 +245,9 @@ isSortingByMetric axisSort =
             False
 
         ByOtherAxisMetric _ _ _ ->
+            True
+
+        ByTotalsMetric _ _ ->
             True
 
         ByOtherAxisAverage _ _ ->
@@ -244,6 +266,9 @@ isSortingByAverage axisSort =
         ByOtherAxisMetric _ _ _ ->
             False
 
+        ByTotalsMetric _ _ ->
+            False
+
         ByOtherAxisAverage _ _ ->
             True
 
@@ -256,6 +281,9 @@ sortingAudience axisSort =
 
         NoSort ->
             Nothing
+
+        ByTotalsMetric _ _ ->
+            Just AudienceItemId.total
 
         ByOtherAxisMetric id _ _ ->
             Just id
@@ -276,6 +304,9 @@ needsDataReload axisSort =
         ByOtherAxisMetric _ _ _ ->
             True
 
+        ByTotalsMetric _ _ ->
+            True
+
         ByOtherAxisAverage _ _ ->
             True
 
@@ -288,6 +319,9 @@ sortingMetric axisSort =
 
         NoSort ->
             Nothing
+
+        ByTotalsMetric metric _ ->
+            Just metric
 
         ByOtherAxisMetric _ metric _ ->
             Just metric
@@ -319,6 +353,13 @@ axisSortToDebugString sort =
                 ++ Metric.toString metric
                 ++ ", "
                 ++ AudienceItemId.toString id
+                ++ ")"
+
+        ByTotalsMetric metric dir ->
+            "By Totals Metric ("
+                ++ sortDirectionToDebugString dir
+                ++ ", "
+                ++ Metric.toString metric
                 ++ ")"
 
 
