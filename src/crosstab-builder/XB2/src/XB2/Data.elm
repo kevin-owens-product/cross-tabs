@@ -139,13 +139,6 @@ host =
     .env >> XB2.Share.Config.Main.get >> .uri >> .api
 
 
-{-| TODO: This is not attached into a type? Seems fishy...
--}
-namespaceNoLeadingSlash : String
-namespaceNoLeadingSlash =
-    "v2/saved/crosstabs"
-
-
 {-| TODO: Move this into its own module or related to `Crosstab` type.
 -}
 type XBProjectError
@@ -1089,7 +1082,8 @@ createXBProject project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform/v1/crosstabs/saved/crosstabs" ]
                 []
         , body = Http.jsonBody <| xbProjectEncode project
         , expect = XB2.Share.Gwi.Http.expectErrorAwareJson xbProjectErrorDecoder (xbProjectDecoder flags)
@@ -1107,7 +1101,8 @@ fetchXBProjectList flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2", "saved", "crosstabs" ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs" ]
                 []
         , body = Http.emptyBody
         , expect =
@@ -1127,7 +1122,8 @@ fetchXBProject projectId flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2", "saved", "crosstabs", XB2.Share.Data.Id.unwrap projectId ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", XB2.Share.Data.Id.unwrap projectId ]
                 []
         , body = Http.emptyBody
         , expect = XB2.Share.Gwi.Http.expectErrorAwareJson xbProjectErrorDecoder (xbProjectDecoder flags)
@@ -1143,7 +1139,8 @@ fetchTaskXBProjectFullyLoaded p flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2", "saved", "crosstabs", XB2.Share.Data.Id.unwrap p.id ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", XB2.Share.Data.Id.unwrap p.id ]
                 []
         , body = Http.emptyBody
         , resolver = XB2.Share.Gwi.Http.resolveErrorAwareJson xbProjectErrorDecoder (xbProjectFullyLoadedDecoder flags)
@@ -1196,7 +1193,8 @@ patchXBProject project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash, XB2.Share.Data.Id.unwrap project.id ]
+                -- Migrated from v2/saved/crosstabs. Issue with expressions schema
+                [ "platform/v1/crosstabs/saved/crosstabs", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body =
             Http.jsonBody <|
@@ -1221,6 +1219,7 @@ shareXBProjectWithLink project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
+                -- Migration pending
                 [ "v2/saved/crosstabs/share", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body =
@@ -1245,7 +1244,8 @@ patchXBProjectTask project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash, XB2.Share.Data.Id.unwrap project.id ]
+                -- Migrated from v2/saved/crosstabs. Issue with expressions schema
+                [ "platform/v1/crosstabs/saved/crosstabs", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body =
             Http.jsonBody <|
@@ -1269,7 +1269,8 @@ destroyXBProjectTask project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash, XB2.Share.Data.Id.unwrap project.id ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform/v1/crosstabs/saved/crosstabs", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body = Http.emptyBody
         , resolver = XB2.Share.Gwi.Http.resolveErrorAwareJson xbProjectErrorDecoder (Decode.succeed project)
@@ -1286,7 +1287,8 @@ updateXBProject project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash, XB2.Share.Data.Id.unwrap project.id ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform/v1/crosstabs/saved/crosstabs", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body = Http.jsonBody <| xbProjectEncode project
         , expect = XB2.Share.Gwi.Http.expectErrorAwareJson xbProjectErrorDecoder (xbProjectDecoder flags)
@@ -1304,7 +1306,8 @@ destroyXBProject project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ namespaceNoLeadingSlash, XB2.Share.Data.Id.unwrap project.id ]
+                -- Migrated from v2/saved/crosstabs
+                [ "platform/v1/crosstabs/saved/crosstabs", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body = Http.emptyBody
         , expect = XB2.Share.Gwi.Http.expectErrorAwareJson xbProjectErrorDecoder (Decode.succeed ())
