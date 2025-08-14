@@ -342,6 +342,8 @@ type Msg
       -}
     | SetNewAccessToken String
     | BookADemoButtonClicked
+    | UpgradeButtonClicked
+    | TalkToAnExpertButtonClicked
 
 
 {-| A function that handles the signout whenever an API response gives Forbidden 401.
@@ -692,6 +694,16 @@ updateHelp msg model state =
             , Cmd.none
             )
 
+        UpgradeButtonClicked ->
+            ( model
+            , Cmd.none
+            )
+
+        TalkToAnExpertButtonClicked ->
+            ( model
+            , Cmd.none
+            )
+
 
 {-| Main function to handle all the possible `Msg`s.
 
@@ -717,6 +729,22 @@ update msg model =
                     ( model
                     , Analytics.track
                         ( "P2 - Platform - Book a demo"
+                        , Encode.object [ ( "app_name", Encode.string "crosstabs" ) ]
+                        )
+                    )
+
+                UpgradeButtonClicked ->
+                    ( model
+                    , Analytics.track
+                        ( "P2 - Platform - Upgrade clicked"
+                        , Encode.object [ ( "app_name", Encode.string "crosstabs" ) ]
+                        )
+                    )
+
+                TalkToAnExpertButtonClicked ->
+                    ( model
+                    , Analytics.track
+                        ( "P2 - Platform - Splash screen CTA"
                         , Encode.object [ ( "app_name", Encode.string "crosstabs" ) ]
                         )
                     )
@@ -764,7 +792,7 @@ handleMounting model =
 TODO: This is too poor, improve it a little bit.
 
 -}
-errorView : AppError -> Html.Html msg
+errorView : AppError -> Html.Html Msg
 errorView error =
     case error of
         NotMounted ->
@@ -777,6 +805,9 @@ errorView error =
             -- `isAppMounted` gets setted by kernel's ports.
             if isAppMounted then
                 SplashScreen.view
+                    { talkToAnExpert = TalkToAnExpertButtonClicked
+                    , upgrade = UpgradeButtonClicked
+                    }
                     { appName = "crosstabs"
                     , email = userEmail
                     }
