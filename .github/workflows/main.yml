@@ -80,7 +80,7 @@ jobs:
 
   deploy-staging:
     uses: ./.github/workflows/deploy-environment.yml
-    if: ${{ always() && needs.build-docker.result == 'success' && (needs.quality-checks.result == 'success' || needs.quality-checks.result == 'skipped') }}
+    if: ${{ always() && github.ref == 'refs/heads/production' && needs.build-docker.result == 'success' && (needs.quality-checks.result == 'success' || needs.quality-checks.result == 'skipped') }}
     needs: [ build-docker, quality-checks ]
     secrets:
       core_s: ${{ secrets.SA_CORE_CALCULATIONS_S }}
@@ -102,7 +102,7 @@ jobs:
 
   deploy-production:
     uses: ./.github/workflows/deploy-environment.yml
-    if: ${{ always() && needs.build-docker.result == 'success' && (needs.quality-checks.result == 'success' || needs.quality-checks.result == 'skipped') }}
+    if: ${{ always() && github.ref == 'refs/heads/production' && needs.build-docker.result == 'success' && (needs.quality-checks.result == 'success' || needs.quality-checks.result == 'skipped') }}
     needs: [ build-docker, quality-checks ]
     secrets:
       core_s: ${{ secrets.SA_CORE_CALCULATIONS_S }}

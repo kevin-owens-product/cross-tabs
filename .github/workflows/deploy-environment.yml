@@ -38,6 +38,7 @@ jobs:
         credentials_json: '${{ secrets.json_credentials }}'
         export_environment_variables: true
     - name: deploy-revision-build
+      # Build the application
       run: |
         cd /pro
         TARGET_ENV=${{ inputs.target_env }} NODE_ENV=production make build
@@ -48,6 +49,7 @@ jobs:
 
     - name: 'deploy-revision-push'
       uses: 'google-github-actions/upload-cloud-storage@v2.1.0'
+      # Push assets into gcloud bucket
       with:
         path: '/pro/deploy/build/'
         destination: 'platform2-crosstabs-${{ inputs.target_env }}/assets/${{ github.sha }}'
@@ -56,6 +58,7 @@ jobs:
 
     - name: deploy-revision-release-and-activate-p2
       id: deploy-revision-release-and-activate-p2
+      # Activate feature branches if we are not on production or main branch
       if: ${{ github.ref != 'refs/heads/production' && github.ref != 'refs/heads/main' }}
       run: |
         printf "%s" "${{ secrets.json_credentials }}" > ${HOME}/gcloud-service-key.json
@@ -63,26 +66,23 @@ jobs:
         TARGET_ENV=${{ inputs.target_env }} GITHUB_REF=${{ github.ref_name }} GITHUB_SHA=${{ github.sha }} make release-and-activate-p2-feature-branches
 
     - name: deploy-p2-revision-activate-p2
-      # Run only on main branch, on alpha/testing
+      # When on main branch merge, deploy to default testing/alpha envs
       if: ${{ github.ref == 'refs/heads/main' && ( inputs.target_env == 'testing' || inputs.target_env == 'alpha' ) }}
       run: |
         cd /pro/deploy; TARGET_ENV=${{ inputs.target_env }} make release-and-activate-p2
    
     - name: deploy-revision-release-only
-      # Run only on main branch, on production
-      # Release to P2 production under "elm-release" feature branch for QA run
+      # When on production merge, deploy to default production env
       id: deploy-revision-release-only
       if: ${{ github.ref == 'refs/heads/production' && inputs.target_env == 'production' }}
       run: |
-        cd /pro/deploy
-        TARGET_ENV=${{ inputs.target_env }} GITHUB_REF="elm-release" GITHUB_SHA=${{ github.sha }} make release-and-activate-p2-feature-branches
+        cd /pro/deploy; TARGET_ENV=${{ inputs.target_env }} make release-and-activate-p2
 
     - name: deploy-revision-release-staging
-      # Also deploy to staging when deploying to production
-      if: ${{ github.ref == 'refs/heads/production' && inputs.target_env == 'production' }}
+      # Also deploy to staging when merging to production to keep it in sync
+      if: ${{ github.ref == 'refs/heads/production' && inputs.target_env == 'staging' }}
       run: |
-        cd /pro/deploy
-        TARGET_ENV=staging GITHUB_REF="elm-release" GITHUB_SHA=${{ github.sha }} make release-and-activate-p2-feature-branches
+        cd /pro/deploy; TARGET_ENV=${{ inputs.target_env }} make release-and-activate-p2
 
     - name: Generate timestamp
       id: generateTimestamp
