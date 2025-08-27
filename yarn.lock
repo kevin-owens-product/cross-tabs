@@ -1363,10 +1363,10 @@
   dependencies:
     zod "^3.21.4"
 
-"@globalwebindex/platform2-react-ui-components@21.1.1":
-  version "21.1.1"
-  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/21.1.1/a8452d6be3b77e8dc16fbf256aa7c0044d04eac2#a8452d6be3b77e8dc16fbf256aa7c0044d04eac2"
-  integrity sha512-ceBM90OtL1hWWq5Eyjkn0S3snK96Y+kWSvC+8TFldFynLBNiJA0qDws2udW60TZ6JhxH9f7Y3s/nOyg7tlvwKg==
+"@globalwebindex/platform2-react-ui-components@21.1.2":
+  version "21.1.2"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/21.1.2/75510844a371aa76ec981632ab5ccb472dc95670#75510844a371aa76ec981632ab5ccb472dc95670"
+  integrity sha512-r9HnlgU9m9CK9bb7SoCq9aHHLcfzdoHzpz5YxoSuTZHUFisrNFmRkvD/aulq+pXo+/XKlqwSSRrR2DgCY+bNAA==
   dependencies:
     "@emotion/react" "^11.10.5"
     "@emotion/styled" "^11.10.5"
@@ -1388,14 +1388,14 @@
     ua-parser-js "^1.0.33"
     zod "3.21.4"
 
-"@globalwebindex/platform2-web-components@git+ssh://git@github.com/globalwebindex/platform2-web-components#v2.4.0":
+"@globalwebindex/platform2-web-components@git+ssh://git@github.com/globalwebindex/platform2-web-components#v2.4.1":
   version "0.1.0-alpha.1"
-  resolved "git+ssh://git@github.com/globalwebindex/platform2-web-components#67f3460f2642ed52a19a47468a5d2989a72e3b7f"
+  resolved "git+ssh://git@github.com/globalwebindex/platform2-web-components#93198a5ba2ce4d0c9b9cef130c8504a9f49dac78"
   dependencies:
     "@emotion/react" "11.10.5"
     "@emotion/styled" "11.10.5"
     "@globalwebindex/platform2-lib" "7.1.0"
-    "@globalwebindex/platform2-react-ui-components" "21.1.1"
+    "@globalwebindex/platform2-react-ui-components" "21.1.2"
     "@mui/material" "5.11.4"
     "@sentry/react" "7.31.1"
     "@webcomponents/webcomponentsjs" "^2.5.0"
