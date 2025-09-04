@@ -4,6 +4,7 @@ module XB2.Data exposing
     , BaseAudienceData
     , CrosstabUser
     , DoNotShowAgain(..)
+    , MinimumSampleSize
     , Shared(..)
     , SharedError(..)
     , Sharee(..)
@@ -370,8 +371,34 @@ type alias XBProjectMetadata =
     , sort : Sort
     , headerSize : XBProjectHeaderSize
     , frozenRowsAndColumns : ( Int, Int )
-    , minimumSampleSize : Optional.Optional Int
+    , minimumSampleSize : MinimumSampleSize
     }
+
+
+type alias MinimumSampleSize =
+    { cells : Optional.Optional Int
+    , rows : Optional.Optional Int
+    , columns : Optional.Optional Int
+    }
+
+
+minimumSampleSizeDecoder : Decoder MinimumSampleSize
+minimumSampleSizeDecoder =
+    Decode.map3 MinimumSampleSize
+        (Optional.decodeField "cells" Decode.int)
+        (Optional.decodeField "rows" Decode.int)
+        (Optional.decodeField "columns" Decode.int)
+
+
+encodeMinimumSampleSize : MinimumSampleSize -> Value
+encodeMinimumSampleSize minSampleSize =
+    []
+        |> Optional.addFieldsToKeyValuePairs
+            [ ( "cells", Optional.map Encode.int minSampleSize.cells )
+            , ( "rows", Optional.map Encode.int minSampleSize.rows )
+            , ( "columns", Optional.map Encode.int minSampleSize.columns )
+            ]
+        |> Encode.object
 
 
 {-| TODO: Move this into its own module or related to `CrosstabProject` type.
@@ -624,9 +651,12 @@ defaultFrozenCells =
     ( 0, 0 )
 
 
-defaultMinimumSampleSize : Optional.Optional Int
+defaultMinimumSampleSize : MinimumSampleSize
 defaultMinimumSampleSize =
-    Optional.Undefined
+    { cells = Optional.Undefined
+    , rows = Optional.Undefined
+    , columns = Optional.Undefined
+    }
 
 
 {-| The default width and height of the top-left header (the one with the
@@ -663,7 +693,14 @@ metadataDecoder =
             (Decode.optionalField "frozenCells" frozenCellsDecoder
                 |> Decode.map (Maybe.withDefault defaultFrozenCells)
             )
-        |> Decode.andMap (Optional.decodeField "minimumSampleSize" Decode.int)
+        |> Decode.andMap
+            (Decode.field "minimumSampleSize"
+                (Decode.oneOf
+                    [ minimumSampleSizeDecoder
+                    , Decode.succeed defaultMinimumSampleSize
+                    ]
+                )
+            )
 
 
 {-| TODO: Move this into its own module or related to `CrosstabProject` type.
@@ -685,12 +722,8 @@ encodeMetadata metadata =
             , ( "columns", Encode.int (Tuple.second metadata.frozenRowsAndColumns) )
             ]
       )
+    , ( "minimumSampleSize", encodeMinimumSampleSize metadata.minimumSampleSize )
     ]
-        |> Optional.addFieldsToKeyValuePairs
-            [ ( "minimumSampleSize"
-              , Optional.map Encode.int metadata.minimumSampleSize
-              )
-            ]
         |> List.addIf (metadata.headerSize /= defaultProjectHeaderSize)
             ( "headerSize"
             , Encode.object

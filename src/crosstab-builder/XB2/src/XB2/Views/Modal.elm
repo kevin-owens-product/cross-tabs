@@ -22,6 +22,7 @@ port module XB2.Views.Modal exposing
     , ExpandedState
     , GenericAlertData
     , MergeRowOrColumnData
+    , MinimumSampleSizeInputTextType
     , Modal(..)
     , MoveToFolderData
     , Msg(..)
@@ -128,6 +129,7 @@ import XB2.Analytics as Analytics exposing (Event(..))
 import XB2.Data as Data
     exposing
         ( CrosstabUser
+        , MinimumSampleSize
         , Shared(..)
         , SharingEmail(..)
         , XBFolder
@@ -222,8 +224,9 @@ type Modal
     | RenameBaseAudience ViewBaseGroupData
     | ChooseHeatmapMetric ChooseHeatmapMetricData
     | MinimumSampleSize
-        { current : Optional.Optional Int
-        , original : Optional.Optional Int
+        { current : MinimumSampleSize
+        , original : MinimumSampleSize
+        , inputTextFocused : Maybe MinimumSampleSizeInputTextType
         }
     | UnsavedChangesAlert { newRoute : Route }
     | SaveAsAudience SaveAsAudienceData
@@ -254,6 +257,12 @@ type Modal
       -- Used when adding bases, affixing bases, replacing default base audience, adding attributes to table, affixing items
     | AttributesModal AttributesModalData
     | FetchQuestionsForEditModal
+
+
+type MinimumSampleSizeInputTextType
+    = CellsInput
+    | RowsInput
+    | ColumnsInput
 
 
 {-| The data inside the `ReorderBases` modal. It features a drag and drop model, a reset
@@ -646,7 +655,7 @@ type alias Config msg =
     , applyHeatmap : Maybe Metric -> msg
 
     -- Minimum sample size
-    , setMinimumSampleSize : Optional.Optional Int -> msg
+    , setMinimumSampleSize : MinimumSampleSize -> msg
 
     -- ViewGroup
     , saveGroupName :
@@ -738,7 +747,9 @@ type Msg
     | SetBaseAudienceIndexHovered (Maybe Int)
     | SetBaseAudienceIndexSelectedToMoveWithKeyboard (Maybe Int)
     | SwapBasesOrder Int Int
-    | SetCurrentMinimumSampleSize (Optional.Optional Int)
+    | SetCurrentMinimumSampleSize MinimumSampleSize
+    | ResetMinimumSampleSizeModal
+    | SetInputTextFocusedInMinimumSampleSizeModal (Maybe MinimumSampleSizeInputTextType)
 
 
 
@@ -827,7 +838,7 @@ modalSize modal =
             WebComponent
 
         MinimumSampleSize _ ->
-            Small
+            WebComponent
 
         AttributesModal _ ->
             LargeCapped
@@ -1261,9 +1272,13 @@ initChooseHeatmapMetric selectedMetric =
         }
 
 
-initMinimumSampleSize : Optional.Optional Int -> Modal
+initMinimumSampleSize : MinimumSampleSize -> Modal
 initMinimumSampleSize minimumSampleSize =
-    MinimumSampleSize { current = minimumSampleSize, original = minimumSampleSize }
+    MinimumSampleSize
+        { current = minimumSampleSize
+        , original = minimumSampleSize
+        , inputTextFocused = Nothing
+        }
 
 
 initChooseMetrics : AssocSet.Set Metric -> Modal
@@ -1705,6 +1720,26 @@ update config route flags xbStore msg modal =
             case modal of
                 MinimumSampleSize data ->
                     ( MinimumSampleSize { data | current = minimumSampleSize }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( modal, Cmd.none )
+
+        ResetMinimumSampleSizeModal ->
+            case modal of
+                MinimumSampleSize data ->
+                    ( MinimumSampleSize { data | current = data.original }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( modal, Cmd.none )
+
+        SetInputTextFocusedInMinimumSampleSizeModal maybeInputTextType ->
+            case modal of
+                MinimumSampleSize data ->
+                    ( MinimumSampleSize { data | inputTextFocused = maybeInputTextType }
                     , Cmd.none
                     )
 
@@ -4951,8 +4986,9 @@ renameFolderContents xbFolders config ({ folder, newName } as data) =
 minimumSampleSizeContents :
     Config msg
     ->
-        { current : Optional.Optional Int
-        , original : Optional.Optional Int
+        { current : MinimumSampleSize
+        , original : MinimumSampleSize
+        , inputTextFocused : Maybe MinimumSampleSizeInputTextType
         }
     -> List (Html msg)
 minimumSampleSizeContents config modalContents =
@@ -4975,15 +5011,9 @@ minimumSampleSizeContents config modalContents =
                     else
                         [ Attrs.disabled True ]
                    )
-    in
-    [ Html.form formAttrs
-        [ Html.header [ WeakCss.nestMany [ "minimum-sample-size-modal", "header" ] moduleClass ]
-            [ Html.h2 [ WeakCss.nestMany [ "minimum-sample-size-modal", "headline" ] moduleClass ]
-                [ Html.text "Minimum sample size" ]
-            ]
-        , Html.main_ [ WeakCss.nestMany [ "minimum-sample-size-modal", "main" ] moduleClass ]
-            [ Html.text "Grey out data below the set threshold:"
-            , TextInput.view
+
+        columnsTextInput =
+            TextInput.view
                 { onInput =
                     \str ->
                         let
@@ -4991,29 +5021,163 @@ minimumSampleSizeContents config modalContents =
                                 String.toInt str
                                     |> Optional.fromMaybe
                         in
-                        config.msg (SetCurrentMinimumSampleSize optInt)
+                        config.msg
+                            (SetCurrentMinimumSampleSize
+                                { cells = modalContents.current.cells
+                                , rows = modalContents.current.rows
+                                , columns = optInt
+                                }
+                            )
                 , placeholder = "Eg. 10000"
                 }
                 [ TextInput.class (WeakCss.add "minimum-sample-size-modal" moduleClass)
                 , TextInput.value
-                    (Optional.map String.fromInt modalContents.current
+                    (Optional.map String.fromInt modalContents.current.columns
+                        |> Optional.toMaybe
+                        |> Maybe.withDefault "0"
+                    )
+                , TextInput.id "modal-minimum-sample-size-text-input-cols"
+                , TextInput.empty
+                , TextInput.onFocus
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just ColumnsInput))
+                , TextInput.onBlur
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                , TextInput.onMouseOver
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just ColumnsInput))
+                , TextInput.onMouseOut
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                ]
+
+        rowsTextInput =
+            TextInput.view
+                { onInput =
+                    \str ->
+                        let
+                            optInt =
+                                String.toInt str
+                                    |> Optional.fromMaybe
+                        in
+                        config.msg
+                            (SetCurrentMinimumSampleSize
+                                { cells = modalContents.current.cells
+                                , rows = optInt
+                                , columns = modalContents.current.columns
+                                }
+                            )
+                , placeholder = "Eg. 10000"
+                }
+                [ TextInput.class (WeakCss.add "minimum-sample-size-modal" moduleClass)
+                , TextInput.value
+                    (Optional.map String.fromInt modalContents.current.rows
+                        |> Optional.toMaybe
+                        |> Maybe.withDefault "0"
+                    )
+                , TextInput.id "modal-minimum-sample-size-text-input-rows"
+                , TextInput.empty
+                , TextInput.onFocus
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just RowsInput))
+                , TextInput.onBlur
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                , TextInput.onMouseOver
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just RowsInput))
+                , TextInput.onMouseOut
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                ]
+
+        cellsTextInput =
+            TextInput.view
+                { onInput =
+                    \str ->
+                        let
+                            optInt =
+                                String.toInt str
+                                    |> Optional.fromMaybe
+                        in
+                        config.msg
+                            (SetCurrentMinimumSampleSize
+                                { cells = optInt
+                                , rows = modalContents.current.rows
+                                , columns = modalContents.current.columns
+                                }
+                            )
+                , placeholder = "Eg. 10000"
+                }
+                [ TextInput.class (WeakCss.add "minimum-sample-size-modal" moduleClass)
+                , TextInput.value
+                    (Optional.map String.fromInt modalContents.current.cells
                         |> Optional.toMaybe
                         |> Maybe.withDefault "0"
                     )
                 , TextInput.id "modal-minimum-sample-size-text-input"
                 , TextInput.empty
+                , TextInput.onFocus
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just CellsInput))
+                , TextInput.onBlur
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                , TextInput.onMouseOver
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal (Just CellsInput))
+                , TextInput.onMouseOut
+                    (config.msg <| SetInputTextFocusedInMinimumSampleSizeModal Nothing)
+                ]
+    in
+    [ Html.form formAttrs
+        [ Html.div [ WeakCss.nestMany [ "minimum-sample-size-modal", "body" ] moduleClass ]
+            [ Html.section [ WeakCss.nestMany [ "minimum-sample-size-modal", "left-part" ] moduleClass ]
+                [ Html.header [ WeakCss.nestMany [ "minimum-sample-size-modal", "header" ] moduleClass ]
+                    [ Html.h2 [ WeakCss.nestMany [ "minimum-sample-size-modal", "headline" ] moduleClass ]
+                        [ Html.text "Minimum sample size" ]
+                    ]
+                , Html.main_ [ WeakCss.nestMany [ "minimum-sample-size-modal", "main" ] moduleClass ]
+                    [ Html.div []
+                        [ Html.text "Grey out data below min size threshold."
+                        ]
+                    , Html.section []
+                        [ Html.h3 [] [ Html.text "Cell" ]
+                        , Html.text "Grey out any cell below min sample size."
+                        , cellsTextInput
+                        ]
+                    , Html.section []
+                        [ Html.h3 [] [ Html.text "Row" ]
+                        , Html.text "Grey out cells in row (row %, universe and index), if row total is below min sample size."
+                        , rowsTextInput
+                        ]
+                    , Html.section []
+                        [ Html.h3 [] [ Html.text "Column" ]
+                        , Html.text "Grey out cells in column (column %, universe and index), if column total below min sample size."
+                        , columnsTextInput
+                        ]
+                    ]
+                ]
+            , Html.aside [ WeakCss.nestMany [ "minimum-sample-size-modal", "right-part" ] moduleClass ]
+                [ Html.span
+                    [ WeakCss.addMany [ "minimum-sample-size-modal", "img-showcase" ] moduleClass
+                        |> WeakCss.withStates
+                            [ ( "hovered-cell", modalContents.inputTextFocused == Just CellsInput )
+                            , ( "hovered-row", modalContents.inputTextFocused == Just RowsInput )
+                            , ( "hovered-col", modalContents.inputTextFocused == Just ColumnsInput )
+                            ]
+                    ]
+                    []
                 ]
             ]
         , Html.footer [ WeakCss.nestMany [ "minimum-sample-size-modal", "footer" ] moduleClass ]
             [ Html.button
-                [ Events.onClick config.closeModal
+                [ Events.onClick (config.msg ResetMinimumSampleSizeModal)
                 , Attrs.type_ "button"
-                , WeakCss.nestMany [ "minimum-sample-size-modal", "action-link" ] moduleClass
+                , WeakCss.nestMany [ "minimum-sample-size-modal", "reset" ] moduleClass
                 ]
-                [ Html.text "Cancel" ]
-            , Html.button
-                submitBtnAttrs
-                [ Html.text "Confirm" ]
+                [ XB2.Share.Icons.icon [] P2Icons.reset, Html.text "Reset all" ]
+            , Html.div [ WeakCss.nestMany [ "minimum-sample-size-modal", "submit-btns" ] moduleClass ]
+                [ Html.button
+                    [ Events.onClick config.closeModal
+                    , Attrs.type_ "button"
+                    , WeakCss.nestMany [ "minimum-sample-size-modal", "action-link" ] moduleClass
+                    ]
+                    [ Html.text "Cancel" ]
+                , Html.button
+                    submitBtnAttrs
+                    [ Html.text "Save" ]
+                ]
             ]
         ]
     ]

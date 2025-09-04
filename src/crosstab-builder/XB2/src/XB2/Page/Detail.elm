@@ -100,6 +100,7 @@ import XB2.CrosstabCellLoader as CrosstabCellLoader
 import XB2.Data as XBData
     exposing
         ( AudienceDefinition(..)
+        , MinimumSampleSize
         , Shared(..)
         , XBFolderId
         , XBProject
@@ -143,7 +144,6 @@ import XB2.Data.MetricsTransposition exposing (MetricsTransposition(..))
 import XB2.Data.Namespace as Namespace
 import XB2.Data.SelectionMap as SelectionMap exposing (SelectionMap)
 import XB2.Data.UndoEvent as UndoEvent exposing (UndoEvent)
-import XB2.Data.Zod.Optional as Optional
 import XB2.DebugDump
 import XB2.Detail.Common as Common
     exposing
@@ -1505,7 +1505,7 @@ type EditMsg
         (List ACrosstab.CrosstabBaseAudience)
         Int
     | SetFrozenRowsColumns ( Int, Int )
-    | SetMinimumSampleSize (Optional.Optional Int)
+    | SetMinimumSampleSize MinimumSampleSize
 
 
 type TableSelectMsg

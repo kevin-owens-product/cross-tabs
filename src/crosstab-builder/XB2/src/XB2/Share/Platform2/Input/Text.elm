@@ -2,6 +2,7 @@ module XB2.Share.Platform2.Input.Text exposing
     ( view
     , Required
     , Attribute, class, value, id, limit, icon, empty
+    , onBlur, onFocus, onMouseOut, onMouseOver
     )
 
 {-|
@@ -44,6 +45,10 @@ type alias Config msg =
     , placeholder : String
     , icon : Maybe IconData
     , onEnter : Maybe msg
+    , onFocus : Maybe msg
+    , onBlur : Maybe msg
+    , onMouseOver : Maybe msg
+    , onMouseOut : Maybe msg
     }
 
 
@@ -56,6 +61,10 @@ defaultConfig =
     , limit = Nothing
     , icon = Nothing
     , onEnter = Nothing
+    , onFocus = Nothing
+    , onBlur = Nothing
+    , onMouseOver = Nothing
+    , onMouseOut = Nothing
     }
 
 
@@ -89,6 +98,26 @@ empty =
     Attribute identity
 
 
+onFocus : msg -> Attribute msg
+onFocus msg =
+    Attribute (\config -> { config | onFocus = Just msg })
+
+
+onBlur : msg -> Attribute msg
+onBlur msg =
+    Attribute (\config -> { config | onBlur = Just msg })
+
+
+onMouseOver : msg -> Attribute msg
+onMouseOver msg =
+    Attribute (\config -> { config | onMouseOver = Just msg })
+
+
+onMouseOut : msg -> Attribute msg
+onMouseOut msg =
+    Attribute (\config -> { config | onMouseOut = Just msg })
+
+
 
 -- VIEW
 
@@ -113,6 +142,10 @@ render required config =
             , Attrs.autocomplete False
             , Attrs.autofocus True
             , attributeMaybe Events.onEnter config.onEnter
+            , attributeMaybe Events.onFocus config.onFocus
+            , attributeMaybe Events.onBlur config.onBlur
+            , attributeMaybe Events.onMouseOver config.onMouseOver
+            , attributeMaybe Events.onMouseOut config.onMouseOut
             ]
             []
         , Html.viewMaybe

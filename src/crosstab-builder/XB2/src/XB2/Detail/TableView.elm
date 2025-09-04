@@ -37,7 +37,7 @@ import Tuple
 import WeakCss exposing (ClassName)
 import XB2.Analytics as Analytics
 import XB2.ColumnLabel as ColumnLabel
-import XB2.Data exposing (AudienceData, AudienceDefinition, XBUserSettings)
+import XB2.Data exposing (AudienceData, AudienceDefinition, MinimumSampleSize, XBUserSettings)
 import XB2.Data.Audience.Expression exposing (Expression)
 import XB2.Data.AudienceCrosstab as ACrosstab
     exposing
@@ -278,8 +278,8 @@ type alias Config model msg =
     , setFrozenRowsColumns : ( Int, Int ) -> msg
 
     -- Sample size
-    , getMinimumSampleSize : model -> Optional.Optional Int
-    , setMinimumSampleSize : Optional.Optional Int -> msg
+    , getMinimumSampleSize : model -> MinimumSampleSize
+    , setMinimumSampleSize : MinimumSampleSize -> msg
 
     -- Search
     , searchTermChanged : String -> msg
@@ -3100,39 +3100,34 @@ heatmapColorAttrs heatmapScale column row cell =
             []
 
 
-minimumSampleSizeOpacityAttrs : Optional.Optional Int -> ACrosstab.Cell -> List (Attribute msg)
-minimumSampleSizeOpacityAttrs optionalMinSampleSize cell =
-    case Optional.toMaybe optionalMinSampleSize of
-        Just minSampleSize ->
+checkIfCellPassesMinSampleSize : MinimumSampleSize -> ACrosstab.Cell -> Bool
+checkIfCellPassesMinSampleSize minimumSampleSize cell =
+    case Optional.toMaybe minimumSampleSize.cells of
+        Just minCellsSampleSize ->
             case cell.data of
                 AvAData data ->
                     case data.data of
                         Tracked.Success intersectResult ->
                             let
-                                sampleSize =
+                                thisCellSampleSize =
                                     AudienceIntersect.getValue Sample intersectResult
                             in
-                            if round sampleSize < minSampleSize then
-                                [ Attrs.style "opacity" "0.25" ]
-
-                            else
-                                []
+                            round thisCellSampleSize < minCellsSampleSize
 
                         Tracked.NotAsked ->
-                            []
+                            False
 
                         Tracked.Loading _ ->
-                            []
+                            False
 
                         Tracked.Failure _ ->
-                            []
+                            False
 
                 AverageData _ ->
-                    -- There's no gray-out for average cells?
-                    []
+                    False
 
         Nothing ->
-            []
+            False
 
 
 msgOnClickSelectRowOrColumn : Key -> Direction -> Config model msg -> Analytics.ItemSelected -> Events.ShiftState -> msg
@@ -4432,12 +4427,13 @@ loaderViewContent className animated metricsCount =
         )
 
 
-valueView : String -> Bool -> String -> Html msg
-valueView className isSortingMetric value =
+valueView : String -> { isSortingMetric : Bool, shouldBeGreyOut : Bool } -> String -> Html msg
+valueView className { isSortingMetric, shouldBeGreyOut } value =
     Html.div
         [ tableModuleClass
             |> WeakCss.addMany [ "table", className, "row", "item", "value" ]
             |> WeakCss.withStates [ ( "sorted-by", isSortingMetric ) ]
+        , Attrs.attributeIf shouldBeGreyOut (Attrs.style "opacity" "0.15")
         ]
         [ Html.text value ]
 
@@ -4461,7 +4457,9 @@ cellView :
     , crosstab : AudienceCrosstab
     , metrics : List Metric
     , heatmapScale : Maybe HeatmapScale
-    , minimumSampleSize : Optional.Optional Int
+    , minimumSampleSize : MinimumSampleSize
+    , totalRowRespondents : Int
+    , totalColRespondents : Int
     , base : BaseAudience
     , column : Key
     , row : Key
@@ -4794,13 +4792,65 @@ cellView p =
                                 |> List.singleton
 
                         MetricsInColumns ->
-                            List.map (valueView p.className False) values
+                            List.map
+                                (valueView p.className
+                                    { isSortingMetric = False
+                                    , shouldBeGreyOut = False
+                                    }
+                                )
+                                values
                     )
                 ]
             ]
 
         metricCellValueView : List ( Metric, String ) -> List (Html msg)
         metricCellValueView metricValues =
+            let
+                totalRowRespondentsIsLowerThanMinSampleSizeForRows : Bool
+                totalRowRespondentsIsLowerThanMinSampleSizeForRows =
+                    p.totalRowRespondents
+                        < (Optional.toMaybe p.minimumSampleSize.rows
+                            |> Maybe.withDefault 0
+                          )
+
+                totalColRespondentsIsLowerThanMinSampleSizeForColumns : Bool
+                totalColRespondentsIsLowerThanMinSampleSizeForColumns =
+                    p.totalColRespondents
+                        < (Optional.toMaybe p.minimumSampleSize.columns
+                            |> Maybe.withDefault 0
+                          )
+
+                shouldGreyOutSize : Bool
+                shouldGreyOutSize =
+                    -- Universe
+                    checkIfCellPassesMinSampleSize p.minimumSampleSize cell
+                        || totalRowRespondentsIsLowerThanMinSampleSizeForRows
+                        || totalColRespondentsIsLowerThanMinSampleSizeForColumns
+
+                shouldGreyOutSample : Bool
+                shouldGreyOutSample =
+                    -- Responses
+                    checkIfCellPassesMinSampleSize p.minimumSampleSize cell
+                        || (totalRowRespondentsIsLowerThanMinSampleSizeForRows
+                                && totalColRespondentsIsLowerThanMinSampleSizeForColumns
+                           )
+
+                shouldGreyOutColumnPercentage : Bool
+                shouldGreyOutColumnPercentage =
+                    checkIfCellPassesMinSampleSize p.minimumSampleSize cell
+                        || totalColRespondentsIsLowerThanMinSampleSizeForColumns
+
+                shouldGreyOutRowPercentage : Bool
+                shouldGreyOutRowPercentage =
+                    checkIfCellPassesMinSampleSize p.minimumSampleSize cell
+                        || totalRowRespondentsIsLowerThanMinSampleSizeForRows
+
+                shouldGreyOutIndex : Bool
+                shouldGreyOutIndex =
+                    checkIfCellPassesMinSampleSize p.minimumSampleSize cell
+                        || totalRowRespondentsIsLowerThanMinSampleSizeForRows
+                        || totalColRespondentsIsLowerThanMinSampleSizeForColumns
+            in
             case p.metricsTransposition of
                 MetricsInRows ->
                     if isSortingByThisCell then
@@ -4830,11 +4880,14 @@ cellView p =
                                                                     , tableModuleClass
                                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "sample" ]
                                                                     , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                                    , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                                     ]
                                                                     [ Html.text <| value_ ++ "\n" ]
 
                                                             Index ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutIndex (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
 
                                                             Size ->
                                                                 Html.button
@@ -4842,14 +4895,19 @@ cellView p =
                                                                     , tableModuleClass
                                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "size" ]
                                                                     , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                                    , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                                     ]
                                                                     [ Html.text <| value_ ++ "\n" ]
 
                                                             RowPercentage ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutRowPercentage (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
 
                                                             ColumnPercentage ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutColumnPercentage (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
                                                     )
                                            )
 
@@ -4866,11 +4924,14 @@ cellView p =
                                                                     , tableModuleClass
                                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "sample" ]
                                                                     , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                                    , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                                     ]
                                                                     [ Html.text <| value_ ++ "\n" ]
 
                                                             Index ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutIndex (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
 
                                                             Size ->
                                                                 Html.button
@@ -4878,14 +4939,19 @@ cellView p =
                                                                     , tableModuleClass
                                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "size" ]
                                                                     , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                                    , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                                     ]
                                                                     [ Html.text <| value_ ++ "\n" ]
 
                                                             RowPercentage ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutRowPercentage (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
 
                                                             ColumnPercentage ->
-                                                                Html.text <| value_ ++ "\n"
+                                                                Html.span
+                                                                    [ Attrs.attributeIf shouldGreyOutColumnPercentage (Attrs.style "opacity" "0.15") ]
+                                                                    [ Html.text <| value_ ++ "\n" ]
                                                     )
                                            )
 
@@ -4902,11 +4968,14 @@ cellView p =
                                                         , tableModuleClass
                                                             |> WeakCss.nestMany [ "table", p.className, "row", "item", "sample" ]
                                                         , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                        , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                         ]
                                                         [ Html.text <| value ++ "\n" ]
 
                                                 Index ->
-                                                    Html.text <| value ++ "\n"
+                                                    Html.span
+                                                        [ Attrs.attributeIf shouldGreyOutIndex (Attrs.style "opacity" "0.15") ]
+                                                        [ Html.text <| value ++ "\n" ]
 
                                                 Size ->
                                                     Html.button
@@ -4914,14 +4983,19 @@ cellView p =
                                                         , tableModuleClass
                                                             |> WeakCss.nestMany [ "table", p.className, "row", "item", "size" ]
                                                         , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                        , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                         ]
                                                         [ Html.text <| value ++ "\n" ]
 
                                                 RowPercentage ->
-                                                    Html.text <| value ++ "\n"
+                                                    Html.span
+                                                        [ Attrs.attributeIf shouldGreyOutRowPercentage (Attrs.style "opacity" "0.15") ]
+                                                        [ Html.text <| value ++ "\n" ]
 
                                                 ColumnPercentage ->
-                                                    Html.text <| value ++ "\n"
+                                                    Html.span
+                                                        [ Attrs.attributeIf shouldGreyOutColumnPercentage (Attrs.style "opacity" "0.15") ]
+                                                        [ Html.text <| value ++ "\n" ]
                                         )
                                )
 
@@ -4935,7 +5009,11 @@ cellView p =
                                 if Just metric == sortingMetric then
                                     [ Html.viewIf (isTotalVsTotalCell && p.areDatasetsIncompatible)
                                         (totalVsTotalDatasetWarningIcon { isColumns = True })
-                                    , valueView p.className True value
+                                    , valueView p.className
+                                        { isSortingMetric = True
+                                        , shouldBeGreyOut = False
+                                        }
+                                        value
                                     ]
                                         ++ List.map
                                             (\( metric_, value_ ) ->
@@ -4950,12 +5028,17 @@ cellView p =
                                                                 , tableModuleClass
                                                                     |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "sample" ]
                                                                 , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                                , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                                 ]
                                                                 [ Html.text <| value_ ++ "\n" ]
                                                             ]
 
                                                     Index ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutIndex
+                                                            }
+                                                            value_
 
                                                     Size ->
                                                         Html.div
@@ -4967,15 +5050,24 @@ cellView p =
                                                                 , tableModuleClass
                                                                     |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "size" ]
                                                                 , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                                , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                                 ]
                                                                 [ Html.text <| value_ ++ "\n" ]
                                                             ]
 
                                                     RowPercentage ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutRowPercentage
+                                                            }
+                                                            value_
 
                                                     ColumnPercentage ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutColumnPercentage
+                                                            }
+                                                            value_
                                             )
                                             rest
 
@@ -4995,12 +5087,17 @@ cellView p =
                                                                 , tableModuleClass
                                                                     |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "sample" ]
                                                                 , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                                , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                                 ]
                                                                 [ Html.text <| value_ ++ "\n" ]
                                                             ]
 
                                                     Index ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutIndex
+                                                            }
+                                                            value_
 
                                                     Size ->
                                                         Html.div
@@ -5012,15 +5109,24 @@ cellView p =
                                                                 , tableModuleClass
                                                                     |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "size" ]
                                                                 , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                                , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                                 ]
                                                                 [ Html.text <| value_ ++ "\n" ]
                                                             ]
 
                                                     RowPercentage ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutRowPercentage
+                                                            }
+                                                            value_
 
                                                     ColumnPercentage ->
-                                                        valueView p.className False value_
+                                                        valueView p.className
+                                                            { isSortingMetric = False
+                                                            , shouldBeGreyOut = shouldGreyOutColumnPercentage
+                                                            }
+                                                            value_
                                             )
                                             metricValues
 
@@ -5040,12 +5146,17 @@ cellView p =
                                                     , tableModuleClass
                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "sample" ]
                                                     , Attrs.title "Click on your sample sizes to show the exact numbers."
+                                                    , Attrs.attributeIf shouldGreyOutSample (Attrs.style "opacity" "0.15")
                                                     ]
                                                     [ Html.text <| value_ ++ "\n" ]
                                                 ]
 
                                         Index ->
-                                            valueView p.className False value_
+                                            valueView p.className
+                                                { isSortingMetric = False
+                                                , shouldBeGreyOut = shouldGreyOutIndex
+                                                }
+                                                value_
 
                                         Size ->
                                             Html.div
@@ -5057,15 +5168,24 @@ cellView p =
                                                     , tableModuleClass
                                                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "value", "size" ]
                                                     , Attrs.title "Click on your universe sizes to show the exact numbers."
+                                                    , Attrs.attributeIf shouldGreyOutSize (Attrs.style "opacity" "0.15")
                                                     ]
                                                     [ Html.text <| value_ ++ "\n" ]
                                                 ]
 
                                         RowPercentage ->
-                                            valueView p.className False value_
+                                            valueView p.className
+                                                { isSortingMetric = False
+                                                , shouldBeGreyOut = shouldGreyOutRowPercentage
+                                                }
+                                                value_
 
                                         ColumnPercentage ->
-                                            valueView p.className False value_
+                                            valueView p.className
+                                                { isSortingMetric = False
+                                                , shouldBeGreyOut = shouldGreyOutColumnPercentage
+                                                }
+                                                value_
                                 )
                                 metricValues
 
@@ -5190,7 +5310,7 @@ cellView p =
                         |> metricCellValueView
                         |> (::) incompatibilitiesWarningView
                         |> (::) (coefficientStretchingView value)
-                        |> Html.li (cellClassAttr :: heatmapColorAttrs p.heatmapScale p.column p.row cell ++ minimumSampleSizeOpacityAttrs p.minimumSampleSize cell)
+                        |> Html.li (cellClassAttr :: heatmapColorAttrs p.heatmapScale p.column p.row cell)
                 )
                 data.data
 
@@ -5542,7 +5662,7 @@ frozenCellsView :
     , rowHeaders : List Key
     , columnHeaders : List Key
     , heatmapScale : Maybe HeatmapScale
-    , minimumSampleSize : Optional.Optional Int
+    , minimumSampleSize : MinimumSampleSize
     , crosstab : AudienceCrosstab
     , metrics : List Metric
     , metricsTransposition : MetricsTransposition
@@ -5566,15 +5686,15 @@ frozenCellsView :
     , startingColIndex : Int
     }
     -> Html msg
-frozenCellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, averageTimeFormat, sort, rowHeaders, columnHeaders, heatmapScale, crosstab, metrics, metricsTransposition, forcedLoadingState, dndInfo, selectionMap, className, startingRowIndex, startingColIndex } as p) =
+frozenCellsView p =
     let
         base : BaseAudience
         base =
-            ACrosstab.getCurrentBaseAudience crosstab
+            ACrosstab.getCurrentBaseAudience p.crosstab
 
         metricsLength : Int
         metricsLength =
-            List.length metrics
+            List.length p.metrics
 
         loaderContent : List (Html msg)
         loaderContent =
@@ -5584,42 +5704,69 @@ frozenCellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, a
         notAnimatedLoaderHtml =
             loaderViewContent p.className False metricsLength
     in
-    rowHeaders
+    p.rowHeaders
         |> List.indexedMap
             (\rowIndex row ->
                 let
                     finalRowIndex : Int
                     finalRowIndex =
-                        rowIndex + startingRowIndex
+                        rowIndex + p.startingRowIndex
                 in
-                columnHeaders
+                p.columnHeaders
                     |> List.indexedMap
                         (\columnIndex column ->
                             let
                                 finalColumnIndex : Int
                                 finalColumnIndex =
-                                    columnIndex + startingColIndex
+                                    columnIndex + p.startingColIndex
+
+                                getTotalRespondents : AudienceItem.AudienceItem -> BaseAudience -> Int
+                                getTotalRespondents audienceItem baseAudience =
+                                    case Dict.Any.get ( audienceItem, baseAudience ) (ACrosstab.getTotals p.crosstab) of
+                                        Just cell ->
+                                            case cell.data of
+                                                AvAData data ->
+                                                    case data.data of
+                                                        Tracked.Success intersectResult ->
+                                                            round (AudienceIntersect.getValue Sample intersectResult)
+
+                                                        Tracked.NotAsked ->
+                                                            0
+
+                                                        Tracked.Loading _ ->
+                                                            0
+
+                                                        Tracked.Failure _ ->
+                                                            0
+
+                                                AverageData _ ->
+                                                    0
+
+                                        Nothing ->
+                                            0
                             in
                             cellView
-                                { switchAverageTimeFormatMsg = switchAverageTimeFormatMsg
-                                , openTableWarning = openTableWarning
-                                , averageTimeFormat = averageTimeFormat
+                                { switchAverageTimeFormatMsg = p.switchAverageTimeFormatMsg
+                                , openTableWarning = p.openTableWarning
+                                , averageTimeFormat = p.averageTimeFormat
                                 , loaderContent = loaderContent
                                 , notAnimatedLoaderContent = notAnimatedLoaderHtml
-                                , sort = sort
-                                , metricsTransposition = metricsTransposition
-                                , crosstab = crosstab
-                                , metrics = metrics
-                                , heatmapScale = heatmapScale
+                                , sort = p.sort
+                                , metricsTransposition = p.metricsTransposition
+                                , crosstab = p.crosstab
+                                , metrics = p.metrics
+                                , heatmapScale = p.heatmapScale
                                 , minimumSampleSize = p.minimumSampleSize
+                                , totalRowRespondents = getTotalRespondents row.item base
+                                , totalColRespondents = getTotalRespondents column.item base
                                 , base = base
                                 , column = column
                                 , row = row
-                                , selectionMap = selectionMap
+                                , selectionMap = p.selectionMap
                                 , rowIndex = finalRowIndex
                                 , colIndex = finalColumnIndex
-                                , dndInfo = dndInfo
-                                , forcedLoadingState = forcedLoadingState
+                                , dndInfo = p.dndInfo
+                                , forcedLoadingState = p.forcedLoadingState
                                 , areDatasetsIncompatible = p.areDatasetsIncompatible
                                 , can = p.can
                                 , store = p.store
@@ -5629,22 +5776,22 @@ frozenCellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, a
                                 , toggleExactUniverseNumberMsg = p.toggleExactUniverseNumberMsg
                                 , updateUserSettingsMsg = p.updateUserSettingsMsg
                                 , userSettings = p.userSettings
-                                , className = className
+                                , className = p.className
                                 }
                         )
                     |> Html.ul
                         [ tableModuleClass
-                            |> WeakCss.addMany [ "table", className, "row" ]
+                            |> WeakCss.addMany [ "table", p.className, "row" ]
                             |> WeakCss.withStates
-                                [ ( "scrolled-x", visibleCells.topLeftCol > 0 )
-                                , ( "scrolled-y", visibleCells.topLeftRow > 0 )
+                                [ ( "scrolled-x", p.visibleCells.topLeftCol > 0 )
+                                , ( "scrolled-y", p.visibleCells.topLeftRow > 0 )
                                 , ( "even", modBy 2 finalRowIndex > 0 )
                                 ]
                         ]
             )
-        |> Html.div [ tableModuleClass |> WeakCss.nestMany [ "table", className, "partial" ] ]
+        |> Html.div [ tableModuleClass |> WeakCss.nestMany [ "table", p.className, "partial" ] ]
         |> List.singleton
-        |> Html.div [ tableModuleClass |> WeakCss.nestMany [ "table", className ] ]
+        |> Html.div [ tableModuleClass |> WeakCss.nestMany [ "table", p.className ] ]
 
 
 cellsView :
@@ -5653,7 +5800,7 @@ cellsView :
     , rowHeaders : List Key
     , columnHeaders : List Key
     , heatmapScale : Maybe HeatmapScale
-    , minimumSampleSize : Optional.Optional Int
+    , minimumSampleSize : MinimumSampleSize
     , crosstab : AudienceCrosstab
     , metrics : List Metric
     , metricsTransposition : MetricsTransposition
@@ -5676,15 +5823,15 @@ cellsView :
     , className : String
     }
     -> Html msg
-cellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, averageTimeFormat, sort, rowHeaders, columnHeaders, heatmapScale, crosstab, metrics, metricsTransposition, forcedLoadingState, dndInfo, selectionMap } as p) =
+cellsView p =
     let
         base : BaseAudience
         base =
-            ACrosstab.getCurrentBaseAudience crosstab
+            ACrosstab.getCurrentBaseAudience p.crosstab
 
         metricsLength : Int
         metricsLength =
-            List.length metrics
+            List.length p.metrics
 
         loaderContent : List (Html msg)
         loaderContent =
@@ -5694,42 +5841,69 @@ cellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, average
         notAnimatedLoaderHtml =
             loaderViewContent p.className False metricsLength
     in
-    rowHeaders
+    p.rowHeaders
         |> List.indexedMap
             (\rowIndex row ->
                 let
                     finalRowIndex : Int
                     finalRowIndex =
-                        rowIndex + Tuple.first p.frozenRowsAndColumns + visibleCells.topLeftRow
+                        rowIndex + Tuple.first p.frozenRowsAndColumns + p.visibleCells.topLeftRow
                 in
-                columnHeaders
+                p.columnHeaders
                     |> List.indexedMap
                         (\columnIndex column ->
                             let
                                 finalColIndex : Int
                                 finalColIndex =
-                                    columnIndex + Tuple.second p.frozenRowsAndColumns + visibleCells.topLeftCol
+                                    columnIndex + Tuple.second p.frozenRowsAndColumns + p.visibleCells.topLeftCol
+
+                                getTotalRespondents : AudienceItem.AudienceItem -> BaseAudience -> Int
+                                getTotalRespondents audienceItem baseAudience =
+                                    case Dict.Any.get ( audienceItem, baseAudience ) (ACrosstab.getTotals p.crosstab) of
+                                        Just cell ->
+                                            case cell.data of
+                                                AvAData data ->
+                                                    case data.data of
+                                                        Tracked.Success intersectResult ->
+                                                            round (AudienceIntersect.getValue Sample intersectResult)
+
+                                                        Tracked.NotAsked ->
+                                                            0
+
+                                                        Tracked.Loading _ ->
+                                                            0
+
+                                                        Tracked.Failure _ ->
+                                                            0
+
+                                                AverageData _ ->
+                                                    0
+
+                                        Nothing ->
+                                            0
                             in
                             cellView
-                                { switchAverageTimeFormatMsg = switchAverageTimeFormatMsg
-                                , openTableWarning = openTableWarning
-                                , averageTimeFormat = averageTimeFormat
+                                { switchAverageTimeFormatMsg = p.switchAverageTimeFormatMsg
+                                , openTableWarning = p.openTableWarning
+                                , averageTimeFormat = p.averageTimeFormat
                                 , loaderContent = loaderContent
                                 , notAnimatedLoaderContent = notAnimatedLoaderHtml
-                                , sort = sort
-                                , metricsTransposition = metricsTransposition
-                                , crosstab = crosstab
-                                , metrics = metrics
-                                , heatmapScale = heatmapScale
+                                , sort = p.sort
+                                , metricsTransposition = p.metricsTransposition
+                                , crosstab = p.crosstab
+                                , metrics = p.metrics
+                                , heatmapScale = p.heatmapScale
                                 , minimumSampleSize = p.minimumSampleSize
+                                , totalRowRespondents = getTotalRespondents row.item base
+                                , totalColRespondents = getTotalRespondents column.item base
                                 , base = base
                                 , column = column
                                 , row = row
-                                , selectionMap = selectionMap
+                                , selectionMap = p.selectionMap
                                 , rowIndex = finalRowIndex
                                 , colIndex = finalColIndex
-                                , dndInfo = dndInfo
-                                , forcedLoadingState = forcedLoadingState
+                                , dndInfo = p.dndInfo
+                                , forcedLoadingState = p.forcedLoadingState
                                 , areDatasetsIncompatible = p.areDatasetsIncompatible
                                 , can = p.can
                                 , store = p.store
@@ -5746,8 +5920,8 @@ cellsView ({ visibleCells, switchAverageTimeFormatMsg, openTableWarning, average
                         [ tableModuleClass
                             |> WeakCss.addMany [ "table", p.className, "row" ]
                             |> WeakCss.withStates
-                                [ ( "scrolled-x", visibleCells.topLeftCol > 0 )
-                                , ( "scrolled-y", visibleCells.topLeftRow > 0 )
+                                [ ( "scrolled-x", p.visibleCells.topLeftCol > 0 )
+                                , ( "scrolled-y", p.visibleCells.topLeftRow > 0 )
                                 , ( "even", modBy 2 finalRowIndex > 0 )
                                 ]
                         ]

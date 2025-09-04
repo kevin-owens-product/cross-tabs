@@ -598,19 +598,103 @@
         @include xb2-stateful-modal;
         @include P2Components.text-input;
 
+        width: 818px;
+        height: 564px;
+
+        &--body {
+            display: flex;
+            flex-direction: row;
+            gap: 32px;
+            padding: 24px 24px 0 24px;
+        }
+
+        &--left-part {
+            width: 324px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            justify-content: space-between;
+        }
+
+        &--right-part {
+            width: 414px;
+            height: 435px;
+            background-color: P2Colors.$grey1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &--reset {
+            @include P2Components.secondary-button($on-colour-bg: false, $border: false);
+
+            gap: 8px;
+        }
+
+        &--control {
+            margin-top: 8px;
+        }
+
+        &--footer {
+            justify-content: space-between;
+        }
+
+        &--submit-btns {
+            display: flex;
+            gap: 16px;
+        }
+
         &--header {
-            margin-bottom: 26px;
+            min-height: auto;
+            padding: 0;
+            height: 32px;
+            margin-bottom: 0;
+        }
+
+        &--img-showcase {
+            width: 366px;
+            height: 310px;
+            background-color: P2Colors.$white;
+            background-size: contain;
+            background-image: url("/assets/xb2/sample-size-default.png");
+
+            &.hovered-cell {
+                background-image: url("/assets/xb2/sample-size-cell.png");
+            }
+
+            &.hovered-col {
+                background-image: url("/assets/xb2/sample-size-column.png");
+            }
+
+            &.hovered-row {
+                background-image: url("/assets/xb2/sample-size-row.png");
+            }
         }
 
         &--main {
             display: flex;
-            align-items: center;
             justify-content: space-around;
+            flex-direction: column;
+            padding: 0;
+            gap: 16px;
+
+            &--help-link {
+                text-decoration: underline;
+                font-weight: 600;
+                cursor: pointer;
+                color: P2Colors.$navy;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                &:hover {
+                    color: P2Colors.$pink-medium;
+                }
+            }
         }
 
         &--input {
-            max-width: 100px;
-            text-align: right;
+            text-align: left;
         }
     }
 
