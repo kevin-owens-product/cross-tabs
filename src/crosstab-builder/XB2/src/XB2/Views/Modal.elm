@@ -5227,6 +5227,15 @@ minimumSampleSizeContents config modalContents =
                 , Html.main_ [ WeakCss.nestMany [ "minimum-sample-size-modal", "main" ] moduleClass ]
                     [ Html.div []
                         [ Html.text "Grey out data below min size threshold."
+                        , Html.br [] []
+                        , Html.a
+                            [ WeakCss.nestMany [ "minimum-sample-size-modal", "main", "help-link" ] moduleClass
+                            , Attrs.href "https://help.globalwebindex.com/en/articles/5880949-understanding-responses-and-sample-sizes"
+                            , Attrs.target "_blank"
+                            ]
+                            [ Html.text "Understanding sample size"
+                            , XB2.Share.Icons.icon [] P2Icons.outlink
+                            ]
                         ]
                     , Html.section []
                         [ Html.h3 [] [ Html.text "Cell" ]
