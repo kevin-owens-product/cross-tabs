@@ -4515,6 +4515,11 @@ cellView p =
                         || (totalRowRespondentsIsLowerThanMinSampleSizeForRows
                                 && totalColRespondentsIsLowerThanMinSampleSizeForColumns
                            )
+                        || (isTotalCell
+                                && (totalRowRespondentsIsLowerThanMinSampleSizeForRows
+                                        || totalColRespondentsIsLowerThanMinSampleSizeForColumns
+                                   )
+                           )
 
                 shouldGreyOutColumnPercentage : Bool
                 shouldGreyOutColumnPercentage =
