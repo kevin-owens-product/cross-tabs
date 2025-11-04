@@ -51,6 +51,7 @@ import XB2.Share.Data.Platform2.Export
 import XB2.Share.Export exposing (ExportResponse)
 import XB2.Share.Gwi.Http exposing (Error)
 import XB2.Share.Gwi.List as List
+import XB2.Utils.Filename as Filename
 
 
 type alias IntersectData =
@@ -509,7 +510,7 @@ encodeExportSettings settings =
 
 encodeExportMetadata : ExportMetadata -> List ( String, Value )
 encodeExportMetadata metadata =
-    [ ( "name", Maybe.unwrap Encode.null Encode.string metadata.name )
+    [ ( "name", Maybe.unwrap Encode.null (Filename.sanitize >> Encode.string) metadata.name )
     , ( "base_audience_name", Encode.string (Caption.toString <| BaseAudience.getCaption metadata.base) )
     , ( "location_names", Encode.list (Encode.string << .name) metadata.locations )
     , ( "wave_names", Encode.list (Encode.string << .name) metadata.waves )
