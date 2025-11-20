@@ -66,8 +66,10 @@ type alias IntersectData =
 type alias CellData =
     { rowId : AudienceItemId
     , row : ACrosstab.Key
+    , totalUniverseRowValue : Float
     , columnId : AudienceItemId
     , col : ACrosstab.Key
+    , totalUniverseColValue : Float
     , base : BaseAudience
     , value : CellValue
     , backgroundColor : Maybe String
@@ -147,11 +149,17 @@ toErrorData row column base error =
         { item = row
         , isSelected = False
         }
+
+    -- We don't care
+    , totalUniverseRowValue = 0
     , columnId = AudienceItem.getId column
     , col =
         { item = column
         , isSelected = False
         }
+
+    -- We don't care
+    , totalUniverseColValue = 0
     , base = base
     , value = ErrorValue error
     , backgroundColor = Nothing
@@ -238,17 +246,69 @@ toSuccessCellData row column base audienceCrosstab heatmapMetric cellValue =
 
         color =
             Maybe.andThen cellHeatmapColor heatmapScale
+
+        totalUniverseRowValue =
+            ACrosstab.getTotals audienceCrosstab
+                |> Dict.Any.get ( row, base )
+                |> Maybe.map
+                    (\total ->
+                        case total.data of
+                            ACrosstab.AvAData data ->
+                                case data.data of
+                                    Success intersectResult ->
+                                        round (AudienceIntersect.getValue Size intersectResult)
+
+                                    NotAsked ->
+                                        0
+
+                                    Loading _ ->
+                                        0
+
+                                    Failure _ ->
+                                        0
+
+                            ACrosstab.AverageData _ ->
+                                0
+                    )
+                |> Maybe.withDefault 0
+
+        totalUniverseColValue =
+            ACrosstab.getTotals audienceCrosstab
+                |> Dict.Any.get ( column, base )
+                |> Maybe.map
+                    (\total ->
+                        case total.data of
+                            ACrosstab.AvAData data ->
+                                case data.data of
+                                    Success intersectResult ->
+                                        round (AudienceIntersect.getValue Size intersectResult)
+
+                                    NotAsked ->
+                                        0
+
+                                    Loading _ ->
+                                        0
+
+                                    Failure _ ->
+                                        0
+
+                            ACrosstab.AverageData _ ->
+                                0
+                    )
+                |> Maybe.withDefault 0
     in
     { rowId = AudienceItem.getId row
     , row =
         { item = row
         , isSelected = False
         }
+    , totalUniverseRowValue = toFloat totalUniverseRowValue
     , columnId = AudienceItem.getId column
     , col =
         { item = column
         , isSelected = False
         }
+    , totalUniverseColValue = toFloat totalUniverseColValue
     , base = base
     , value = cellValue
     , backgroundColor = color
@@ -443,7 +503,7 @@ encodeExportResult averageTimeFormat result =
                 , ( "index", Encode.float inter.index )
                 ]
 
-        encodeAverage avg =
+        encodeAverage avg totalUniverseValue =
             Encode.object
                 [ ( "value"
                   , case avg.unit of
@@ -454,9 +514,19 @@ encodeExportResult averageTimeFormat result =
                             Encode.float avg.value
 
                         OtherUnit _ ->
-                            Encode.float avg.value
+                            if avg.isDbu then
+                                Encode.float (avg.value * totalUniverseValue)
+
+                            else
+                                Encode.float avg.value
                   )
-                , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit avg.unit )
+                , ( "unit"
+                  , if avg.isDbu then
+                        Encode.string "devices"
+
+                    else
+                        XB2.Share.Data.Labels.encodeAveragesUnit avg.unit
+                  )
                 ]
 
         encodeError err =
@@ -478,7 +548,7 @@ encodeExportResult averageTimeFormat result =
                         ( "intersection", encodeIntersect intersect )
 
                     AverageValue avg ->
-                        ( "average", encodeAverage avg )
+                        ( "average", encodeAverage avg (max cell.totalUniverseRowValue cell.totalUniverseColValue) )
 
                     ErrorValue err ->
                         ( "error", encodeError err )

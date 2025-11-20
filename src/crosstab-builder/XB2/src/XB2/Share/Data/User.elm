@@ -100,6 +100,7 @@ type Feature
     | ViewOnlyFF
     | CrosstabsUnlocked
     | NewVerticalNavigationSidebar
+    | DeviceBasedUsageAccess
 
 
 {-| Needs to be the same as the name in Customer Features CRUD in Admin UI.
@@ -167,6 +168,9 @@ featureToString feature =
         NewVerticalNavigationSidebar ->
             "p2_new_vertical_navigation_sidebar"
 
+        DeviceBasedUsageAccess ->
+            "device_based_usage_access"
+
 
 customerFeaturesDecoder : Decoder (List Feature)
 customerFeaturesDecoder =
@@ -232,6 +236,9 @@ customerFeaturesDecoder =
 
                 "p2_new_vertical_navigation_sidebar" ->
                     Just NewVerticalNavigationSidebar
+
+                "device_based_usage_access" ->
+                    Just DeviceBasedUsageAccess
 
                 _ ->
                     Nothing

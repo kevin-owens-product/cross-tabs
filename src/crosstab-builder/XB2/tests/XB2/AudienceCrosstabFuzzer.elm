@@ -147,7 +147,7 @@ intersectResultTotalGenerator =
 averageResultGenerator : Fuzz.Fuzzer AC.CellData
 averageResultGenerator =
     Fuzz.map
-        (\value -> AC.AverageData <| Tracked.Success <| AverageResult value (OtherUnit "devices"))
+        (\value -> AC.AverageData <| Tracked.Success <| AverageResult value (OtherUnit "devices") False)
         (Fuzz.floatRange 0 100)
 
 

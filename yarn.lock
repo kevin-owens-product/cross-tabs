@@ -1343,17 +1343,17 @@
     zod "3.25.58"
     zod-validation-error "^3.2.0"
 
-"@globalwebindex/platform2-lib@7.0.1":
-  version "7.0.1"
-  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-lib/7.0.1/2bff0cd90b8f6e4da3be402de770c9c455127b59#2bff0cd90b8f6e4da3be402de770c9c455127b59"
-  integrity sha512-ubwiEm2ZZ7RjhcZQSIui6gBlzKina6WIEtSkUk7kqot0wgjcFaZA59eaopXzTUtG2Op51rgI8SjkTGA3BKhoZw==
-  dependencies:
-    zod "^3.21.4"
-
 "@globalwebindex/platform2-lib@7.1.0":
   version "7.1.0"
   resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-lib/7.1.0/7d53570c79462403a53516ccadb05ad56d808bef#7d53570c79462403a53516ccadb05ad56d808bef"
   integrity sha512-NgSgiqaxBHY8sLwCkV8X7tBjoNn1+T3AIGGqp4UNDzc0GdLn3dEdao9K1fotSoWJLIlSRBe1qPUhhfOcvNus3Q==
+  dependencies:
+    zod "^3.21.4"
+
+"@globalwebindex/platform2-lib@8.3.1":
+  version "8.3.1"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-lib/8.3.1/70358c3da94c750c196a25282d73527968e6e271#70358c3da94c750c196a25282d73527968e6e271"
+  integrity sha512-JsxQJyC2rPkOPkg2x4HFVrti0cLUaaN1O4s3j6C6zZhdqhaPNpqFW0KY+RwEpA9CE9SVAG1SaYKuEgxh8E11Wg==
   dependencies:
     zod "^3.21.4"
 
@@ -1363,15 +1363,15 @@
   dependencies:
     zod "^3.21.4"
 
-"@globalwebindex/platform2-react-ui-components@21.2.0":
-  version "21.2.0"
-  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/21.2.0/de9c883628e9a2000b119b157ce8bb7d3c0f9bc1#de9c883628e9a2000b119b157ce8bb7d3c0f9bc1"
-  integrity sha512-n8lKQ6hEgKVgBxmH6dBX22h+Q05L/SIKFbCJUQ1r0P+UWDTJu4THxcY5dcGsjzEaY2S01r4XybypN9J9lmEdeg==
+"@globalwebindex/platform2-react-ui-components@26.1.0":
+  version "26.1.0"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-react-ui-components/26.1.0/a42833278f567a116711c15ea7c1f17f34dd938c#a42833278f567a116711c15ea7c1f17f34dd938c"
+  integrity sha512-KHesxlM9G84xy5jCOeBbt0XZD5MVC15t8mArRgDbVZgpKkokGluXNRyLqZBCnfH5tolRvF99vo99NlP3mNX3jw==
   dependencies:
     "@emotion/react" "^11.10.5"
     "@emotion/styled" "^11.10.5"
     "@figma/code-connect" "^1.3.4"
-    "@globalwebindex/platform2-lib" "7.0.1"
+    "@globalwebindex/platform2-lib" "8.3.1"
     "@mui/material" "5.11.4"
     "@mui/x-date-pickers" "^5.0.14"
     "@sentry/react" "7.31.1"
@@ -1388,14 +1388,15 @@
     ua-parser-js "^1.0.33"
     zod "3.21.4"
 
-"@globalwebindex/platform2-web-components@git+ssh://git@github.com/globalwebindex/platform2-web-components#v2.5.0":
-  version "0.1.0-alpha.1"
-  resolved "git+ssh://git@github.com/globalwebindex/platform2-web-components#bf686ff17744e7449d0231179d4b85186d17cdec"
+"@globalwebindex/platform2-web-components@3.0.0":
+  version "3.0.0"
+  resolved "https://npm.pkg.github.com/download/@GlobalWebIndex/platform2-web-components/3.0.0/e7a7d082f4dfebf7364d9b371983bbe048d06ee3#e7a7d082f4dfebf7364d9b371983bbe048d06ee3"
+  integrity sha512-QH7+66/tMy1g2NqsZBjx+ICPejD+4oFb0s8v6dE/roe8A9HnjsBa5exw2+rs+bEw75DwIqdVQ5QNyvEJytzY3g==
   dependencies:
     "@emotion/react" "11.10.5"
     "@emotion/styled" "11.10.5"
     "@globalwebindex/platform2-lib" "7.1.0"
-    "@globalwebindex/platform2-react-ui-components" "21.2.0"
+    "@globalwebindex/platform2-react-ui-components" "26.1.0"
     "@mui/material" "5.11.4"
     "@sentry/react" "7.31.1"
     "@webcomponents/webcomponentsjs" "^2.5.0"

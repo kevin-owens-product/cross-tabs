@@ -582,6 +582,11 @@ selectedItemToString item =
             [ AttributeBrowser.getAverageQuestionCode avg |> XB2.Share.Data.Id.unwrap
             , AttributeBrowser.getAverageDatapointCode avg
                 |> Maybe.unwrap "" XB2.Share.Data.Id.unwrap
+            , if AttributeBrowser.averageIsDbu avg then
+                "dbu"
+
+              else
+                ""
             ]
                 |> String.join "__"
                 |> (++) "average__"
@@ -1871,12 +1876,26 @@ avgToItem average =
                 AttributeBrowser.AvgWithoutSuffixes q ->
                     q.questionLabel
 
+                AttributeBrowser.DbuAverage q ->
+                    q.questionLabel
+
                 AttributeBrowser.AvgWithSuffixes q dpInfo ->
                     q.questionLabel ++ XB2.Share.Data.Labels.p2Separator ++ dpInfo.datapointLabel
+
+        subtitle =
+            case average of
+                AttributeBrowser.AvgWithoutSuffixes _ ->
+                    "Average of "
+
+                AttributeBrowser.DbuAverage _ ->
+                    "Estimate of "
+
+                AttributeBrowser.AvgWithSuffixes _ _ ->
+                    "Average of "
     in
     { item = SelectedAverage average
     , title = label
-    , subtitle = Just "Average of "
+    , subtitle = Just subtitle
     , type_ = GroupingPanel.Average
     }
 
@@ -3808,6 +3827,9 @@ selectedItemNamespaceCodes item =
         SelectedAverage avg ->
             case avg of
                 AvgWithoutSuffixes { namespaceCode } ->
+                    [ namespaceCode ]
+
+                DbuAverage { namespaceCode } ->
                     [ namespaceCode ]
 
                 AvgWithSuffixes { namespaceCode } _ ->

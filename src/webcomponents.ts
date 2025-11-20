@@ -1,4 +1,5 @@
 import * as Utils from "./utils";
+
 import { AttributeBrowserLeftWebComponent } from "@globalwebindex/platform2-web-components/lib/attributeBrowserLeft/index.js";
 import { AudienceBrowserLeftWebComponent } from "@globalwebindex/platform2-web-components/lib/audienceBrowserLeft/index.js";
 import { AudienceExpressionViewerWebComponent } from "@globalwebindex/platform2-web-components/lib/audienceExpressionViewer/index.js";

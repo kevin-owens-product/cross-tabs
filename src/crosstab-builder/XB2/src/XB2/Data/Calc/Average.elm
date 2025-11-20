@@ -36,6 +36,7 @@ import XB2.Share.Gwi.Http exposing (HttpCmd)
 type alias AverageResult =
     { value : Float
     , unit : QuestionAveragesUnit
+    , isDbu : Bool
     }
 
 
@@ -65,6 +66,36 @@ encode :
 encode question baseAudience maybeAudience locationCodes waveCodes average =
     case average of
         AvgWithoutSuffixes questionCode ->
+            let
+                datapointCodes : List QuestionAndDatapointCode
+                datapointCodes =
+                    question.datapoints
+                        |> NonemptyList.toList
+                        |> List.filterMap
+                            (\{ code, midpoint } ->
+                                if midpoint == Nothing then
+                                    Nothing
+
+                                else
+                                    Just code
+                            )
+            in
+            if List.isEmpty datapointCodes then
+                Err <| "Missing midpoint for all datapoints (" ++ XB2.Share.Data.Id.unwrap questionCode ++ ")"
+
+            else
+                [ ( "question", XB2.Share.Data.Id.encode questionCode )
+                , ( "datapoints", Encode.list XB2.Share.Data.Id.encode datapointCodes )
+                , ( "suffixes", Encode.list identity [] )
+                , ( "audience", Maybe.unwrap Encode.null Expression.encode maybeAudience )
+                , ( "locations", Encode.list XB2.Share.Data.Id.encode locationCodes )
+                , ( "waves", Encode.list XB2.Share.Data.Id.encode waveCodes )
+                , ( "base_audience", Encode.maybe (BaseAudience.getExpression >> Expression.encode) baseAudience )
+                ]
+                    |> Encode.object
+                    |> Ok
+
+        DbuAverage questionCode ->
             let
                 datapointCodes : List QuestionAndDatapointCode
                 datapointCodes =
@@ -148,6 +179,19 @@ request ({ token } as flags) question baseAudience locations waveCodes trackerId
                             (Decode.succeed AverageResult
                                 |> Decode.andMap (Decode.field "average" Decode.float)
                                 |> Decode.andMap (Decode.succeed unit)
+                                |> Decode.andMap
+                                    (Decode.succeed
+                                        (case average of
+                                            DbuAverage _ ->
+                                                True
+
+                                            AvgWithoutSuffixes _ ->
+                                                False
+
+                                            AvgWithSuffixes _ _ ->
+                                                False
+                                        )
+                                    )
                             )
                     , timeout = Nothing
                     , tracker = Just trackerId

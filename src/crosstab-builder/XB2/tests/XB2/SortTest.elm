@@ -407,6 +407,7 @@ averageResultFuzzer =
     Fuzz.constant AverageResult
         |> Fuzz.andMap Fuzz.niceFloat
         |> Fuzz.andMap questionAveragesUnitFuzzer
+        |> Fuzz.andMap (Fuzz.oneOfValues [ False ])
 
 
 questionAveragesUnitFuzzer : Fuzzer QuestionAveragesUnit
@@ -535,7 +536,7 @@ avaData a b c d e =
 
 
 avgData a =
-    AverageData <| Tracked.Success <| AverageResult a AgreementScore
+    AverageData <| Tracked.Success <| AverageResult a AgreementScore False
 
 
 keyName key =

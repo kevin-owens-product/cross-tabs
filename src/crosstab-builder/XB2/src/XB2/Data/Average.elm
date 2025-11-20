@@ -32,6 +32,7 @@ import XB2.Share.Data.Platform2
 type Average
     = AvgWithoutSuffixes NamespaceAndQuestionCode
     | AvgWithSuffixes NamespaceAndQuestionCode QuestionAndDatapointCode
+    | DbuAverage NamespaceAndQuestionCode
 
 
 type AverageTimeFormat
@@ -46,21 +47,29 @@ encode average =
             AvgWithoutSuffixes questionId ->
                 [ ( "question", XB2.Share.Data.Id.encode questionId ) ]
 
+            DbuAverage questionId ->
+                [ ( "question", XB2.Share.Data.Id.encode questionId ) ]
+
             AvgWithSuffixes questionId datapointCode ->
                 [ ( "question", XB2.Share.Data.Id.encode questionId )
                 , ( "datapoint", XB2.Share.Data.Id.encode datapointCode )
                 ]
 
 
-decoder : Decoder Average
-decoder =
+decoder : { isDbu : Bool } -> Decoder Average
+decoder { isDbu } =
     Decode.maybe (Decode.field "datapoint" XB2.Share.Data.Id.decode)
         |> Decode.andThen
             (\maybeDatapointCode ->
                 case maybeDatapointCode of
                     Nothing ->
-                        Decode.succeed AvgWithoutSuffixes
-                            |> Decode.andMap (Decode.field "question" XB2.Share.Data.Id.decode)
+                        if isDbu then
+                            Decode.succeed DbuAverage
+                                |> Decode.andMap (Decode.field "question" XB2.Share.Data.Id.decode)
+
+                        else
+                            Decode.succeed AvgWithoutSuffixes
+                                |> Decode.andMap (Decode.field "question" XB2.Share.Data.Id.decode)
 
                     Just datapointCode ->
                         Decode.succeed AvgWithSuffixes
@@ -73,6 +82,9 @@ getQuestionCode : Average -> NamespaceAndQuestionCode
 getQuestionCode average =
     case average of
         AvgWithoutSuffixes questionCode_ ->
+            questionCode_
+
+        DbuAverage questionCode_ ->
             questionCode_
 
         AvgWithSuffixes questionCode_ _ ->

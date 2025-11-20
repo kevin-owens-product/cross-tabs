@@ -476,6 +476,7 @@ type alias Model =
     , tableSelectionMouseDown : MouseDownMovemenet
     , shouldShowExactRespondentNumber : Bool
     , shouldShowExactUniverseNumber : Bool
+    , shouldShowExactDbuNumber : Bool
     , basesPanelDndModel : Dnd.Model
     , crosstabSearchModel : CrosstabSearchModel
 
@@ -726,6 +727,7 @@ init currentTime flags =
     , tableSelectionMouseDown = None
     , shouldShowExactRespondentNumber = False
     , shouldShowExactUniverseNumber = False
+    , shouldShowExactDbuNumber = False
     , keyboardMovementBasesPanelModel =
         { baseFocused = Nothing
         , baseSelectedToMove = Nothing
@@ -890,21 +892,54 @@ fromQuestionAsAverage average =
         maybeDatapointCode : Maybe QuestionAndDatapointCode
         maybeDatapointCode =
             AttributeBrowser.getAverageDatapointCode average
+
+        name =
+            case average of
+                AttributeBrowser.DbuAverage _ ->
+                    "Estimate of"
+
+                AttributeBrowser.AvgWithoutSuffixes _ ->
+                    "Average"
+
+                AttributeBrowser.AvgWithSuffixes _ _ ->
+                    "Average"
+
+        subtitle =
+            case average of
+                AttributeBrowser.DbuAverage _ ->
+                    "Mobile Device Universe"
+
+                AttributeBrowser.AvgWithoutSuffixes _ ->
+                    AttributeBrowser.getAverageQuestionLabel average
+
+                AttributeBrowser.AvgWithSuffixes _ _ ->
+                    AttributeBrowser.getAverageQuestionLabel average
     in
     NonemptyList.singleton <|
         \seed ->
             AudienceItem.fromCaptionAverage
                 seed
                 (Caption.create
-                    { name = "Average"
-                    , fullName = "Average"
-                    , subtitle = Just <| AttributeBrowser.getAverageQuestionLabel average
+                    { name = name
+                    , fullName = name
+                    , subtitle = Just subtitle
                     }
                 )
-                (maybeDatapointCode
-                    |> Maybe.unwrap
-                        (Average.AvgWithoutSuffixes questionCode)
-                        (Average.AvgWithSuffixes questionCode)
+                (case average of
+                    AttributeBrowser.DbuAverage _ ->
+                        Average.DbuAverage questionCode
+
+                    AttributeBrowser.AvgWithoutSuffixes _ ->
+                        maybeDatapointCode
+                            |> Maybe.unwrap
+                                (Average.AvgWithoutSuffixes questionCode)
+                                (Average.AvgWithSuffixes questionCode)
+
+                    AttributeBrowser.AvgWithSuffixes _ _ ->
+                        maybeDatapointCode
+                            |> Maybe.unwrap
+                                (Average.AvgWithoutSuffixes questionCode)
+                                (Average.AvgWithSuffixes questionCode)
                 )
 
 
@@ -1088,9 +1123,21 @@ captionsFromAttributeBrowser grouping addedItems =
                                     }
 
                             SelectedAverage average ->
+                                let
+                                    name =
+                                        case average of
+                                            AttributeBrowser.DbuAverage _ ->
+                                                "Estimate of"
+
+                                            AttributeBrowser.AvgWithoutSuffixes _ ->
+                                                "Average"
+
+                                            AttributeBrowser.AvgWithSuffixes _ _ ->
+                                                "Average"
+                                in
                                 Caption.create
-                                    { name = "Average"
-                                    , fullName = "Average"
+                                    { name = name
+                                    , fullName = name
                                     , subtitle = Just <| AttributeBrowser.getAverageQuestionLabel average
                                     }
 
@@ -1651,6 +1698,7 @@ type Msg
     | ShareProjectByLink XBProject
     | ToggleExactRespondentNumber
     | ToggleExactUniverseNumber
+    | ToggleExactDbuNumber
     | OpenReorderBasesModal
     | ReorderBasesPanelDndMsg Dnd.Msg
     | SetBaseIndexFocused (Maybe Int)
@@ -8115,6 +8163,31 @@ update config route flags xbStore p2Store msg model =
                                     model
                             )
 
+                ToggleExactDbuNumber ->
+                    let
+                        newModel =
+                            { model
+                                | shouldShowExactDbuNumber =
+                                    not model.shouldShowExactDbuNumber
+                            }
+                    in
+                    newModel
+                        |> Cmd.pure
+                        |> Cmd.add
+                            (track flags route <|
+                                getAnalyticsEvent
+                                    DbuNumberChanged
+                                    { respondentNumberType =
+                                        if newModel.shouldShowExactDbuNumber then
+                                            Analytics.Exact
+
+                                        else
+                                            Analytics.Rounded
+                                    }
+                                    p2Store
+                                    model
+                            )
+
                 OpenReorderBasesModal ->
                     let
                         elementToFocus : String
@@ -8970,8 +9043,10 @@ tableConfig xbModel maybeProject xbStore =
     , isHeaderResizing = \direction m -> Maybe.unwrap False (.direction >> (==) direction) m.tableHeaderDimensions.resizing
     , shouldShowExactRespondentNumber = .shouldShowExactRespondentNumber
     , shouldShowExactUniverseNumber = .shouldShowExactUniverseNumber
+    , shouldShowExactDbuNumber = .shouldShowExactDbuNumber
     , toggleExactRespondentNumberMsg = ToggleExactRespondentNumber
     , toggleExactUniverseNumberMsg = ToggleExactUniverseNumber
+    , toggleExactDbuNumberMsg = ToggleExactDbuNumber
 
     -- sorting
     , getCurrentSort = getCurrentSort

@@ -351,6 +351,12 @@ type Event
                 RespondentNumberType
             }
         )
+    | DbuNumberChanged
+        (EventParams
+            { respondentNumberType :
+                RespondentNumberType
+            }
+        )
     | RowsOrColumnsMerged
         (EventParams
             { mergedHow :
@@ -953,15 +959,29 @@ encodeEvent flags route place event =
                         AttributeBrowser.AvgWithoutSuffixes code ->
                             ( code, Encode.string "n/a" )
 
+                        AttributeBrowser.DbuAverage code ->
+                            ( code, Encode.string "n/a" )
+
                         AttributeBrowser.AvgWithSuffixes code { datapointCode } ->
                             ( code, XB2.Share.Data.Id.encode datapointCode )
+
+                itemType =
+                    case average of
+                        AttributeBrowser.AvgWithoutSuffixes _ ->
+                            "average"
+
+                        AttributeBrowser.DbuAverage _ ->
+                            "device"
+
+                        AttributeBrowser.AvgWithSuffixes _ _ ->
+                            "average"
             in
             ( "P2 - Crosstabs - Item Added"
             , Encode.object
                 ([ ( "item_added_to", encodeDestination destination )
                  , ( "item_added_how", encodeAddedHow addedHow )
                  , ( "section", encodeSectionFromDestination destination )
-                 , ( "item_type", Encode.string "average" )
+                 , ( "item_type", Encode.string itemType )
                  , ( "cells_count", Encode.int cellsCount )
                  , ( "question_code", XB2.Share.Data.Id.encode avgQuestion.questionCode )
                  , ( "question_name", Encode.string <| AttributeBrowser.getAverageQuestionLabel average )
@@ -1703,6 +1723,22 @@ encodeEvent flags route place event =
 
         UniverseNumberChanged ({ extraParams } as params) ->
             ( "P2 - Crosstabs - Universe number"
+            , Encode.object <|
+                sharedEventParameters params
+                    ++ (( "number_type"
+                        , case extraParams.respondentNumberType of
+                            Exact ->
+                                Encode.string "exact"
+
+                            Rounded ->
+                                Encode.string "rounded"
+                        )
+                            :: encodeCrosstabIdAttributeFromRoute route
+                       )
+            )
+
+        DbuNumberChanged ({ extraParams } as params) ->
+            ( "P2 - Crosstabs - Device number"
             , Encode.object <|
                 sharedEventParameters params
                     ++ (( "number_type"

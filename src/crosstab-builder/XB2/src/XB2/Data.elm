@@ -179,7 +179,8 @@ type AudienceDefinition
 audienceDefinitionDecoder : Decoder AudienceDefinition
 audienceDefinitionDecoder =
     Decode.oneOf
-        [ Decode.map Average <| Decode.field "avg" Average.decoder
+        [ Decode.map Average <| Decode.field "avg" (Average.decoder { isDbu = False })
+        , Decode.map Average <| Decode.field "dbu" (Average.decoder { isDbu = True })
         , {- expression is always present in the BE response, even if we have an
              average row/column. So we have to check presence of "avg" first to
              properly determine whether this is average or expression row/column.
@@ -197,7 +198,15 @@ encodeAudienceDefinition definition =
             ( "expression", Expression.encode expr )
 
         Average average ->
-            ( "avg", Average.encode average )
+            case average of
+                Average.AvgWithoutSuffixes _ ->
+                    ( "avg", Average.encode average )
+
+                Average.DbuAverage _ ->
+                    ( "dbu", Average.encode average )
+
+                Average.AvgWithSuffixes _ _ ->
+                    ( "avg", Average.encode average )
 
 
 {-| TODO: Move this into its own module or related to `Audience` type.

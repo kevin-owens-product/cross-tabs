@@ -16,7 +16,7 @@ import Browser.Extra as Browser
 import Dict.Any exposing (AnyDict)
 import DnDList as Dnd
 import FormatNumber
-import FormatNumber.Locales as Locales
+import FormatNumber.Locales as Locales exposing (usLocale)
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attrs exposing (autocomplete)
 import Html.Attributes.Extra as Attrs
@@ -261,8 +261,10 @@ type alias Config model msg =
     , isHeaderResizing : Direction -> model -> Bool
     , shouldShowExactRespondentNumber : model -> Bool
     , shouldShowExactUniverseNumber : model -> Bool
+    , shouldShowExactDbuNumber : model -> Bool
     , toggleExactRespondentNumberMsg : msg
     , toggleExactUniverseNumberMsg : msg
+    , toggleExactDbuNumberMsg : msg
 
     -- sorting
     , getCurrentSort : model -> Sort
@@ -4142,6 +4144,8 @@ cellView :
     , minimumSampleSize : MinimumSampleSize
     , totalRowRespondents : Int
     , totalColRespondents : Int
+    , totalRowUniverse : Int
+    , totalColUniverse : Int
     , base : BaseAudience
     , column : Key
     , row : Key
@@ -4155,8 +4159,10 @@ cellView :
     , store : XB2.Share.Store.Platform2.Store
     , shouldShowExactRespondentNumber : Bool
     , shouldShowExactUniverseNumber : Bool
+    , shouldShowExactDbuNumber : Bool
     , toggleExactRespondentNumberMsg : msg
     , toggleExactUniverseNumberMsg : msg
+    , toggleExactDbuNumberMsg : msg
     , updateUserSettingsMsg : XBUserSettings -> msg
     , userSettings : WebData XBUserSettings
     , className : String
@@ -4465,6 +4471,36 @@ cellView p =
                 [ Html.button
                     [ tableModuleClass
                         |> WeakCss.nestMany [ "table", p.className, "row", "item", "average", "button" ]
+                    ]
+                    (case p.metricsTransposition of
+                        MetricsInRows ->
+                            values
+                                |> String.join " "
+                                |> Html.text
+                                |> List.singleton
+
+                        MetricsInColumns ->
+                            List.map
+                                (valueView p.className
+                                    { isSortingMetric = False
+                                    , shouldBeGreyOut = False
+                                    }
+                                )
+                                values
+                    )
+                ]
+            ]
+
+        dbuCellValueView : List String -> List (Html msg)
+        dbuCellValueView values =
+            [ Html.div
+                [ tableModuleClass
+                    |> WeakCss.nestMany [ "table", p.className, "row", "item", "average" ]
+                ]
+                [ Html.button
+                    [ tableModuleClass
+                        |> WeakCss.nestMany [ "table", p.className, "row", "item", "average", "button" ]
+                    , Events.onClick p.toggleExactDbuNumberMsg
                     ]
                     (case p.metricsTransposition of
                         MetricsInRows ->
@@ -5050,11 +5086,24 @@ cellView p =
                                 |> Html.li [ cellClassAttr ]
 
                         OtherUnit unit ->
-                            [ XB2.Share.Gwi.FormatNumber.formatXBAverage averageResult.value
-                            , unit
-                            ]
-                                |> averageCellValueView
-                                |> Html.li [ cellClassAttr ]
+                            if averageResult.isDbu then
+                                Html.li [ cellClassAttr ]
+                                    (dbuCellValueView
+                                        [ if p.shouldShowExactDbuNumber then
+                                            FormatNumber.format
+                                                usLocale
+                                                (averageResult.value * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
+
+                                          else
+                                            XB2.Share.Gwi.FormatNumber.formatNumber
+                                                (averageResult.value * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
+                                        , "devices"
+                                        ]
+                                    )
+
+                            else
+                                Html.li [ cellClassAttr ]
+                                    (averageCellValueView [ XB2.Share.Gwi.FormatNumber.formatXBAverage averageResult.value, unit ])
                 )
                 avgData
 
@@ -5364,8 +5413,10 @@ frozenCellsView :
     , selectionMap : SelectionMap
     , shouldShowExactRespondentNumber : Bool
     , shouldShowExactUniverseNumber : Bool
+    , shouldShowExactDbuNumber : Bool
     , toggleExactRespondentNumberMsg : msg
     , toggleExactUniverseNumberMsg : msg
+    , toggleExactDbuNumberMsg : msg
     , updateUserSettingsMsg : XBUserSettings -> msg
     , userSettings : WebData XBUserSettings
     , className : String
@@ -5431,6 +5482,31 @@ frozenCellsView p =
 
                                         Nothing ->
                                             0
+
+                                getTotalUniverse : AudienceItem.AudienceItem -> BaseAudience -> Int
+                                getTotalUniverse audienceItem baseAudience =
+                                    case Dict.Any.get ( audienceItem, baseAudience ) (ACrosstab.getTotals p.crosstab) of
+                                        Just cell ->
+                                            case cell.data of
+                                                AvAData data ->
+                                                    case data.data of
+                                                        Tracked.Success intersectResult ->
+                                                            round (AudienceIntersect.getValue Size intersectResult)
+
+                                                        Tracked.NotAsked ->
+                                                            0
+
+                                                        Tracked.Loading _ ->
+                                                            0
+
+                                                        Tracked.Failure _ ->
+                                                            0
+
+                                                AverageData _ ->
+                                                    0
+
+                                        Nothing ->
+                                            0
                             in
                             cellView
                                 { switchAverageTimeFormatMsg = p.switchAverageTimeFormatMsg
@@ -5446,6 +5522,8 @@ frozenCellsView p =
                                 , minimumSampleSize = p.minimumSampleSize
                                 , totalRowRespondents = getTotalRespondents row.item base
                                 , totalColRespondents = getTotalRespondents column.item base
+                                , totalRowUniverse = getTotalUniverse row.item base
+                                , totalColUniverse = getTotalUniverse column.item base
                                 , base = base
                                 , column = column
                                 , row = row
@@ -5459,8 +5537,10 @@ frozenCellsView p =
                                 , store = p.store
                                 , shouldShowExactRespondentNumber = p.shouldShowExactRespondentNumber
                                 , shouldShowExactUniverseNumber = p.shouldShowExactUniverseNumber
+                                , shouldShowExactDbuNumber = p.shouldShowExactDbuNumber
                                 , toggleExactRespondentNumberMsg = p.toggleExactRespondentNumberMsg
                                 , toggleExactUniverseNumberMsg = p.toggleExactUniverseNumberMsg
+                                , toggleExactDbuNumberMsg = p.toggleExactDbuNumberMsg
                                 , updateUserSettingsMsg = p.updateUserSettingsMsg
                                 , userSettings = p.userSettings
                                 , className = p.className
@@ -5502,8 +5582,10 @@ cellsView :
     , selectionMap : SelectionMap
     , shouldShowExactRespondentNumber : Bool
     , shouldShowExactUniverseNumber : Bool
+    , shouldShowExactDbuNumber : Bool
     , toggleExactRespondentNumberMsg : msg
     , toggleExactUniverseNumberMsg : msg
+    , toggleExactDbuNumberMsg : msg
     , updateUserSettingsMsg : XBUserSettings -> msg
     , userSettings : WebData XBUserSettings
     , frozenRowsAndColumns : ( Int, Int )
@@ -5568,6 +5650,31 @@ cellsView p =
 
                                         Nothing ->
                                             0
+
+                                getTotalUniverse : AudienceItem.AudienceItem -> BaseAudience -> Int
+                                getTotalUniverse audienceItem baseAudience =
+                                    case Dict.Any.get ( audienceItem, baseAudience ) (ACrosstab.getTotals p.crosstab) of
+                                        Just cell ->
+                                            case cell.data of
+                                                AvAData data ->
+                                                    case data.data of
+                                                        Tracked.Success intersectResult ->
+                                                            round (AudienceIntersect.getValue Size intersectResult)
+
+                                                        Tracked.NotAsked ->
+                                                            0
+
+                                                        Tracked.Loading _ ->
+                                                            0
+
+                                                        Tracked.Failure _ ->
+                                                            0
+
+                                                AverageData _ ->
+                                                    0
+
+                                        Nothing ->
+                                            0
                             in
                             cellView
                                 { switchAverageTimeFormatMsg = p.switchAverageTimeFormatMsg
@@ -5583,6 +5690,8 @@ cellsView p =
                                 , minimumSampleSize = p.minimumSampleSize
                                 , totalRowRespondents = getTotalRespondents row.item base
                                 , totalColRespondents = getTotalRespondents column.item base
+                                , totalRowUniverse = getTotalUniverse row.item base
+                                , totalColUniverse = getTotalUniverse column.item base
                                 , base = base
                                 , column = column
                                 , row = row
@@ -5596,8 +5705,10 @@ cellsView p =
                                 , store = p.store
                                 , shouldShowExactRespondentNumber = p.shouldShowExactRespondentNumber
                                 , shouldShowExactUniverseNumber = p.shouldShowExactUniverseNumber
+                                , shouldShowExactDbuNumber = p.shouldShowExactDbuNumber
                                 , toggleExactRespondentNumberMsg = p.toggleExactRespondentNumberMsg
                                 , toggleExactUniverseNumberMsg = p.toggleExactUniverseNumberMsg
+                                , toggleExactDbuNumberMsg = p.toggleExactDbuNumberMsg
                                 , updateUserSettingsMsg = p.updateUserSettingsMsg
                                 , userSettings = p.userSettings
                                 , className = p.className
@@ -5969,8 +6080,12 @@ tableView triggers params =
                 , shouldShowExactUniverseNumber =
                     triggers.config.shouldShowExactUniverseNumber
                         params.model
+                , shouldShowExactDbuNumber =
+                    triggers.config.shouldShowExactDbuNumber
+                        params.model
                 , toggleExactRespondentNumberMsg = triggers.config.toggleExactRespondentNumberMsg
                 , toggleExactUniverseNumberMsg = triggers.config.toggleExactUniverseNumberMsg
+                , toggleExactDbuNumberMsg = triggers.config.toggleExactDbuNumberMsg
                 , updateUserSettingsMsg = triggers.config.updateUserSettings
                 , userSettings = params.xbStore.userSettings
                 , className = "frozen-combined"
@@ -6005,8 +6120,12 @@ tableView triggers params =
                 , shouldShowExactUniverseNumber =
                     triggers.config.shouldShowExactUniverseNumber
                         params.model
+                , shouldShowExactDbuNumber =
+                    triggers.config.shouldShowExactDbuNumber
+                        params.model
                 , toggleExactRespondentNumberMsg = triggers.config.toggleExactRespondentNumberMsg
                 , toggleExactUniverseNumberMsg = triggers.config.toggleExactUniverseNumberMsg
+                , toggleExactDbuNumberMsg = triggers.config.toggleExactDbuNumberMsg
                 , updateUserSettingsMsg = triggers.config.updateUserSettings
                 , userSettings = params.xbStore.userSettings
                 , className = "frozen-rows"
@@ -6041,8 +6160,12 @@ tableView triggers params =
                 , shouldShowExactUniverseNumber =
                     triggers.config.shouldShowExactUniverseNumber
                         params.model
+                , shouldShowExactDbuNumber =
+                    triggers.config.shouldShowExactDbuNumber
+                        params.model
                 , toggleExactRespondentNumberMsg = triggers.config.toggleExactRespondentNumberMsg
                 , toggleExactUniverseNumberMsg = triggers.config.toggleExactUniverseNumberMsg
+                , toggleExactDbuNumberMsg = triggers.config.toggleExactDbuNumberMsg
                 , updateUserSettingsMsg = triggers.config.updateUserSettings
                 , userSettings = params.xbStore.userSettings
                 , className = "frozen-cols"
@@ -6075,8 +6198,12 @@ tableView triggers params =
             , shouldShowExactUniverseNumber =
                 triggers.config.shouldShowExactUniverseNumber
                     params.model
+            , shouldShowExactDbuNumber =
+                triggers.config.shouldShowExactDbuNumber
+                    params.model
             , toggleExactRespondentNumberMsg = triggers.config.toggleExactRespondentNumberMsg
             , toggleExactUniverseNumberMsg = triggers.config.toggleExactUniverseNumberMsg
+            , toggleExactDbuNumberMsg = triggers.config.toggleExactDbuNumberMsg
             , updateUserSettingsMsg = triggers.config.updateUserSettings
             , userSettings = params.xbStore.userSettings
             , frozenRowsAndColumns = ( nFrozenRows, nFrozenCols )
