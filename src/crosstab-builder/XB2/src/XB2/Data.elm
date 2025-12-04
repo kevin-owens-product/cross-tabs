@@ -1164,7 +1164,7 @@ fetchXBUserSettings flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2", "crosstabs", "saved", "user_settings" ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "user_settings" ]
                 []
         , body = Http.emptyBody
         , expect = XB2.Share.Gwi.Http.expectJson identity xbUserSettingsDecoder
@@ -1182,7 +1182,7 @@ updateXBUserSettings settings flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2", "crosstabs", "saved", "user_settings" ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "user_settings" ]
                 []
         , body = Http.jsonBody <| xbUserSettingsEncode settings
         , expect = XB2.Share.Gwi.Http.expectJson identity xbUserSettingsDecoder
@@ -1479,7 +1479,7 @@ validateUserEmail email flags =
         , url =
             Url.Builder.crossOrigin
                 (host flags)
-                [ "v2/crosstabs/saved", "share", "validate" ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "share", "validate" ]
                 []
         , body =
             Http.jsonBody <|
@@ -1507,7 +1507,7 @@ validateUserEmailWithoutErrorDecoding email flags =
         , url =
             Url.Builder.crossOrigin
                 (host flags)
-                [ "v2/crosstabs/saved", "share", "validate" ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "share", "validate" ]
                 []
         , body =
             Http.jsonBody <|
@@ -1534,7 +1534,7 @@ unshareMe project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2/crosstabs/saved", "share", "remove", XB2.Share.Data.Id.unwrap project.id ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "share", "remove", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body = Http.emptyBody
         , expect = Http.expectStringResponse identity (\_ -> Ok ())
@@ -1550,7 +1550,7 @@ unshareMeTask project flags =
         , headers = [ Auth.header flags.token ]
         , url =
             Url.Builder.crossOrigin (host flags)
-                [ "v2/crosstabs/saved", "share", "remove", XB2.Share.Data.Id.unwrap project.id ]
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "share", "remove", XB2.Share.Data.Id.unwrap project.id ]
                 []
         , body = Http.emptyBody
         , resolver = XB2.Share.Gwi.Http.resolveErrorAwareJson xbProjectErrorDecoder (Decode.succeed project)
@@ -1758,7 +1758,10 @@ fetchXBFolders : Flags -> HttpCmd Never (List XBFolder)
 fetchXBFolders flags =
     Http.request
         { method = "GET"
-        , url = Url.Builder.crossOrigin (host flags) [ "v2/crosstabs/saved", "folders" ] []
+        , url =
+            Url.Builder.crossOrigin (host flags)
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "folders" ]
+                []
         , headers = [ Auth.header flags.token ]
         , body = Http.emptyBody
         , expect = XB2.Share.Gwi.Http.expectJson identity <| Decode.field "data" (Decode.list xbFolderDecoder)
@@ -1774,7 +1777,10 @@ createXBFolder folder flags =
     Http.request
         { method = "POST"
         , headers = [ Auth.header flags.token ]
-        , url = Url.Builder.crossOrigin (host flags) [ "v2/crosstabs/saved", "folders" ] []
+        , url =
+            Url.Builder.crossOrigin (host flags)
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "folders" ]
+                []
         , body = Http.jsonBody <| Encode.object [ ( "name", Encode.string folder.name ) ]
         , expect = XB2.Share.Gwi.Http.expectJson identity xbFolderDecoder
         , timeout = Nothing
@@ -1789,7 +1795,10 @@ renameXBFolder folder flags =
     Http.request
         { method = "PATCH"
         , headers = [ Auth.header flags.token ]
-        , url = Url.Builder.crossOrigin (host flags) [ "v2/crosstabs/saved", "folders", XB2.Share.Data.Id.unwrap folder.id ] []
+        , url =
+            Url.Builder.crossOrigin (host flags)
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "folders", XB2.Share.Data.Id.unwrap folder.id ]
+                []
         , body = Http.jsonBody <| Encode.object [ ( "name", Encode.string folder.name ) ]
         , expect = XB2.Share.Gwi.Http.expectJson identity xbFolderDecoder
         , timeout = Nothing
@@ -1804,7 +1813,10 @@ destroyXBFolderWithContent folder flags =
     Http.request
         { method = "DELETE"
         , headers = [ Auth.header flags.token ]
-        , url = Url.Builder.crossOrigin (host flags) [ "v2/crosstabs/saved", "folders", XB2.Share.Data.Id.unwrap folder.id, "recursive" ] []
+        , url =
+            Url.Builder.crossOrigin (host flags)
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "folders", XB2.Share.Data.Id.unwrap folder.id, "recursive" ]
+                []
         , body = Http.emptyBody
         , expect = Http.expectStringResponse identity (\_ -> Ok ())
         , timeout = Nothing
@@ -1819,7 +1831,10 @@ destroyXBFolder folder flags =
     Http.request
         { method = "DELETE"
         , headers = [ Auth.header flags.token ]
-        , url = Url.Builder.crossOrigin (host flags) [ "v2/crosstabs/saved", "folders", XB2.Share.Data.Id.unwrap folder.id ] []
+        , url =
+            Url.Builder.crossOrigin (host flags)
+                [ "platform", "v1", "crosstabs", "saved", "crosstabs", "folders", XB2.Share.Data.Id.unwrap folder.id ]
+                []
         , body = Http.emptyBody
         , expect = Http.expectStringResponse identity (\_ -> Ok ())
         , timeout = Nothing
