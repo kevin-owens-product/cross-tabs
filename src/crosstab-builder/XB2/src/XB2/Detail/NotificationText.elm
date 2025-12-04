@@ -25,6 +25,9 @@ itemTypeToString item =
         AverageItem ->
             "averages"
 
+        DeviceBasedUsageItem ->
+            "device-based usages"
+
 
 typesToString : AssocSet.Set ItemType -> String
 typesToString =

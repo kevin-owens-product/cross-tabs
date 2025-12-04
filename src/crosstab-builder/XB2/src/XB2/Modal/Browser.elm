@@ -24,9 +24,9 @@ module XB2.Modal.Browser exposing
     , getSelectedItemQuestionCodes
     , groupFoldr
     , init
-    , isSelectedAverage
     , metadataNotesView
     , replaceDefaultBaseView
+    , selectedItemIsNonGroupable
     , selectedItemNamespaceCodes
     , setModalBrowserWarning
     , subscriptions
@@ -139,6 +139,7 @@ type SelectedItem
     = SelectedAttribute Attribute
     | SelectedAudience Audience.Audience
     | SelectedAverage AttributeBrowser.Average
+    | SelectedDeviceBasedUsage AttributeBrowser.DeviceBasedUsageQuestion
     | SelectedGroup SelectedItemsGroup
 
 
@@ -582,14 +583,15 @@ selectedItemToString item =
             [ AttributeBrowser.getAverageQuestionCode avg |> XB2.Share.Data.Id.unwrap
             , AttributeBrowser.getAverageDatapointCode avg
                 |> Maybe.unwrap "" XB2.Share.Data.Id.unwrap
-            , if AttributeBrowser.averageIsDbu avg then
-                "dbu"
-
-              else
-                ""
             ]
                 |> String.join "__"
                 |> (++) "average__"
+
+        SelectedDeviceBasedUsage dbu ->
+            [ XB2.Share.Data.Id.unwrap dbu.questionCode
+            ]
+                |> String.join "__"
+                |> (++) "dbu__"
 
         SelectedAudience a ->
             "audience---" ++ Audience.idToString a.id
@@ -608,6 +610,47 @@ isSelectedAverage item =
         SelectedAverage _ ->
             True
 
+        SelectedDeviceBasedUsage _ ->
+            False
+
+        SelectedAudience _ ->
+            False
+
+        SelectedAttribute _ ->
+            False
+
+        SelectedGroup _ ->
+            False
+
+
+selectedItemIsNonGroupable : SelectedItem -> Bool
+selectedItemIsNonGroupable item =
+    case item of
+        SelectedAverage _ ->
+            True
+
+        SelectedDeviceBasedUsage _ ->
+            True
+
+        SelectedAudience _ ->
+            False
+
+        SelectedAttribute _ ->
+            False
+
+        SelectedGroup _ ->
+            False
+
+
+isSelectedDeviceBasedUsage : SelectedItem -> Bool
+isSelectedDeviceBasedUsage item =
+    case item of
+        SelectedAverage _ ->
+            False
+
+        SelectedDeviceBasedUsage _ ->
+            True
+
         SelectedAudience _ ->
             False
 
@@ -622,6 +665,9 @@ isSelectedGroup : SelectedItem -> Bool
 isSelectedGroup item =
     case item of
         SelectedAverage _ ->
+            False
+
+        SelectedDeviceBasedUsage _ ->
             False
 
         SelectedAudience _ ->
@@ -838,6 +884,9 @@ toggleItemInclusion itemToToggle selectedItems =
                         SelectedAverage _ ->
                             selectedItem
 
+                        SelectedDeviceBasedUsage _ ->
+                            selectedItem
+
                         SelectedGroup group ->
                             let
                                 isAnyAttributeExcludedInGroup =
@@ -948,6 +997,7 @@ type Msg
     | LoadingAttributes Bool
     | ClearAll
     | ToggleAverage AttributeBrowser.Average
+    | ToggleDeviceBasedUsage AttributeBrowser.DeviceBasedUsageQuestion
     | SetDecodingError String
     | IncompatibilityWarningNoteOpened AttributeBrowser.WarningNote
     | CloseIncompatibilityWarningNote
@@ -994,6 +1044,9 @@ itemToGroupable item =
             Just <| NonemptyList.singleton (SingleAudience audience)
 
         SelectedAverage _ ->
+            Nothing
+
+        SelectedDeviceBasedUsage _ ->
             Nothing
 
 
@@ -1502,6 +1555,40 @@ update config route flags store msg model =
                 |> clearDecodingError
                 |> Cmd.addTrigger (config.itemToggled item (UndoRedo.current model |> .selectedItems))
 
+        ToggleDeviceBasedUsage dbu ->
+            let
+                item : SelectedItem
+                item =
+                    SelectedDeviceBasedUsage dbu
+
+                newSelectedItems =
+                    if List.member (SelectedDeviceBasedUsage dbu) (UndoRedo.current model |> .selectedItems) then
+                        UndoRedo.current model |> .selectedItems |> List.filter ((/=) item)
+
+                    else
+                        (UndoRedo.current model |> .selectedItems) ++ [ item ]
+
+                willContainDbu =
+                    List.any isSelectedDeviceBasedUsage newSelectedItems
+            in
+            ( UndoRedo.commit UndoEvent.BrowserToggledDeviceBasedUsage
+                (\m ->
+                    { m
+                        | selectedItems = newSelectedItems
+                        , activeGrouping =
+                            if willContainDbu then
+                                Split
+
+                            else
+                                m.activeGrouping
+                    }
+                )
+                model
+            , Cmd.none
+            )
+                |> clearDecodingError
+                |> Cmd.addTrigger (config.itemToggled item (UndoRedo.current model |> .selectedItems))
+
         ShowDisabledWarningInAB ->
             model
                 |> setModalBrowserWarning ClickedDisabledAudience
@@ -1582,6 +1669,9 @@ update config route flags store msg model =
                                                         Just <| SingleAudience audience
 
                                                     SelectedAverage _ ->
+                                                        Nothing
+
+                                                    SelectedDeviceBasedUsage _ ->
                                                         Nothing
 
                                                     SelectedGroup group ->
@@ -1876,26 +1966,12 @@ avgToItem average =
                 AttributeBrowser.AvgWithoutSuffixes q ->
                     q.questionLabel
 
-                AttributeBrowser.DbuAverage q ->
-                    q.questionLabel
-
                 AttributeBrowser.AvgWithSuffixes q dpInfo ->
                     q.questionLabel ++ XB2.Share.Data.Labels.p2Separator ++ dpInfo.datapointLabel
-
-        subtitle =
-            case average of
-                AttributeBrowser.AvgWithoutSuffixes _ ->
-                    "Average of "
-
-                AttributeBrowser.DbuAverage _ ->
-                    "Estimate of "
-
-                AttributeBrowser.AvgWithSuffixes _ _ ->
-                    "Average of "
     in
     { item = SelectedAverage average
     , title = label
-    , subtitle = Just subtitle
+    , subtitle = Just "Average of "
     , type_ = GroupingPanel.Average
     }
 
@@ -1935,6 +2011,15 @@ itemsForGroupingPanel =
 
                 SelectedAverage average ->
                     avgToItem average
+
+                SelectedDeviceBasedUsage dbu ->
+                    { item = item
+                    , title = dbu.name
+                    , subtitle = Just "Estimate of "
+                    , type_ = GroupingPanel.Average
+
+                    -- TODO: GroupingPanel.DeviceBasedUsage
+                    }
 
                 SelectedGroup (SingleAttribute attr) ->
                     { item = item
@@ -2038,14 +2123,14 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                             )
                         |> Maybe.withDefault []
                 , dragEvents =
-                    if isSelectedAverage item.item || isBeingRenamed item.item then
+                    if selectedItemIsNonGroupable item.item || isBeingRenamed item.item then
                         []
 
                     else
                         dndSystem.dragEvents item item index htmlId
                             |> List.map (Attrs.map config.msg)
                 , dropEvents =
-                    if isSelectedAverage item.item || isBeingRenamed item.item then
+                    if selectedItemIsNonGroupable item.item || isBeingRenamed item.item then
                         []
 
                     else
@@ -2094,9 +2179,9 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                 |> List.map
                     (\grouping { item, nextItem } ->
                         { grouping = grouping
-                        , disabled = isGroupingMode || ((isSelectedAverage item || isSelectedAverage nextItem) && grouping /= Split)
+                        , disabled = isGroupingMode || ((selectedItemIsNonGroupable item || selectedItemIsNonGroupable nextItem) && grouping /= Split)
                         , onClick =
-                            if isSelectedAverage item || isSelectedAverage nextItem || isGroupingMode || (activeGrouping == Split && grouping == Split) then
+                            if selectedItemIsNonGroupable item || selectedItemIsNonGroupable nextItem || isGroupingMode || (activeGrouping == Split && grouping == Split) then
                                 config.noOp
 
                             else
@@ -2131,6 +2216,9 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                             SelectedAverage _ ->
                                 "Remove average"
 
+                            SelectedDeviceBasedUsage _ ->
+                                "Remove estimate"
+
                             SelectedGroup (SingleAttribute _) ->
                                 "Remove attribute"
 
@@ -2163,6 +2251,9 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                                 Html.nothing
 
                             SelectedAverage _ ->
+                                Html.nothing
+
+                            SelectedDeviceBasedUsage _ ->
                                 Html.nothing
 
                             SelectedGroup (SingleAttribute attr) ->
@@ -2270,7 +2361,7 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                                     [ dropdownMenuClass
                                         |> WeakCss.withActiveStates [ "dynamic" ]
                                     ]
-                                    [ (((if isSelectedAverage item then
+                                    [ (((if selectedItemIsNonGroupable item then
                                             []
 
                                          else
@@ -2328,12 +2419,12 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                             { isSelected = List.member item selected
                             , isActive = active == item
                             , action =
-                                if active == item || isSelectedAverage item then
+                                if active == item || selectedItemIsNonGroupable item then
                                     config.noOp
 
                                 else
                                     config.msg <| SelectItemForBulkGrouping item
-                            , canGrouping = not <| isSelectedAverage item
+                            , canGrouping = not <| selectedItemIsNonGroupable item
                             }
                         )
       , getItemIsExcluded =
@@ -2346,6 +2437,9 @@ toComplexExpressionPanelConfig config singleItemGroupings { isAffixing, model } 
                         Nothing
 
                     SelectedAverage _ ->
+                        Nothing
+
+                    SelectedDeviceBasedUsage _ ->
                         Nothing
 
                     SelectedGroup (SingleAttribute attr) ->
@@ -2395,9 +2489,9 @@ getAddToTableGroupingPanelConfig config ({ clearAllMsg, clearItemMsg, groupingSe
             items
                 |> config.addItemsToTable direction activeGrouping
 
-        containsAverage : Bool
-        containsAverage =
-            List.any isSelectedAverage items
+        containsNonGroupableItem : Bool
+        containsNonGroupableItem =
+            List.any selectedItemIsNonGroupable items
 
         containsMoreThanSingleGroup : Bool
         containsMoreThanSingleGroup =
@@ -2454,7 +2548,7 @@ getAddToTableGroupingPanelConfig config ({ clearAllMsg, clearItemMsg, groupingSe
                                 if containsMoreThanSingleGroup || isGroupingMode then
                                     True
 
-                                else if containsAverage then
+                                else if containsNonGroupableItem then
                                     grouping /= Split
 
                                 else if containsSingleGroup then
@@ -2510,9 +2604,9 @@ getMetadataNotesViewConfig config ({ clearAllMsg, clearItemMsg, groupingSelected
             items
                 |> config.addItemsToTable direction activeGrouping
 
-        containsAverage : Bool
-        containsAverage =
-            List.any isSelectedAverage items
+        containsNonGroupableItem : Bool
+        containsNonGroupableItem =
+            List.any selectedItemIsNonGroupable items
 
         containsMoreThanSingleGroup : Bool
         containsMoreThanSingleGroup =
@@ -2569,7 +2663,7 @@ getMetadataNotesViewConfig config ({ clearAllMsg, clearItemMsg, groupingSelected
                                 if containsMoreThanSingleGroup || isGroupingMode then
                                     True
 
-                                else if containsAverage then
+                                else if containsNonGroupableItem then
                                     grouping /= Split
 
                                 else if containsSingleGroup then
@@ -2756,9 +2850,9 @@ getAddBaseGroupingPanelConfig config ({ clearAllMsg, clearItemMsg, groupingSelec
             items
                 |> config.addBaseAudiences activeGrouping
 
-        containsAverage : Bool
-        containsAverage =
-            List.any isSelectedAverage items
+        containsNonGroupableItem : Bool
+        containsNonGroupableItem =
+            List.any selectedItemIsNonGroupable items
 
         containsMoreThanSingleGroup : Bool
         containsMoreThanSingleGroup =
@@ -2815,7 +2909,7 @@ getAddBaseGroupingPanelConfig config ({ clearAllMsg, clearItemMsg, groupingSelec
                                 if containsMoreThanSingleGroup || isGroupingMode then
                                     True
 
-                                else if containsAverage then
+                                else if containsNonGroupableItem then
                                     grouping /= Split
 
                                 else if containsSingleGroup then
@@ -3112,25 +3206,48 @@ view getGroupingPanelConfig affixedFrom flags config moduleClass selectedBasesCo
                 |> RemoteData.withDefault []
                 |> List.filterMap (\code -> Dict.Any.get code datasets)
 
-        ( selectedAttributes, selectedAudiences, selectedAverages ) =
+        { selectedAttributes, selectedAudiences, selectedAverages, selectedDeviceBasedUsages } =
             UndoRedo.current model
                 |> .selectedItems
                 |> List.foldr
-                    (\item ( attrs, audiences, averages ) ->
+                    (\item acc ->
                         case item of
                             SelectedAttribute attribute ->
-                                ( attribute :: attrs, audiences, averages )
+                                { acc
+                                    | selectedAttributes =
+                                        attribute :: acc.selectedAttributes
+                                }
 
                             SelectedAudience audience ->
-                                ( attrs, audience :: audiences, averages )
+                                { acc
+                                    | selectedAudiences =
+                                        audience :: acc.selectedAudiences
+                                }
 
                             SelectedAverage avg ->
-                                ( attrs, audiences, avg :: averages )
+                                { acc | selectedAverages = avg :: acc.selectedAverages }
+
+                            SelectedDeviceBasedUsage dbu ->
+                                { acc
+                                    | selectedDeviceBasedUsages =
+                                        dbu :: acc.selectedDeviceBasedUsages
+                                }
 
                             SelectedGroup group ->
-                                ( getAttributesFromGroup group ++ attrs, getAudiencesFromGroup group ++ audiences, averages )
+                                { acc
+                                    | selectedAttributes =
+                                        getAttributesFromGroup group
+                                            ++ acc.selectedAttributes
+                                    , selectedAudiences =
+                                        getAudiencesFromGroup group
+                                            ++ acc.selectedAudiences
+                                }
                     )
-                    ( [], [], [] )
+                    { selectedAttributes = []
+                    , selectedAudiences = []
+                    , selectedAverages = []
+                    , selectedDeviceBasedUsages = []
+                    }
 
         attributeBrowserConfig =
             { noOp = config.noOp
@@ -3138,6 +3255,7 @@ view getGroupingPanelConfig affixedFrom flags config moduleClass selectedBasesCo
             , addAttributes = config.msg << AddAttributes
             , loadingAttributes = config.msg << LoadingAttributes
             , toggleAverage = config.msg << ToggleAverage
+            , toggleDeviceBasedUsage = config.msg << ToggleDeviceBasedUsage
             , setDecodingError = config.msg << SetDecodingError
             , warningNoteOpened = config.msg << IncompatibilityWarningNoteOpened
             , gotStateSnapshot = config.gotAttributeBrowserStateSnapshot
@@ -3148,6 +3266,7 @@ view getGroupingPanelConfig affixedFrom flags config moduleClass selectedBasesCo
             , canUseAverage = canUseAverage
             , selectedAttributes = selectedAttributes
             , selectedAverages = selectedAverages
+            , selectedDeviceBasedUsages = selectedDeviceBasedUsages
             , selectedDatasets = compatibleDatasets
             , prerequestedAttribute = Nothing
             }
@@ -3400,25 +3519,48 @@ viewMetadataModal getGroupingPanelConfig affixedFrom prerequestedAttribute flags
                 |> RemoteData.withDefault []
                 |> List.filterMap (\code -> Dict.Any.get code datasets)
 
-        ( selectedAttributes, selectedAudiences, selectedAverages ) =
+        { selectedAttributes, selectedAudiences, selectedAverages, selectedDeviceBasedUsages } =
             UndoRedo.current model
                 |> .selectedItems
                 |> List.foldr
-                    (\item ( attrs, audiences, averages ) ->
+                    (\item acc ->
                         case item of
                             SelectedAttribute attribute ->
-                                ( attribute :: attrs, audiences, averages )
+                                { acc
+                                    | selectedAttributes =
+                                        attribute :: acc.selectedAttributes
+                                }
 
                             SelectedAudience audience ->
-                                ( attrs, audience :: audiences, averages )
+                                { acc
+                                    | selectedAudiences =
+                                        audience :: acc.selectedAudiences
+                                }
 
                             SelectedAverage avg ->
-                                ( attrs, audiences, avg :: averages )
+                                { acc | selectedAverages = avg :: acc.selectedAverages }
+
+                            SelectedDeviceBasedUsage dbu ->
+                                { acc
+                                    | selectedDeviceBasedUsages =
+                                        dbu :: acc.selectedDeviceBasedUsages
+                                }
 
                             SelectedGroup group ->
-                                ( getAttributesFromGroup group ++ attrs, getAudiencesFromGroup group ++ audiences, averages )
+                                { acc
+                                    | selectedAttributes =
+                                        getAttributesFromGroup group
+                                            ++ acc.selectedAttributes
+                                    , selectedAudiences =
+                                        getAudiencesFromGroup group
+                                            ++ acc.selectedAudiences
+                                }
                     )
-                    ( [], [], [] )
+                    { selectedAttributes = []
+                    , selectedAudiences = []
+                    , selectedAverages = []
+                    , selectedDeviceBasedUsages = []
+                    }
 
         attributeBrowserConfig =
             { noOp = config.noOp
@@ -3426,6 +3568,7 @@ viewMetadataModal getGroupingPanelConfig affixedFrom prerequestedAttribute flags
             , addAttributes = config.msg << AddAttributes
             , loadingAttributes = config.msg << LoadingAttributes
             , toggleAverage = config.msg << ToggleAverage
+            , toggleDeviceBasedUsage = config.msg << ToggleDeviceBasedUsage
             , setDecodingError = config.msg << SetDecodingError
             , warningNoteOpened = config.msg << IncompatibilityWarningNoteOpened
             , gotStateSnapshot = config.gotAttributeBrowserStateSnapshot
@@ -3436,6 +3579,7 @@ viewMetadataModal getGroupingPanelConfig affixedFrom prerequestedAttribute flags
             , canUseAverage = canUseAverage
             , selectedAttributes = selectedAttributes
             , selectedAverages = selectedAverages
+            , selectedDeviceBasedUsages = selectedDeviceBasedUsages
             , selectedDatasets = compatibleDatasets
             , prerequestedAttribute = prerequestedAttribute
             }
@@ -3829,11 +3973,11 @@ selectedItemNamespaceCodes item =
                 AvgWithoutSuffixes { namespaceCode } ->
                     [ namespaceCode ]
 
-                DbuAverage { namespaceCode } ->
-                    [ namespaceCode ]
-
                 AvgWithSuffixes { namespaceCode } _ ->
                     [ namespaceCode ]
+
+        SelectedDeviceBasedUsage dbu ->
+            [ dbu.namespaceCode ]
 
         SelectedGroup group ->
             getAttributesFromGroup group
@@ -3874,6 +4018,9 @@ getSelectedItemQuestionCodes item =
 
         SelectedAverage avg ->
             [ AttributeBrowser.getAverageQuestionCode avg ]
+
+        SelectedDeviceBasedUsage dbu ->
+            [ XB2.Share.Data.Labels.addNamespaceToQuestionCode dbu.namespaceCode dbu.questionCode ]
 
         SelectedGroup group ->
             getAttributesFromGroup group

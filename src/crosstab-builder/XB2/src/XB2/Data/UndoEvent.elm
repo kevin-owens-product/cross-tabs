@@ -33,6 +33,7 @@ type UndoEvent
     | BrowserAttributesToggled
     | BrowserClearedAll
     | BrowserToggledAverage
+    | BrowserToggledDeviceBasedUsage
     | BrowserGroupingSelected
     | BrowserChangedGroupingForGroup
     | BrowserUngroupedItem
@@ -131,6 +132,9 @@ label event =
 
         BrowserToggledAverage ->
             "Toggled average"
+
+        BrowserToggledDeviceBasedUsage ->
+            "Toggled device-based usage"
 
         BrowserGroupingSelected ->
             "Grouping selected"

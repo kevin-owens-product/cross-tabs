@@ -1,6 +1,7 @@
 const subscriptions = {};
 
-const capitalize = (string) => string.replace(/^\p{CWU}/u, (char) => char.toUpperCase());
+const capitalize = (str: string) =>
+    str ? str.charAt(0).toLocaleUpperCase() + str.slice(1) : str;
 
 const complainAboutMissingPort = (portName) =>
     console.error(

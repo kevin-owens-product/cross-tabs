@@ -97,6 +97,7 @@ import Url.Builder
 import XB2.Data.Audience.Expression as Expression exposing (Expression)
 import XB2.Data.Average as Average exposing (Average, AverageTimeFormat)
 import XB2.Data.Dataset as Dataset
+import XB2.Data.DeviceBasedUsage as DeviceBasedUsage exposing (DeviceBasedUsage)
 import XB2.Data.Metric as Metric exposing (Metric)
 import XB2.Data.MetricsTransposition as MetricsTransposition exposing (MetricsTransposition(..))
 import XB2.Data.Namespace as Namespace
@@ -172,6 +173,7 @@ type alias XBProjectId =
 type AudienceDefinition
     = Expression Expression
     | Average Average
+    | DeviceBasedUsage DeviceBasedUsage
 
 
 {-| TODO: Move this into its own module or related to `Audience` type.
@@ -179,8 +181,8 @@ type AudienceDefinition
 audienceDefinitionDecoder : Decoder AudienceDefinition
 audienceDefinitionDecoder =
     Decode.oneOf
-        [ Decode.map Average <| Decode.field "avg" (Average.decoder { isDbu = False })
-        , Decode.map Average <| Decode.field "dbu" (Average.decoder { isDbu = True })
+        [ Decode.map Average <| Decode.field "avg" Average.decoder
+        , Decode.map DeviceBasedUsage <| Decode.field "dbu" DeviceBasedUsage.decoder
         , {- expression is always present in the BE response, even if we have an
              average row/column. So we have to check presence of "avg" first to
              properly determine whether this is average or expression row/column.
@@ -198,15 +200,10 @@ encodeAudienceDefinition definition =
             ( "expression", Expression.encode expr )
 
         Average average ->
-            case average of
-                Average.AvgWithoutSuffixes _ ->
-                    ( "avg", Average.encode average )
+            ( "avg", Average.encode average )
 
-                Average.DbuAverage _ ->
-                    ( "dbu", Average.encode average )
-
-                Average.AvgWithSuffixes _ _ ->
-                    ( "avg", Average.encode average )
+        DeviceBasedUsage deviceBasedUsage ->
+            ( "dbu", DeviceBasedUsage.encode deviceBasedUsage )
 
 
 {-| TODO: Move this into its own module or related to `Audience` type.
@@ -1859,6 +1856,12 @@ definitionNamespaceCodes definition =
                 |> XB2.Share.Data.Labels.questionCodeToNamespaceCode
             ]
 
+        DeviceBasedUsage dbu ->
+            [ dbu
+                |> DeviceBasedUsage.getQuestionCode
+                |> XB2.Share.Data.Labels.questionCodeToNamespaceCode
+            ]
+
         Expression expr ->
             expr
                 |> Expression.getNamespaceCodes
@@ -1869,6 +1872,9 @@ definitionNamespaceAndQuestionCodes definition =
     case definition of
         Average avg ->
             [ Average.getQuestionCode avg ]
+
+        DeviceBasedUsage dbu ->
+            [ DeviceBasedUsage.getQuestionCode dbu ]
 
         Expression expr ->
             expr
@@ -1908,6 +1914,9 @@ getCrosstabDatasetCodes rowsAncCols bases store =
 
                                     Average average ->
                                         Average.getDatasets datasetsToNamespaces store.lineages average
+
+                                    DeviceBasedUsage dbu ->
+                                        DeviceBasedUsage.getDatasets datasetsToNamespaces store.lineages dbu
                         in
                         datasetCodes
                             |> RemoteData.withDefault [ Dataset.naCode ]

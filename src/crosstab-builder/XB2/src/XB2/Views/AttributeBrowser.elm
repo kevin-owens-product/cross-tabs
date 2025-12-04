@@ -3,11 +3,11 @@ module XB2.Views.AttributeBrowser exposing
     , AverageDatapointInfo
     , AverageQuestion
     , Config
+    , DeviceBasedUsageQuestion
     , ItemType(..)
     , Warning
     , WarningNote
     , XBItem
-    , averageIsDbu
     , getAverageDatapointCode
     , getAverageQuestion
     , getAverageQuestionCode
@@ -59,6 +59,7 @@ type alias Config msg =
     , addAttributes : List Attribute -> msg
     , loadingAttributes : Bool -> msg
     , toggleAverage : Average -> msg
+    , toggleDeviceBasedUsage : DeviceBasedUsageQuestion -> msg
     , setDecodingError : String -> msg
     , warningNoteOpened : WarningNote -> msg
     , gotStateSnapshot : Encode.Value -> msg
@@ -73,6 +74,7 @@ type alias Config msg =
     , canUseAverage : Bool
     , selectedAttributes : List Attribute
     , selectedAverages : List Average
+    , selectedDeviceBasedUsages : List DeviceBasedUsageQuestion
     , selectedDatasets : List Dataset.Dataset
 
     -- metadata modal
@@ -97,16 +99,19 @@ type alias AverageDatapointInfo =
 type Average
     = AvgWithoutSuffixes AverageQuestion
     | AvgWithSuffixes AverageQuestion AverageDatapointInfo
-    | DbuAverage AverageQuestion
+
+
+type alias DeviceBasedUsageQuestion =
+    { questionCode : ShortQuestionCode
+    , namespaceCode : Namespace.Code
+    , name : String
+    }
 
 
 getAverageQuestion : Average -> AverageQuestion
 getAverageQuestion avg =
     case avg of
         AvgWithoutSuffixes q ->
-            q
-
-        DbuAverage q ->
             q
 
         AvgWithSuffixes q _ ->
@@ -119,9 +124,6 @@ getAverageQuestionCode avg =
         AvgWithoutSuffixes { namespaceCode, questionCode } ->
             XB2.Share.Data.Labels.addNamespaceToQuestionCode namespaceCode questionCode
 
-        DbuAverage { namespaceCode, questionCode } ->
-            XB2.Share.Data.Labels.addNamespaceToQuestionCode namespaceCode questionCode
-
         AvgWithSuffixes { namespaceCode, questionCode } _ ->
             XB2.Share.Data.Labels.addNamespaceToQuestionCode namespaceCode questionCode
 
@@ -130,9 +132,6 @@ getAverageQuestionLabel : Average -> String
 getAverageQuestionLabel avg =
     case avg of
         AvgWithoutSuffixes { questionLabel } ->
-            questionLabel
-
-        DbuAverage { questionLabel } ->
             questionLabel
 
         AvgWithSuffixes { questionLabel } { datapointLabel } ->
@@ -145,24 +144,8 @@ getAverageDatapointCode avg =
         AvgWithoutSuffixes _ ->
             Nothing
 
-        DbuAverage _ ->
-            Nothing
-
         AvgWithSuffixes _ { datapointCode } ->
             Just datapointCode
-
-
-averageIsDbu : Average -> Bool
-averageIsDbu avg =
-    case avg of
-        DbuAverage _ ->
-            True
-
-        AvgWithoutSuffixes _ ->
-            False
-
-        AvgWithSuffixes _ _ ->
-            False
 
 
 type alias XBItem =
@@ -188,6 +171,7 @@ type ItemType
     = AttributeItem
     | AudienceItem
     | AverageItem
+    | DeviceBasedUsageItem
 
 
 getXBItemFromAttribute :
@@ -399,20 +383,12 @@ view flags config initialState shouldPassInitialState =
                                             AvgWithoutSuffixes averageQuestion
                     )
 
-        toggleDeviceBasedUsageDecoder : Decoder Average
+        toggleDeviceBasedUsageDecoder : Decoder DeviceBasedUsageQuestion
         toggleDeviceBasedUsageDecoder =
-            Decode.map4
-                (\questionCode namespaceCode unit name ->
-                    DbuAverage
-                        { questionCode = questionCode
-                        , namespaceCode = namespaceCode
-                        , averagesUnit = unit
-                        , questionLabel = name
-                        }
-                )
+            Decode.map3
+                DeviceBasedUsageQuestion
                 (Decode.at [ "detail", "deviceMetricAverage", "question_code" ] XB2.Share.Data.Id.decode)
                 (Decode.at [ "detail", "deviceMetricAverage", "namespace_code" ] Namespace.codeDecoder)
-                (Decode.at [ "detail", "deviceMetricAverage", "unit" ] XB2.Share.Data.Labels.averagesUnitDecoder)
                 (Decode.at [ "detail", "deviceMetricAverage", "name" ] Decode.string)
 
         encodedStagedAttributes =
@@ -444,7 +420,6 @@ view flags config initialState shouldPassInitialState =
 
         encodedStagedAverages =
             config.selectedAverages
-                |> List.filter (not << averageIsDbu)
                 |> Encode.list
                     (\average ->
                         case average of
@@ -453,49 +428,19 @@ view flags config initialState shouldPassInitialState =
 
                             AvgWithoutSuffixes question ->
                                 averageQuestionEncode Nothing question
-
-                            DbuAverage question ->
-                                -- A case that shouldn't happen due to the filter above
-                                Encode.object
-                                    [ ( "question_code", XB2.Share.Data.Id.encode question.questionCode )
-                                    , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit question.averagesUnit )
-                                    , ( "namespace_code", Namespace.encodeCode question.namespaceCode )
-                                    , ( "datapoint_code", Encode.null )
-                                    ]
                     )
                 |> Encode.encode 0
 
         encodedStagedDbuAverages =
-            config.selectedAverages
-                |> List.filter averageIsDbu
+            config.selectedDeviceBasedUsages
                 |> Encode.list
-                    (\average ->
-                        case average of
-                            AvgWithSuffixes question _ ->
-                                -- A case that shouldn't happen due to the filter above
-                                Encode.object
-                                    [ ( "question_code", XB2.Share.Data.Id.encode question.questionCode )
-                                    , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit question.averagesUnit )
-                                    , ( "namespace_code", Namespace.encodeCode question.namespaceCode )
-                                    , ( "name", Encode.string question.questionLabel )
-                                    ]
-
-                            AvgWithoutSuffixes question ->
-                                -- A case that shouldn't happen due to the filter above
-                                Encode.object
-                                    [ ( "question_code", XB2.Share.Data.Id.encode question.questionCode )
-                                    , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit question.averagesUnit )
-                                    , ( "namespace_code", Namespace.encodeCode question.namespaceCode )
-                                    , ( "name", Encode.string question.questionLabel )
-                                    ]
-
-                            DbuAverage question ->
-                                Encode.object
-                                    [ ( "question_code", XB2.Share.Data.Id.encode question.questionCode )
-                                    , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit question.averagesUnit )
-                                    , ( "namespace_code", Namespace.encodeCode question.namespaceCode )
-                                    , ( "name", Encode.string question.questionLabel )
-                                    ]
+                    (\dbu ->
+                        Encode.object
+                            [ ( "question_code", XB2.Share.Data.Id.encode dbu.questionCode )
+                            , ( "unit", Encode.string "brands" )
+                            , ( "namespace_code", Namespace.encodeCode dbu.namespaceCode )
+                            , ( "name", Encode.string dbu.name )
+                            ]
                     )
                 |> Encode.encode 0
 
@@ -578,7 +523,7 @@ view flags config initialState shouldPassInitialState =
                     (\event_ ->
                         case Decode.decodeValue toggleDeviceBasedUsageDecoder event_ of
                             Ok decoded ->
-                                config.toggleAverage decoded
+                                config.toggleDeviceBasedUsage decoded
 
                             Err err ->
                                 config.setDecodingError <| Decode.errorToString err

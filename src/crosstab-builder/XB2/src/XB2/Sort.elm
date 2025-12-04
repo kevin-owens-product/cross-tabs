@@ -37,6 +37,7 @@ type AxisSort
     = ByOtherAxisMetric AudienceItemId Metric SortDirection
     | ByTotalsMetric Metric SortDirection
     | ByOtherAxisAverage AudienceItemId SortDirection
+    | ByOtherAxisDeviceBasedUsage AudienceItemId SortDirection
     | ByName SortDirection
     | NoSort
 
@@ -94,6 +95,11 @@ axisSortDecoder =
 
                     "by_other_axis_average" ->
                         Decode.succeed ByOtherAxisAverage
+                            |> Decode.andMap (Decode.field "audience_item_id" AudienceItemId.decoder)
+                            |> Decode.andMap (Decode.field "direction" directionDecoder)
+
+                    "by_other_axis_dbu" ->
+                        Decode.succeed ByOtherAxisDeviceBasedUsage
                             |> Decode.andMap (Decode.field "audience_item_id" AudienceItemId.decoder)
                             |> Decode.andMap (Decode.field "direction" directionDecoder)
 
@@ -161,6 +167,13 @@ encodeAxis sort =
                 , ( "direction", encodeDirection direction )
                 ]
 
+        ByOtherAxisDeviceBasedUsage id direction ->
+            Encode.object
+                [ ( "type", Encode.string "by_other_axis_dbu" )
+                , ( "audience_item_id", AudienceItemId.encode id )
+                , ( "direction", encodeDirection direction )
+                ]
+
         ByName direction ->
             Encode.object
                 [ ( "type", Encode.string "by_name" )
@@ -210,6 +223,9 @@ isSorting axisSort =
         ByOtherAxisAverage _ _ ->
             True
 
+        ByOtherAxisDeviceBasedUsage _ _ ->
+            True
+
 
 isAnyAxisSorting : Sort -> Bool
 isAnyAxisSorting { columns, rows } =
@@ -234,6 +250,9 @@ isSortingByName axisSort =
         ByOtherAxisAverage _ _ ->
             False
 
+        ByOtherAxisDeviceBasedUsage _ _ ->
+            False
+
 
 isSortingByMetric : AxisSort -> Bool
 isSortingByMetric axisSort =
@@ -251,6 +270,9 @@ isSortingByMetric axisSort =
             True
 
         ByOtherAxisAverage _ _ ->
+            False
+
+        ByOtherAxisDeviceBasedUsage _ _ ->
             False
 
 
@@ -272,6 +294,9 @@ isSortingByAverage axisSort =
         ByOtherAxisAverage _ _ ->
             True
 
+        ByOtherAxisDeviceBasedUsage _ _ ->
+            True
+
 
 sortingAudience : AxisSort -> Maybe AudienceItemId
 sortingAudience axisSort =
@@ -289,6 +314,9 @@ sortingAudience axisSort =
             Just id
 
         ByOtherAxisAverage id _ ->
+            Just id
+
+        ByOtherAxisDeviceBasedUsage id _ ->
             Just id
 
 
@@ -310,6 +338,9 @@ needsDataReload axisSort =
         ByOtherAxisAverage _ _ ->
             True
 
+        ByOtherAxisDeviceBasedUsage _ _ ->
+            True
+
 
 sortingMetric : AxisSort -> Maybe Metric
 sortingMetric axisSort =
@@ -329,6 +360,9 @@ sortingMetric axisSort =
         ByOtherAxisAverage _ _ ->
             Nothing
 
+        ByOtherAxisDeviceBasedUsage _ _ ->
+            Nothing
+
 
 axisSortToDebugString : AxisSort -> String
 axisSortToDebugString sort =
@@ -341,6 +375,13 @@ axisSortToDebugString sort =
 
         ByOtherAxisAverage id dir ->
             "By other axis Average ("
+                ++ sortDirectionToDebugString dir
+                ++ ", "
+                ++ AudienceItemId.toString id
+                ++ ")"
+
+        ByOtherAxisDeviceBasedUsage id dir ->
+            "By other axis Device-based Usage ("
                 ++ sortDirectionToDebugString dir
                 ++ ", "
                 ++ AudienceItemId.toString id

@@ -1,6 +1,7 @@
 module XB2.Data.AudienceItem exposing
     ( AudienceItem
     , fromCaptionAverage
+    , fromCaptionDeviceBasedUsage
     , fromCaptionExpression
     , fromSavedProject
     , generateNewId
@@ -9,6 +10,7 @@ module XB2.Data.AudienceItem exposing
     , getId
     , getIdString
     , isAverage
+    , isAverageOrDbu
     , setCaption
     , setDefinition
     , setExpression
@@ -26,6 +28,7 @@ import XB2.Data.Audience.Expression as AudienceExpression
 import XB2.Data.AudienceItemId as AudienceItemId
 import XB2.Data.Average as Average
 import XB2.Data.Caption as Caption
+import XB2.Data.DeviceBasedUsage as DeviceBasedUsage
 
 
 {-| AudienceItem is the row or column of a crosstab. An AudienceItem definition can
@@ -86,6 +89,25 @@ fromCaptionAverage seed caption average =
         { id = id
         , caption = caption
         , definition = Data.Average average
+        }
+    , newSeed
+    )
+
+
+fromCaptionDeviceBasedUsage :
+    Random.Seed
+    -> Caption.Caption
+    -> DeviceBasedUsage.DeviceBasedUsage
+    -> ( AudienceItem, Random.Seed )
+fromCaptionDeviceBasedUsage seed caption dbu =
+    let
+        ( id, newSeed ) =
+            AudienceItemId.generateId seed
+    in
+    ( AudienceItem
+        { id = id
+        , caption = caption
+        , definition = Data.DeviceBasedUsage dbu
         }
     , newSeed
     )
@@ -176,4 +198,20 @@ isAverage (AudienceItem { definition }) =
             False
 
         Data.Average _ ->
+            True
+
+        Data.DeviceBasedUsage _ ->
+            False
+
+
+isAverageOrDbu : AudienceItem -> Bool
+isAverageOrDbu (AudienceItem { definition }) =
+    case definition of
+        Data.Expression _ ->
+            False
+
+        Data.Average _ ->
+            True
+
+        Data.DeviceBasedUsage _ ->
             True

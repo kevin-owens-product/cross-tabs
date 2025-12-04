@@ -28,7 +28,7 @@ import XB2.Data.AudienceItemId as AudienceItemId exposing (AudienceItemId)
 import XB2.Data.Average as Average exposing (AverageTimeFormat)
 import XB2.Data.BaseAudience as BaseAudience exposing (BaseAudience)
 import XB2.Data.Calc.AudienceIntersect as AudienceIntersect exposing (XBQueryError)
-import XB2.Data.Calc.Average exposing (AverageResult)
+import XB2.Data.Calc.Average as CalcAverage
 import XB2.Data.Caption as Caption exposing (Caption)
 import XB2.Data.Crosstab as Crosstab
 import XB2.Data.Metric as Metric exposing (Metric(..))
@@ -78,7 +78,8 @@ type alias CellData =
 
 type CellValue
     = IntersectionValue IntersectData
-    | AverageValue AverageResult
+    | AverageValue CalcAverage.AverageResult
+    | DeviceBasedUsageValue CalcAverage.DeviceBasedUsageResult
     | ErrorValue (Error XBQueryError)
 
 
@@ -149,16 +150,12 @@ toErrorData row column base error =
         { item = row
         , isSelected = False
         }
-
-    -- We don't care
     , totalUniverseRowValue = 0
     , columnId = AudienceItem.getId column
     , col =
         { item = column
         , isSelected = False
         }
-
-    -- We don't care
     , totalUniverseColValue = 0
     , base = base
     , value = ErrorValue error
@@ -213,6 +210,20 @@ toCellData row column base audienceCrosstab heatmapMetric cellData =
                 Success result ->
                     Just <| toSuccessCellData row column base audienceCrosstab heatmapMetric (AverageValue result)
 
+        ACrosstab.DeviceBasedUsageData data ->
+            case data of
+                NotAsked ->
+                    Nothing
+
+                Loading _ ->
+                    Nothing
+
+                Failure err ->
+                    Just <| toErrorData row column base err
+
+                Success result ->
+                    Just <| toSuccessCellData row column base audienceCrosstab heatmapMetric (DeviceBasedUsageValue result)
+
 
 toSuccessCellData : AudienceItem -> AudienceItem -> BaseAudience -> ACrosstab.AudienceCrosstab -> Maybe Metric -> CellValue -> CellData
 toSuccessCellData row column base audienceCrosstab heatmapMetric cellValue =
@@ -244,6 +255,9 @@ toSuccessCellData row column base audienceCrosstab heatmapMetric cellValue =
                 ACrosstab.AverageData _ ->
                     Nothing
 
+                ACrosstab.DeviceBasedUsageData _ ->
+                    Nothing
+
         color =
             Maybe.andThen cellHeatmapColor heatmapScale
 
@@ -269,6 +283,9 @@ toSuccessCellData row column base audienceCrosstab heatmapMetric cellValue =
 
                             ACrosstab.AverageData _ ->
                                 0
+
+                            ACrosstab.DeviceBasedUsageData _ ->
+                                0
                     )
                 |> Maybe.withDefault 0
 
@@ -293,6 +310,9 @@ toSuccessCellData row column base audienceCrosstab heatmapMetric cellValue =
                                         0
 
                             ACrosstab.AverageData _ ->
+                                0
+
+                            ACrosstab.DeviceBasedUsageData _ ->
                                 0
                     )
                 |> Maybe.withDefault 0
@@ -503,7 +523,7 @@ encodeExportResult averageTimeFormat result =
                 , ( "index", Encode.float inter.index )
                 ]
 
-        encodeAverage avg totalUniverseValue =
+        encodeAverage avg =
             Encode.object
                 [ ( "value"
                   , case avg.unit of
@@ -514,19 +534,9 @@ encodeExportResult averageTimeFormat result =
                             Encode.float avg.value
 
                         OtherUnit _ ->
-                            if avg.isDbu then
-                                Encode.float (avg.value * totalUniverseValue)
-
-                            else
-                                Encode.float avg.value
+                            Encode.float avg.value
                   )
-                , ( "unit"
-                  , if avg.isDbu then
-                        Encode.string "devices"
-
-                    else
-                        XB2.Share.Data.Labels.encodeAveragesUnit avg.unit
-                  )
+                , ( "unit", XB2.Share.Data.Labels.encodeAveragesUnit avg.unit )
                 ]
 
         encodeError err =
@@ -548,7 +558,17 @@ encodeExportResult averageTimeFormat result =
                         ( "intersection", encodeIntersect intersect )
 
                     AverageValue avg ->
-                        ( "average", encodeAverage avg (max cell.totalUniverseRowValue cell.totalUniverseColValue) )
+                        ( "average", encodeAverage avg )
+
+                    DeviceBasedUsageValue dbu ->
+                        ( "average"
+                        , Encode.object
+                            [ ( "value"
+                              , Encode.float (dbu.averageValue * max cell.totalUniverseRowValue cell.totalUniverseColValue)
+                              )
+                            , ( "unit", Encode.string "devices" )
+                            ]
+                        )
 
                     ErrorValue err ->
                         ( "error", encodeError err )

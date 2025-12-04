@@ -144,7 +144,7 @@ averageDecodeAvgWithoutSuffixes =
                 expected =
                     Average.AvgWithoutSuffixes (Id.Id mockNamespaceAndQuestionCodeString)
             in
-            Decode.decodeString (Average.decoder { isDbu = False }) json
+            Decode.decodeString Average.decoder json
                 |> Expect.equal (Ok expected)
 
 
@@ -159,7 +159,7 @@ averageDecodeAvgWithSuffixes =
                 expected =
                     Average.AvgWithSuffixes (Id.Id mockNamespaceAndQuestionCodeString) (Id.Id mockQuestionAndDatapointCodeString)
             in
-            Decode.decodeString (Average.decoder { isDbu = False }) json
+            Decode.decodeString Average.decoder json
                 |> Expect.equal (Ok expected)
 
 
@@ -246,7 +246,7 @@ propertyBasedTestAverageEncoderDecoder =
                     Average.encode average
 
                 decoded =
-                    Decode.decodeValue (Average.decoder { isDbu = False }) encoded
+                    Decode.decodeValue Average.decoder encoded
             in
             Expect.equal (Ok average) decoded
 

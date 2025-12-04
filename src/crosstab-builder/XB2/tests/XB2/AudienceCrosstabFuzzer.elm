@@ -147,7 +147,7 @@ intersectResultTotalGenerator =
 averageResultGenerator : Fuzz.Fuzzer AC.CellData
 averageResultGenerator =
     Fuzz.map
-        (\value -> AC.AverageData <| Tracked.Success <| AverageResult value (OtherUnit "devices") False)
+        (\value -> AC.AverageData <| Tracked.Success <| AverageResult value (OtherUnit "devices"))
         (Fuzz.floatRange 0 100)
 
 
@@ -327,6 +327,34 @@ updateAudienceCrosstab ( newRandomAudienceCrosstab, reloadCellsCommands ) =
                             rac
 
                         AC.IncompatibilityBulkRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.DbuRowRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.DbuColRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.TotalRowDbuColRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.TotalColDbuRowRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.AverageVsDbuRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.DbuVsDbuRequest _ ->
+                            -- TODO: Implement test for this
+                            rac
+
+                        AC.DbuVsAverageRequest _ ->
                             -- TODO: Implement test for this
                             rac
         )

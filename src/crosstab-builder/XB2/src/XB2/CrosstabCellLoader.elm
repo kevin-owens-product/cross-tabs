@@ -53,9 +53,13 @@ import XB2.Data.AudienceCrosstab as ACrosstab
         , AverageRowRequestData
         , Cell
         , CellData(..)
+        , DbuColRequestData
+        , DbuRowRequestData
         , RequestParams(..)
         , TotalColAverageRowRequestData
+        , TotalColDbuRowRequestData
         , TotalRowAverageColRequestData
+        , TotalRowDbuColRequestData
         )
 import XB2.Data.AudienceCrosstab.Sort exposing (SortConfig)
 import XB2.Data.AudienceItem as AudienceItem exposing (AudienceItem)
@@ -484,6 +488,9 @@ trackNAErrorForCellBasedOnRequestOrigin config route requestOrigin flags cellDat
         AverageData data ->
             trackFailure data
 
+        DeviceBasedUsageData data ->
+            trackFailure data
+
 
 {-| Appends the row, col and baseAudience into a hashed `String` for storing purposes.
 -}
@@ -564,6 +571,9 @@ shouldRetry webdata =
             checkIfShouldRetry data
 
         AverageData data ->
+            checkIfShouldRetry data
+
+        DeviceBasedUsageData data ->
             checkIfShouldRetry data
 
 
@@ -2473,6 +2483,50 @@ sendAverageRowRequest p2Store data_ { config, flags, trackerId, activeWaves, act
         )
 
 
+sendDbuRowRequest : XB2.Share.Store.Platform2.Store -> DbuRowRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
+sendDbuRowRequest p2Store data_ { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
+    resolveAverageRequest config
+        data_.average
+        data_.getData
+        p2Store
+        (\{ row, col } ->
+            ACrosstab.DeviceBasedUsageData
+                >> CellLoaded
+                    requestOrigin
+                    activeLocations
+                    activeWaves
+                    { row = row
+                    , col = col
+                    , base = baseAudience
+                    }
+        )
+        (\question data ->
+            sendAverageRequest
+                { average = data.rowAverage
+                , unit = data.rowUnit
+                , audience = Just data.colExpr
+                , trackedToMsg =
+                    Tracked.map (\{ value } -> { averageValue = value })
+                        >> ACrosstab.DeviceBasedUsageData
+                        >> CellLoaded
+                            requestOrigin
+                            activeLocations
+                            activeWaves
+                            { row = data.row
+                            , col = data.col
+                            , base = baseAudience
+                            }
+                }
+                config
+                flags
+                question
+                baseAudience
+                activeLocations
+                activeWaves
+                trackerId
+        )
+
+
 sendAverageColRequest : XB2.Share.Store.Platform2.Store -> AverageColRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
 sendAverageColRequest p2Store data_ { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
     resolveAverageRequest config
@@ -2497,6 +2551,50 @@ sendAverageColRequest p2Store data_ { config, flags, trackerId, activeWaves, act
                 , audience = Just data.rowExpr
                 , trackedToMsg =
                     ACrosstab.AverageData
+                        >> CellLoaded
+                            requestOrigin
+                            activeLocations
+                            activeWaves
+                            { row = data.row
+                            , col = data.col
+                            , base = baseAudience
+                            }
+                }
+                config
+                flags
+                question
+                baseAudience
+                activeLocations
+                activeWaves
+                trackerId
+        )
+
+
+sendDbuColRequest : XB2.Share.Store.Platform2.Store -> DbuColRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
+sendDbuColRequest p2Store data_ { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
+    resolveAverageRequest config
+        data_.average
+        data_.getData
+        p2Store
+        (\{ row, col } ->
+            ACrosstab.DeviceBasedUsageData
+                >> CellLoaded
+                    requestOrigin
+                    activeLocations
+                    activeWaves
+                    { row = row
+                    , col = col
+                    , base = baseAudience
+                    }
+        )
+        (\question data ->
+            sendAverageRequest
+                { average = data.colAverage
+                , unit = data.colUnit
+                , audience = Just data.rowExpr
+                , trackedToMsg =
+                    Tracked.map (\{ value } -> { averageValue = value })
+                        >> ACrosstab.DeviceBasedUsageData
                         >> CellLoaded
                             requestOrigin
                             activeLocations
@@ -2559,6 +2657,50 @@ sendTotalRowAverageColRequest p2Store data { config, flags, trackerId, activeWav
         )
 
 
+sendTotalRowDbuColRequest : XB2.Share.Store.Platform2.Store -> TotalRowDbuColRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
+sendTotalRowDbuColRequest p2Store data_ { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
+    resolveAverageRequest config
+        data_.average
+        data_.getData
+        p2Store
+        (\{ col } ->
+            ACrosstab.DeviceBasedUsageData
+                >> TotalsCellLoaded
+                    requestOrigin
+                    activeLocations
+                    activeWaves
+                    { row = AudienceItem.totalItem, col = col }
+                    { item = col
+                    , base = baseAudience
+                    }
+        )
+        (\question { col, colAverage, colUnit } ->
+            sendAverageRequest
+                { average = colAverage
+                , unit = colUnit
+                , audience = Nothing
+                , trackedToMsg =
+                    Tracked.map (\{ value } -> { averageValue = value })
+                        >> ACrosstab.DeviceBasedUsageData
+                        >> TotalsCellLoaded
+                            requestOrigin
+                            activeLocations
+                            activeWaves
+                            { row = AudienceItem.totalItem, col = col }
+                            { item = col
+                            , base = baseAudience
+                            }
+                }
+                config
+                flags
+                question
+                baseAudience
+                activeLocations
+                activeWaves
+                trackerId
+        )
+
+
 sendTotalColAverageRowRequest : XB2.Share.Store.Platform2.Store -> TotalColAverageRowRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
 sendTotalColAverageRowRequest p2Store data { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
     resolveAverageRequest config
@@ -2583,6 +2725,50 @@ sendTotalColAverageRowRequest p2Store data { config, flags, trackerId, activeWav
                 , audience = Nothing
                 , trackedToMsg =
                     ACrosstab.AverageData
+                        >> TotalsCellLoaded
+                            requestOrigin
+                            activeLocations
+                            activeWaves
+                            { row = row, col = AudienceItem.totalItem }
+                            { item = row
+                            , base = baseAudience
+                            }
+                }
+                config
+                flags
+                question
+                baseAudience
+                activeLocations
+                activeWaves
+                trackerId
+        )
+
+
+sendTotalColDbuRowRequest : XB2.Share.Store.Platform2.Store -> TotalColDbuRowRequestData -> CrosstabCommandResolveArgs msg afterAction -> AverageRequestStatus msg
+sendTotalColDbuRowRequest p2Store data_ { config, flags, trackerId, activeWaves, activeLocations, baseAudience, requestOrigin } =
+    resolveAverageRequest config
+        data_.average
+        data_.getData
+        p2Store
+        (\{ row } ->
+            ACrosstab.DeviceBasedUsageData
+                >> TotalsCellLoaded
+                    requestOrigin
+                    activeLocations
+                    activeWaves
+                    { row = row, col = AudienceItem.totalItem }
+                    { item = row
+                    , base = baseAudience
+                    }
+        )
+        (\question { row, rowAverage, rowUnit } ->
+            sendAverageRequest
+                { average = rowAverage
+                , unit = rowUnit
+                , audience = Nothing
+                , trackedToMsg =
+                    Tracked.map (\{ value } -> { averageValue = value })
+                        >> ACrosstab.DeviceBasedUsageData
                         >> TotalsCellLoaded
                             requestOrigin
                             activeLocations
@@ -2639,16 +2825,79 @@ interpretCrosstabCommand config flags p2Store command model =
                         AverageRowRequest r ->
                             sendAverageRowRequest p2Store r >> resolveAverage
 
+                        DbuRowRequest r ->
+                            sendDbuRowRequest p2Store r >> resolveAverage
+
                         AverageColRequest r ->
                             sendAverageColRequest p2Store r >> resolveAverage
+
+                        DbuColRequest r ->
+                            sendDbuColRequest p2Store r >> resolveAverage
 
                         TotalRowAverageColRequest r ->
                             sendTotalRowAverageColRequest p2Store r >> resolveAverage
 
+                        TotalRowDbuColRequest r ->
+                            sendTotalRowDbuColRequest p2Store r >> resolveAverage
+
                         TotalColAverageRowRequest r ->
                             sendTotalColAverageRowRequest p2Store r >> resolveAverage
 
+                        TotalColDbuRowRequest r ->
+                            sendTotalColDbuRowRequest p2Store r >> resolveAverage
+
                         AverageVsAverageRequest r ->
+                            \_ ->
+                                Task.succeed (Failure (OtherError XBAvgVsAvgNotSupported))
+                                    |> Task.perform
+                                        (config.msg
+                                            << CellLoaded
+                                                model.requestOrigin
+                                                activeLocations
+                                                activeWaves
+                                                { row = r.row
+                                                , col = r.col
+                                                , base = baseAudience
+                                                }
+                                            << ACrosstab.AverageData
+                                        )
+                                    |> resolveCmd
+
+                        AverageVsDbuRequest r ->
+                            \_ ->
+                                Task.succeed (Failure (OtherError XBAvgVsAvgNotSupported))
+                                    |> Task.perform
+                                        (config.msg
+                                            << CellLoaded
+                                                model.requestOrigin
+                                                activeLocations
+                                                activeWaves
+                                                { row = r.row
+                                                , col = r.col
+                                                , base = baseAudience
+                                                }
+                                            << ACrosstab.AverageData
+                                        )
+                                    |> resolveCmd
+
+                        DbuVsDbuRequest r ->
+                            \_ ->
+                                Task.succeed (Failure (OtherError XBAvgVsAvgNotSupported))
+                                    |> Task.perform
+                                        (config.msg
+                                            << CellLoaded
+                                                model.requestOrigin
+                                                activeLocations
+                                                activeWaves
+                                                { row = r.row
+                                                , col = r.col
+                                                , base = baseAudience
+                                                }
+                                            << ACrosstab.DeviceBasedUsageData
+                                        )
+                                    |> resolveCmd
+
+                        DbuVsAverageRequest r ->
                             \_ ->
                                 Task.succeed (Failure (OtherError XBAvgVsAvgNotSupported))
                                     |> Task.perform
@@ -2781,6 +3030,9 @@ setShouldBeLoadedForSorting { axis, mode } =
         ByOtherAxisAverage id _ ->
             setShouldBeLoadedRowOrCol id
 
+        ByOtherAxisDeviceBasedUsage id _ ->
+            setShouldBeLoadedRowOrCol id
+
         ByTotalsMetric _ _ ->
             case axis of
                 Rows ->
@@ -2812,6 +3064,9 @@ allNotDoneCellsForSorting { axis, mode } crosstab =
             notLoadedRowsOrCols id
 
         ByOtherAxisAverage id _ ->
+            notLoadedRowsOrCols id
+
+        ByOtherAxisDeviceBasedUsage id _ ->
             notLoadedRowsOrCols id
 
         ByTotalsMetric _ _ ->

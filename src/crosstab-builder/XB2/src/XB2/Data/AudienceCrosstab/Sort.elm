@@ -8,6 +8,7 @@ import XB2.Data.BaseAudience exposing (BaseAudience)
 import XB2.Data.Calc.AudienceIntersect as AudienceIntersect
 import XB2.Data.Caption as Caption
 import XB2.Data.Crosstab as Crosstab
+import XB2.Data.Metric as Metric
 import XB2.Share.Gwi.List as List
 import XB2.Sort
     exposing
@@ -68,6 +69,37 @@ sortAxisBy { axis, mode } base totals keyMapping crosstab =
                                         )
                                     |> Maybe.andThen (.data >> AC.getAverageData)
                                     |> Maybe.map .value
+                                    |> Maybe.withDefault (infinityForDirection direction)
+                        in
+                        sortByOtherAxis axis direction valueForKey crosstab
+                    )
+                |> Maybe.withDefault crosstab
+
+        ByOtherAxisDeviceBasedUsage dbuItemId direction ->
+            Dict.Any.get dbuItemId keyMapping
+                |> Maybe.map
+                    (\dbuKey ->
+                        let
+                            valueForKey : Key -> Float
+                            valueForKey key =
+                                let
+                                    totalUniverseValue =
+                                        Dict.Any.get ( key.item, base ) totals
+                                            |> Maybe.andThen (.data >> AC.getAvAData)
+                                            |> Maybe.map (AudienceIntersect.getValue Metric.Size)
+                                            |> Maybe.withDefault 1
+                                in
+                                crosstab
+                                    |> Crosstab.value
+                                        (case axis of
+                                            Rows ->
+                                                { base = base, row = key, col = dbuKey }
+
+                                            Columns ->
+                                                { base = base, row = dbuKey, col = key }
+                                        )
+                                    |> Maybe.andThen (.data >> AC.getDeviceBasedUsageData)
+                                    |> Maybe.map (\dbuData -> dbuData.averageValue * totalUniverseValue)
                                     |> Maybe.withDefault (infinityForDirection direction)
                         in
                         sortByOtherAxis axis direction valueForKey crosstab

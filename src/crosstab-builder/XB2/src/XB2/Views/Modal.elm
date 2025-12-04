@@ -3544,6 +3544,9 @@ addAsNewBasesContent flags { noOp, closeModal, msg, saveAsBase } data =
 
                             Data.Average _ ->
                                 Html.nothing
+
+                            Data.DeviceBasedUsage _ ->
+                                Html.nothing
                     )
                     data.selectedItems
             ]
@@ -3688,6 +3691,9 @@ mergeRoworColumContent flags { noOp, closeModal, msg, mergeRowOrColumn } data =
                                     ]
 
                             Data.Average _ ->
+                                Html.nothing
+
+                            Data.DeviceBasedUsage _ ->
                                 Html.nothing
                     )
                     data.selectedItems
@@ -3904,6 +3910,9 @@ removeRowsColsContent flags config data =
                                 )
 
                         Data.Average _ ->
+                            Nothing
+
+                        Data.DeviceBasedUsage _ ->
                             Nothing
                 )
                 data.items
@@ -5914,7 +5923,7 @@ affixGroupContents flags config { zipper, grouping, operator, expandedItem, item
             UndoRedo.current attributeBrowserModal.browserModel |> .selectedItems
 
         onSubmit =
-            if List.any ModalBrowser.isSelectedAverage addedItems || List.isEmpty addedItems then
+            if List.any ModalBrowser.selectedItemIsNonGroupable addedItems || List.isEmpty addedItems then
                 config.noOp
 
             else
@@ -5978,7 +5987,7 @@ editGroupContents flags config { zipper, grouping, itemBeingRenamed, attributeBr
             UndoRedo.current attributeBrowserModal.browserModel |> .selectedItems
 
         onSubmit =
-            if List.any ModalBrowser.isSelectedAverage addedItems || List.isEmpty addedItems then
+            if List.any ModalBrowser.selectedItemIsNonGroupable addedItems || List.isEmpty addedItems then
                 config.noOp
 
             else

@@ -140,6 +140,7 @@ import XB2.Data.Calc.AudienceIntersect as AudienceIntersect
 import XB2.Data.Caption as Caption exposing (Caption)
 import XB2.Data.Crosstab as Crosstab
 import XB2.Data.Dataset as Dataset
+import XB2.Data.DeviceBasedUsage as DeviceBasedUsage
 import XB2.Data.Metric exposing (Metric)
 import XB2.Data.MetricsTransposition exposing (MetricsTransposition(..))
 import XB2.Data.Namespace as Namespace
@@ -892,54 +893,41 @@ fromQuestionAsAverage average =
         maybeDatapointCode : Maybe QuestionAndDatapointCode
         maybeDatapointCode =
             AttributeBrowser.getAverageDatapointCode average
-
-        name =
-            case average of
-                AttributeBrowser.DbuAverage _ ->
-                    "Estimate of"
-
-                AttributeBrowser.AvgWithoutSuffixes _ ->
-                    "Average"
-
-                AttributeBrowser.AvgWithSuffixes _ _ ->
-                    "Average"
-
-        subtitle =
-            case average of
-                AttributeBrowser.DbuAverage _ ->
-                    "Mobile Device Universe"
-
-                AttributeBrowser.AvgWithoutSuffixes _ ->
-                    AttributeBrowser.getAverageQuestionLabel average
-
-                AttributeBrowser.AvgWithSuffixes _ _ ->
-                    AttributeBrowser.getAverageQuestionLabel average
     in
     NonemptyList.singleton <|
         \seed ->
             AudienceItem.fromCaptionAverage
                 seed
                 (Caption.create
-                    { name = name
-                    , fullName = name
-                    , subtitle = Just subtitle
+                    { name = "Average"
+                    , fullName = "Average"
+                    , subtitle = Just <| AttributeBrowser.getAverageQuestionLabel average
                     }
                 )
-                (case average of
-                    AttributeBrowser.DbuAverage _ ->
-                        Average.DbuAverage questionCode
+                (maybeDatapointCode
+                    |> Maybe.unwrap
+                        (Average.AvgWithoutSuffixes questionCode)
+                        (Average.AvgWithSuffixes questionCode)
+                )
 
-                    AttributeBrowser.AvgWithoutSuffixes _ ->
-                        maybeDatapointCode
-                            |> Maybe.unwrap
-                                (Average.AvgWithoutSuffixes questionCode)
-                                (Average.AvgWithSuffixes questionCode)
 
-                    AttributeBrowser.AvgWithSuffixes _ _ ->
-                        maybeDatapointCode
-                            |> Maybe.unwrap
-                                (Average.AvgWithoutSuffixes questionCode)
-                                (Average.AvgWithSuffixes questionCode)
+fromQuestionAsDeviceBasedUsage : AttributeBrowser.DeviceBasedUsageQuestion -> NonEmpty (Random.Seed -> ( AudienceItem, Random.Seed ))
+fromQuestionAsDeviceBasedUsage dbu =
+    NonemptyList.singleton <|
+        \seed ->
+            AudienceItem.fromCaptionDeviceBasedUsage
+                seed
+                (Caption.create
+                    { name = "Estimate"
+                    , fullName = "Estimate"
+                    , subtitle = Just dbu.name
+                    }
+                )
+                (DeviceBasedUsage.DeviceBasedUsage
+                    (XB2.Share.Data.Labels.addNamespaceToQuestionCode
+                        dbu.namespaceCode
+                        dbu.questionCode
+                    )
                 )
 
 
@@ -1010,7 +998,10 @@ itemsFromAttributeBrowser grouping addedItems =
                                         ModalBrowser.SelectedAverage avg ->
                                             fromQuestionAsAverage avg
 
-                                        SelectedGroup group ->
+                                        ModalBrowser.SelectedDeviceBasedUsage dbu ->
+                                            fromQuestionAsDeviceBasedUsage dbu
+
+                                        ModalBrowser.SelectedGroup group ->
                                             { caption = ModalBrowser.getCaptionFromGroup group
                                             , expression = ModalBrowser.getExpressionFromGroup group
                                             , itemType = AttributeBrowser.AttributeItem
@@ -1043,7 +1034,10 @@ itemsFromAttributeBrowser grouping addedItems =
                                     ModalBrowser.SelectedAverage _ ->
                                         Nothing
 
-                                    SelectedGroup group ->
+                                    ModalBrowser.SelectedDeviceBasedUsage _ ->
+                                        Nothing
+
+                                    ModalBrowser.SelectedGroup group ->
                                         Just
                                             { caption = ModalBrowser.getCaptionFromGroup group
                                             , expression = ModalBrowser.getExpressionFromGroup group
@@ -1067,7 +1061,10 @@ itemsFromAttributeBrowser grouping addedItems =
                         ModalBrowser.SelectedAverage _ ->
                             AssocSet.insert AttributeBrowser.AverageItem set
 
-                        SelectedGroup _ ->
+                        ModalBrowser.SelectedDeviceBasedUsage _ ->
+                            AssocSet.insert AttributeBrowser.DeviceBasedUsageItem set
+
+                        ModalBrowser.SelectedGroup _ ->
                             AssocSet.insert AttributeBrowser.AttributeItem set
                 )
                 AssocSet.empty
@@ -1123,22 +1120,17 @@ captionsFromAttributeBrowser grouping addedItems =
                                     }
 
                             SelectedAverage average ->
-                                let
-                                    name =
-                                        case average of
-                                            AttributeBrowser.DbuAverage _ ->
-                                                "Estimate of"
-
-                                            AttributeBrowser.AvgWithoutSuffixes _ ->
-                                                "Average"
-
-                                            AttributeBrowser.AvgWithSuffixes _ _ ->
-                                                "Average"
-                                in
                                 Caption.create
-                                    { name = name
-                                    , fullName = name
+                                    { name = "Average"
+                                    , fullName = "Average"
                                     , subtitle = Just <| AttributeBrowser.getAverageQuestionLabel average
+                                    }
+
+                            SelectedDeviceBasedUsage dbu ->
+                                Caption.create
+                                    { name = "Device-based usage estimate"
+                                    , fullName = "Device-based usage estimate"
+                                    , subtitle = Just dbu.name
                                     }
 
                             SelectedGroup group ->
@@ -2071,6 +2063,9 @@ countAddedItems addedItems =
                     SelectedAverage _ ->
                         { counts_ | averagesCount = counts_.averagesCount + 1 }
 
+                    SelectedDeviceBasedUsage _ ->
+                        { counts_ | deviceBasedUsagesCount = counts_.deviceBasedUsagesCount + 1 }
+
                     SelectedGroup group ->
                         ModalBrowser.groupFoldr
                             (\maybeAttr maybeAudience c ->
@@ -2093,6 +2088,7 @@ countAddedItems addedItems =
             , questionsCount = 0
             , datapointsCount = 0
             , averagesCount = 0
+            , deviceBasedUsagesCount = 0
             }
 
 
@@ -2248,6 +2244,9 @@ trackGroupsAddedAsNew flags route addedItems direction grouping p2Store model =
 
                         SelectedAverage average ->
                             datasetCodesFromNamespaceCodes p2Store [ AttributeBrowser.getAverageQuestion average |> .namespaceCode ]
+
+                        SelectedDeviceBasedUsage dbu ->
+                            datasetCodesFromNamespaceCodes p2Store [ dbu.namespaceCode ]
 
                         SelectedGroup group ->
                             ModalBrowser.groupFoldr
@@ -2469,6 +2468,18 @@ trackItemsAdded flags route grouping destination addedHow items model store =
                                     , average = average
                                     , datasetNames =
                                         datasetCodesFromNamespaceCodes store [ AttributeBrowser.getAverageQuestion average |> .namespaceCode ]
+                                            |> getDatasetNamesFromCodes store
+                                    }
+                                ]
+
+                            SelectedDeviceBasedUsage dbu ->
+                                [ DeviceBasedUsageAdded
+                                    { destination = destination
+                                    , addedHow = AddedAsNew
+                                    , cellsCount = cellsCount
+                                    , deviceBasedUsage = dbu
+                                    , datasetNames =
+                                        datasetCodesFromNamespaceCodes store [ dbu.namespaceCode ]
                                             |> getDatasetNamesFromCodes store
                                     }
                                 ]
@@ -3329,6 +3340,9 @@ updateEdit config route flags xbStore p2Store editMsg model =
                                     Average _ ->
                                         Nothing
 
+                                    DeviceBasedUsage _ ->
+                                        Nothing
+
                                     Expression expr ->
                                         Just ( AudienceItem.getCaption key.item, expr )
                             )
@@ -4089,6 +4103,9 @@ updateEdit config route flags xbStore p2Store editMsg model =
                                     SelectedAverage average ->
                                         Just <| AttributeBrowser.getAverageQuestionLabel average
 
+                                    SelectedDeviceBasedUsage dbu ->
+                                        Just dbu.name
+
                                     SelectedGroup group ->
                                         ModalBrowser.getCaptionFromGroup group
                                             |> Caption.getFullName
@@ -4836,6 +4853,9 @@ modalForViewGroupExpression ( direction, key ) =
         Average _ ->
             Nothing
 
+        DeviceBasedUsage _ ->
+            Nothing
+
         Expression expr ->
             Just <| Modal.initViewGroup ( direction, key, expr )
 
@@ -4852,6 +4872,9 @@ openSaveAsAudienceModalForTableItems config items =
         extractFromItem ( _, { item } ) =
             case AudienceItem.getDefinition item of
                 Average _ ->
+                    Nothing
+
+                DeviceBasedUsage _ ->
                     Nothing
 
                 Expression expr ->
@@ -4884,6 +4907,9 @@ createBaseFromItems config route flags grouping p2Store items model =
                     (\key ->
                         case AudienceItem.getDefinition key.item of
                             Average _ ->
+                                Nothing
+
+                            DeviceBasedUsage _ ->
                                 Nothing
 
                             Expression expr ->
@@ -5039,6 +5065,9 @@ toAffixData operator groupCaption affixingExpression ( direction, { item } ) =
         Average _ ->
             Nothing
 
+        DeviceBasedUsage _ ->
+            Nothing
+
 
 toEditData :
     Caption
@@ -5062,6 +5091,9 @@ toEditData groupCaption editingExpression ( direction, { item } ) =
                 }
 
         Average _ ->
+            Nothing
+
+        DeviceBasedUsage _ ->
             Nothing
 
 
@@ -5222,6 +5254,9 @@ affixModalOpenMsg config grouping { items } caption operator affixedFrom attribu
             Average _ ->
                 config.msg NoOp
 
+            DeviceBasedUsage _ ->
+                config.msg NoOp
+
             Expression expression ->
                 let
                     trimNewCaption item =
@@ -5320,6 +5355,9 @@ editModalOpenMsg config grouping { items } caption attributeBrowserModal =
         in
         case AudienceItem.getDefinition lastItem of
             Average _ ->
+                config.msg NoOp
+
+            DeviceBasedUsage _ ->
                 config.msg NoOp
 
             Expression expression ->
@@ -5721,6 +5759,9 @@ allNotDoneCellsForSorting sortConfigs crosstab =
                         notLoadedRowsOrCols id
 
                     ByOtherAxisAverage id _ ->
+                        notLoadedRowsOrCols id
+
+                    ByOtherAxisDeviceBasedUsage id _ ->
                         notLoadedRowsOrCols id
 
                     ByTotalsMetric _ _ ->
@@ -7060,6 +7101,9 @@ update config route flags xbStore p2Store msg model =
                                 XBData.Average _ ->
                                     []
 
+                                XBData.DeviceBasedUsage _ ->
+                                    []
+
                         fetchQuestionsCmd =
                             audienceItemQuestionCodes
                                 |> List.map (XB2.Share.Store.Platform2.FetchQuestion { showErrorModal = False })
@@ -7081,6 +7125,9 @@ update config route flags xbStore p2Store msg model =
                                     Expression.getQuestionCodes expression
 
                                 XBData.Average _ ->
+                                    []
+
+                                XBData.DeviceBasedUsage _ ->
                                     []
 
                         areAllQuestionCodesPresentInStore =
@@ -7107,6 +7154,9 @@ update config route flags xbStore p2Store msg model =
                                             |> (\item -> [ item ])
 
                                     XBData.Average _ ->
+                                        []
+
+                                    XBData.DeviceBasedUsage _ ->
                                         []
                         in
                         model
@@ -8384,6 +8434,9 @@ keyToItemSelectedEventData key =
                 )
 
         Average _ ->
+            Nothing
+
+        DeviceBasedUsage _ ->
             Nothing
 
 

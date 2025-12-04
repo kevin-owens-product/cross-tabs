@@ -6,6 +6,7 @@ module XB2.Data.AudienceCrosstab exposing
     , AverageColRequestData
     , AverageRowRequestData
     , AverageVsAverageRequestData
+    , AverageVsDbuRequestData
     , Cell
     , CellData(..)
     , CellDataResult
@@ -14,6 +15,10 @@ module XB2.Data.AudienceCrosstab exposing
     , CrosstabBaseAudience(..)
     , CrosstabBulkAvARequestData
     , CrosstabTable
+    , DbuColRequestData
+    , DbuRowRequestData
+    , DbuVsAverageRequestData
+    , DbuVsDbuRequestData
     , Direction(..)
     , EditGroupItem
     , EditedItemCounts
@@ -29,7 +34,9 @@ module XB2.Data.AudienceCrosstab exposing
     , RequestParams(..)
     , SelectableBaseItem
     , TotalColAverageRowRequestData
+    , TotalColDbuRowRequestData
     , TotalRowAverageColRequestData
+    , TotalRowDbuColRequestData
     , Totals
     , VisibleCells
     , addAudiences
@@ -78,6 +85,7 @@ module XB2.Data.AudienceCrosstab exposing
     , getCrosstabBaseAudiences
     , getCurrentBaseAudience
     , getCurrentBaseAudienceIndex
+    , getDeviceBasedUsageData
     , getDimensionsWithTotals
     , getFilteredMetricValue
     , getKeyMapping
@@ -198,16 +206,17 @@ import XB2.Data exposing (AudienceDefinition(..), XBProjectFullyLoaded)
 import XB2.Data.Audience.Expression exposing (Expression)
 import XB2.Data.AudienceItem as AudienceItem exposing (AudienceItem)
 import XB2.Data.AudienceItemId as AudienceItemId exposing (AudienceItemId)
-import XB2.Data.Average exposing (Average)
+import XB2.Data.Average exposing (Average(..))
 import XB2.Data.BaseAudience as BaseAudience exposing (BaseAudience)
 import XB2.Data.Calc.AudienceIntersect as AudienceIntersect
     exposing
         ( IntersectResult
         , XBQueryError
         )
-import XB2.Data.Calc.Average exposing (AverageResult)
+import XB2.Data.Calc.Average exposing (AverageResult, DeviceBasedUsageResult)
 import XB2.Data.Caption exposing (Caption)
 import XB2.Data.Crosstab as Crosstab exposing (Crosstab)
+import XB2.Data.DeviceBasedUsage as DeviceBasedUsage
 import XB2.Data.Metric exposing (Metric(..))
 import XB2.Data.Namespace as Namespace
 import XB2.Data.Range as Range exposing (Range)
@@ -403,6 +412,7 @@ and that translates directly to what the cells can contain:
 type CellData
     = AvAData { data : CellDataResult, incompatibilities : Incompatibilities }
     | AverageData (Tracked.WebData XBQueryError AverageResult)
+    | DeviceBasedUsageData (Tracked.WebData XBQueryError DeviceBasedUsageResult)
 
 
 mapIntersectResult : (IntersectResult -> IntersectResult) -> CellData -> CellData
@@ -413,6 +423,9 @@ mapIntersectResult fn cellData =
                 |> AvAData
 
         AverageData _ ->
+            cellData
+
+        DeviceBasedUsageData _ ->
             cellData
 
 
@@ -531,11 +544,15 @@ keyToComparable { item } =
 
 keyToNotAskedCellData : Key -> CellData
 keyToNotAskedCellData key =
-    if AudienceItem.isAverage key.item then
-        AverageData Tracked.NotAsked
+    case AudienceItem.getDefinition key.item of
+        Average _ ->
+            AverageData Tracked.NotAsked
 
-    else
-        AvAData { data = Tracked.NotAsked, incompatibilities = Tracked.NotAsked }
+        DeviceBasedUsage _ ->
+            DeviceBasedUsageData Tracked.NotAsked
+
+        Expression _ ->
+            AvAData { data = Tracked.NotAsked, incompatibilities = Tracked.NotAsked }
 
 
 audienceItemToComparable : AudienceItem -> String
@@ -1413,7 +1430,35 @@ type alias AverageRowRequestData =
     }
 
 
+type alias DbuRowRequestData =
+    { average : Average
+    , getData :
+        QuestionAveragesUnit
+        ->
+            { row : Key
+            , col : Key
+            , rowAverage : Average
+            , rowUnit : QuestionAveragesUnit
+            , colExpr : Expression
+            }
+    }
+
+
 type alias AverageColRequestData =
+    { average : Average
+    , getData :
+        QuestionAveragesUnit
+        ->
+            { row : Key
+            , col : Key
+            , rowExpr : Expression
+            , colAverage : Average
+            , colUnit : QuestionAveragesUnit
+            }
+    }
+
+
+type alias DbuColRequestData =
     { average : Average
     , getData :
         QuestionAveragesUnit
@@ -1439,7 +1484,31 @@ type alias TotalRowAverageColRequestData =
     }
 
 
+type alias TotalRowDbuColRequestData =
+    { average : Average
+    , getData :
+        QuestionAveragesUnit
+        ->
+            { col : AudienceItem
+            , colAverage : Average
+            , colUnit : QuestionAveragesUnit
+            }
+    }
+
+
 type alias TotalColAverageRowRequestData =
+    { average : Average
+    , getData :
+        QuestionAveragesUnit
+        ->
+            { row : AudienceItem
+            , rowAverage : Average
+            , rowUnit : QuestionAveragesUnit
+            }
+    }
+
+
+type alias TotalColDbuRowRequestData =
     { average : Average
     , getData :
         QuestionAveragesUnit
@@ -1457,6 +1526,24 @@ type alias AverageVsAverageRequestData =
     }
 
 
+type alias DbuVsAverageRequestData =
+    { row : Key
+    , col : Key
+    }
+
+
+type alias DbuVsDbuRequestData =
+    { row : Key
+    , col : Key
+    }
+
+
+type alias AverageVsDbuRequestData =
+    { row : Key
+    , col : Key
+    }
+
+
 {-| TODO think of a better way to express
 {Total,Expression,Average} x {Total,Expression,Average} than listing the
 combinatorial explosion of all possible combinations.
@@ -1467,10 +1554,17 @@ type RequestParams
     | CrosstabBulkAvARequest CrosstabBulkAvARequestData
       -- Average:
     | AverageRowRequest AverageRowRequestData
+    | DbuRowRequest DbuRowRequestData
     | AverageColRequest AverageColRequestData
+    | DbuColRequest DbuColRequestData
     | TotalRowAverageColRequest TotalRowAverageColRequestData
+    | TotalRowDbuColRequest TotalRowDbuColRequestData
     | TotalColAverageRowRequest TotalColAverageRowRequestData
+    | TotalColDbuRowRequest TotalColDbuRowRequestData
     | {- unsupported: will be always N/A -} AverageVsAverageRequest AverageVsAverageRequestData
+    | {- unsupported: will be always N/A -} AverageVsDbuRequest AverageVsDbuRequestData
+    | {- unsupported: will be always N/A -} DbuVsDbuRequest DbuVsDbuRequestData
+    | {- unsupported: will be always N/A -} DbuVsAverageRequest DbuVsAverageRequestData
     | IncompatibilityBulkRequest CrosstabBulkAvARequestData
 
 
@@ -1655,12 +1749,12 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
         allTheRows : List Key
         allTheRows =
             Crosstab.getRows audienceCrosstab.crosstab
-                |> List.filterNot (.item >> AudienceItem.isAverage)
+                |> List.filterNot (.item >> AudienceItem.isAverageOrDbu)
 
         allTheCols : List Key
         allTheCols =
             Crosstab.getColumns audienceCrosstab.crosstab
-                |> List.filterNot (.item >> AudienceItem.isAverage)
+                |> List.filterNot (.item >> AudienceItem.isAverageOrDbu)
 
         rowItemIdSet : Set String
         rowItemIdSet =
@@ -1756,6 +1850,29 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                     else
                                         []
 
+                                ( Expression rowExpr, DeviceBasedUsage colDbu ) ->
+                                    if willReloadThisCell then
+                                        [ MakeHttpRequest trackerIdForCurrentItem
+                                            audienceCrosstab.activeWaves
+                                            audienceCrosstab.activeLocations
+                                            key.base
+                                            (DbuColRequest
+                                                { average = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode colDbu)
+                                                , getData =
+                                                    \unit ->
+                                                        { row = key.row
+                                                        , col = key.col
+                                                        , rowExpr = rowExpr
+                                                        , colAverage = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode colDbu)
+                                                        , colUnit = unit
+                                                        }
+                                                }
+                                            )
+                                        ]
+
+                                    else
+                                        []
+
                                 ( Average rowAverage, Expression colExpr ) ->
                                     if willReloadThisCell then
                                         [ MakeHttpRequest trackerIdForCurrentItem
@@ -1779,6 +1896,29 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                     else
                                         []
 
+                                ( DeviceBasedUsage rowDbu, Expression colExpr ) ->
+                                    if willReloadThisCell then
+                                        [ MakeHttpRequest trackerIdForCurrentItem
+                                            audienceCrosstab.activeWaves
+                                            audienceCrosstab.activeLocations
+                                            key.base
+                                            (DbuRowRequest
+                                                { average = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode rowDbu)
+                                                , getData =
+                                                    \unit ->
+                                                        { row = key.row
+                                                        , col = key.col
+                                                        , rowAverage = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode rowDbu)
+                                                        , rowUnit = unit
+                                                        , colExpr = colExpr
+                                                        }
+                                                }
+                                            )
+                                        ]
+
+                                    else
+                                        []
+
                                 ( Average _, Average _ ) ->
                                     if willReloadThisCell then
                                         [ MakeHttpRequest trackerIdForCurrentItem
@@ -1786,6 +1926,54 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                             audienceCrosstab.activeLocations
                                             key.base
                                             (AverageVsAverageRequest
+                                                { row = key.row
+                                                , col = key.col
+                                                }
+                                            )
+                                        ]
+
+                                    else
+                                        []
+
+                                ( DeviceBasedUsage _, DeviceBasedUsage _ ) ->
+                                    if willReloadThisCell then
+                                        [ MakeHttpRequest trackerIdForCurrentItem
+                                            audienceCrosstab.activeWaves
+                                            audienceCrosstab.activeLocations
+                                            key.base
+                                            (DbuVsDbuRequest
+                                                { row = key.row
+                                                , col = key.col
+                                                }
+                                            )
+                                        ]
+
+                                    else
+                                        []
+
+                                ( Average _, DeviceBasedUsage _ ) ->
+                                    if willReloadThisCell then
+                                        [ MakeHttpRequest trackerIdForCurrentItem
+                                            audienceCrosstab.activeWaves
+                                            audienceCrosstab.activeLocations
+                                            key.base
+                                            (AverageVsDbuRequest
+                                                { row = key.row
+                                                , col = key.col
+                                                }
+                                            )
+                                        ]
+
+                                    else
+                                        []
+
+                                ( DeviceBasedUsage _, Average _ ) ->
+                                    if willReloadThisCell then
+                                        [ MakeHttpRequest trackerIdForCurrentItem
+                                            audienceCrosstab.activeWaves
+                                            audienceCrosstab.activeLocations
+                                            key.base
+                                            (DbuVsAverageRequest
                                                 { row = key.row
                                                 , col = key.col
                                                 }
@@ -1833,6 +2021,10 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                         AverageData _ ->
                                             AverageData <|
+                                                Tracked.loading trackerIdForCurrentItem
+
+                                        DeviceBasedUsageData _ ->
+                                            DeviceBasedUsageData <|
                                                 Tracked.loading trackerIdForCurrentItem
                             }
                             crosstabTableAcc
@@ -1900,6 +2092,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                         AverageData _ ->
                                             AverageData Tracked.NotAsked
+
+                                        DeviceBasedUsageData _ ->
+                                            DeviceBasedUsageData Tracked.NotAsked
                             }
                             crosstabTableAcc
                         , maybeAddCancelRequestCommand cell crosstabTableCmdsAcc
@@ -1977,6 +2172,27 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                         else
                                             []
 
+                                    DeviceBasedUsage dbu ->
+                                        if willReloadThisCell then
+                                            [ MakeHttpRequest trackerIdForCurrentItem
+                                                audienceCrosstab.activeWaves
+                                                audienceCrosstab.activeLocations
+                                                baseAudience
+                                                (TotalColDbuRowRequest
+                                                    { average = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode dbu)
+                                                    , getData =
+                                                        \unit ->
+                                                            { row = audienceItem
+                                                            , rowAverage = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode dbu)
+                                                            , rowUnit = unit
+                                                            }
+                                                    }
+                                                )
+                                            ]
+
+                                        else
+                                            []
+
                             else if Set.member (AudienceItem.getIdString audienceItem) colItemIdSet then
                                 case AudienceItem.getDefinition audienceItem of
                                     Expression _ ->
@@ -1994,6 +2210,27 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                                         \unit ->
                                                             { col = audienceItem
                                                             , colAverage = avg
+                                                            , colUnit = unit
+                                                            }
+                                                    }
+                                                )
+                                            ]
+
+                                        else
+                                            []
+
+                                    DeviceBasedUsage dbu ->
+                                        if willReloadThisCell then
+                                            [ MakeHttpRequest trackerIdForCurrentItem
+                                                audienceCrosstab.activeWaves
+                                                audienceCrosstab.activeLocations
+                                                baseAudience
+                                                (TotalRowDbuColRequest
+                                                    { average = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode dbu)
+                                                    , getData =
+                                                        \unit ->
+                                                            { col = audienceItem
+                                                            , colAverage = AvgWithoutSuffixes (DeviceBasedUsage.getQuestionCode dbu)
                                                             , colUnit = unit
                                                             }
                                                     }
@@ -2044,6 +2281,10 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                         AverageData _ ->
                                             AverageData <|
+                                                Tracked.loading trackerIdForCurrentItem
+
+                                        DeviceBasedUsageData _ ->
+                                            DeviceBasedUsageData <|
                                                 Tracked.loading trackerIdForCurrentItem
                             }
                             totalsAcc
@@ -2138,6 +2379,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                         AverageData _ ->
                                             AverageData Tracked.NotAsked
+
+                                        DeviceBasedUsageData _ ->
+                                            DeviceBasedUsageData Tracked.NotAsked
                             }
                             totalsAcc
                         , maybeAddCancelRequestCommand cell totalsCmdsAcc
@@ -2210,6 +2454,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                             Average _ ->
                                                 Nothing
+
+                                            DeviceBasedUsage _ ->
+                                                Nothing
                                     )
                                     rowsThatWillBeSent
 
@@ -2230,6 +2477,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                                 Just expr
 
                                             Average _ ->
+                                                Nothing
+
+                                            DeviceBasedUsage _ ->
                                                 Nothing
                                     )
                                     colsThatWillBeSent
@@ -2301,6 +2551,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
 
                                             Average _ ->
                                                 Nothing
+
+                                            DeviceBasedUsage _ ->
+                                                Nothing
                                     )
                                     rowsThatWillBeSent
 
@@ -2321,6 +2574,9 @@ reloadCrosstabCellsBulk crosstabTableLoadingConfig crosstabTotalsLoadingConfig (
                                                 Just expr
 
                                             Average _ ->
+                                                Nothing
+
+                                            DeviceBasedUsage _ ->
                                                 Nothing
                                     )
                                     colsThatWillBeSent
@@ -2662,6 +2918,10 @@ maybeAddCancelRequestCommand trackedCell commands =
             commands
                 |> addAndMapMaybe CancelHttpRequest (Tracked.getTrackerId data)
 
+        DeviceBasedUsageData data ->
+            commands
+                |> addAndMapMaybe CancelHttpRequest (Tracked.getTrackerId data)
+
 
 setLoadingCellNotAsked : Cell -> Cell
 setLoadingCellNotAsked cell =
@@ -2680,6 +2940,13 @@ setLoadingCellNotAsked cell =
             else
                 { cell | data = AverageData Tracked.NotAsked }
 
+        DeviceBasedUsageData data ->
+            if Tracked.isSuccess data then
+                cell
+
+            else
+                { cell | data = DeviceBasedUsageData Tracked.NotAsked }
+
 
 setCellNotAsked : Cell -> Cell
 setCellNotAsked cell =
@@ -2691,6 +2958,9 @@ setCellNotAsked cell =
 
                 AverageData _ ->
                     AverageData Tracked.NotAsked
+
+                DeviceBasedUsageData _ ->
+                    DeviceBasedUsageData Tracked.NotAsked
     }
 
 
@@ -2965,6 +3235,9 @@ cancelUnfinishedRequests crosstab =
 
                             AverageData avgData ->
                                 Maybe.map List.singleton <| Tracked.getTrackerId avgData
+
+                            DeviceBasedUsageData dbuData ->
+                                Maybe.map List.singleton <| Tracked.getTrackerId dbuData
                     )
                 >> List.fastConcat
 
@@ -3008,10 +3281,25 @@ insertCellData cellData cell =
                 ( AvAData _, AverageData _ ) ->
                     cellData
 
+                ( AvAData _, DeviceBasedUsageData _ ) ->
+                    cellData
+
                 ( AverageData _, AverageData _ ) ->
                     cellData
 
+                ( DeviceBasedUsageData _, DeviceBasedUsageData _ ) ->
+                    cellData
+
+                ( AverageData _, DeviceBasedUsageData _ ) ->
+                    cellData
+
+                ( DeviceBasedUsageData _, AverageData _ ) ->
+                    cellData
+
                 ( AverageData _, AvAData _ ) ->
+                    cellData
+
+                ( DeviceBasedUsageData _, AvAData _ ) ->
                     cellData
     }
 
@@ -3035,6 +3323,9 @@ insertCellAvaData fn cellData =
             AvAData <| fn data
 
         AverageData _ ->
+            cellData
+
+        DeviceBasedUsageData _ ->
             cellData
 
 
@@ -3077,7 +3368,7 @@ getRows =
 
 isSelected : Key -> Bool
 isSelected key =
-    key.isSelected && not (AudienceItem.isAverage key.item)
+    key.isSelected && not (AudienceItem.isAverageOrDbu key.item)
 
 
 getSelectedRows : AudienceCrosstab -> List Key
@@ -3092,7 +3383,7 @@ getNonselectedRows =
 
 selectKey : Key -> Key
 selectKey key =
-    if AudienceItem.isAverage key.item then
+    if AudienceItem.isAverageOrDbu key.item then
         key
 
     else
@@ -3178,7 +3469,7 @@ anySelected ac =
 
 isSelectedIfSelectable : Key -> Bool
 isSelectedIfSelectable key =
-    key.isSelected || AudienceItem.isAverage key.item
+    key.isSelected || AudienceItem.isAverageOrDbu key.item
 
 
 allRowsSelected : AudienceCrosstab -> Bool
@@ -3213,12 +3504,12 @@ colCountWithoutTotals =
 
 selectableColCountWithoutTotals : AudienceCrosstab -> Int
 selectableColCountWithoutTotals =
-    List.length << List.filter (not << AudienceItem.isAverage << .item) << getColumns
+    List.length << List.filter (not << AudienceItem.isAverageOrDbu << .item) << getColumns
 
 
 selectableRowCountWithoutTotals : AudienceCrosstab -> Int
 selectableRowCountWithoutTotals =
-    List.length << List.filter (not << AudienceItem.isAverage << .item) << getRows
+    List.length << List.filter (not << AudienceItem.isAverageOrDbu << .item) << getRows
 
 
 type alias AffixedItemCounts =
@@ -3499,6 +3790,9 @@ isCellSuccess cell =
         AverageData data ->
             Tracked.isSuccess data
 
+        DeviceBasedUsageData data ->
+            Tracked.isSuccess data
+
 
 isCellDataFailure : CellData -> Bool
 isCellDataFailure cellData =
@@ -3507,6 +3801,9 @@ isCellDataFailure cellData =
             Tracked.isFailure data
 
         AverageData data ->
+            Tracked.isFailure data
+
+        DeviceBasedUsageData data ->
             Tracked.isFailure data
 
 
@@ -3519,6 +3816,9 @@ isCellDone cell =
         AverageData data ->
             Tracked.isDone data
 
+        DeviceBasedUsageData data ->
+            Tracked.isDone data
+
 
 isCellNotAsked : Cell -> Bool
 isCellNotAsked cell =
@@ -3529,6 +3829,9 @@ isCellNotAsked cell =
         AverageData data ->
             Tracked.isNotAsked data
 
+        DeviceBasedUsageData data ->
+            Tracked.isNotAsked data
+
 
 isIncompatibilityNotAsked : Cell -> Bool
 isIncompatibilityNotAsked cell =
@@ -3537,6 +3840,9 @@ isIncompatibilityNotAsked cell =
             Tracked.isNotAsked incompatibilities
 
         AverageData _ ->
+            False
+
+        DeviceBasedUsageData _ ->
             False
 
 
@@ -3555,6 +3861,9 @@ isCellDataNotAsked cell =
         AverageData data ->
             Tracked.isNotAsked data
 
+        DeviceBasedUsageData data ->
+            Tracked.isNotAsked data
+
 
 isCellDataDone : Cell -> Bool
 isCellDataDone cell =
@@ -3565,6 +3874,9 @@ isCellDataDone cell =
         AverageData data ->
             Tracked.isDone data
 
+        DeviceBasedUsageData data ->
+            Tracked.isDone data
+
 
 isIncompatibilitiesDone : Cell -> Bool
 isIncompatibilitiesDone cell =
@@ -3573,6 +3885,9 @@ isIncompatibilitiesDone cell =
             Tracked.isDone incompatibilities
 
         AverageData _ ->
+            True
+
+        DeviceBasedUsageData _ ->
             True
 
 
@@ -3591,6 +3906,9 @@ isLoading (AudienceCrosstab r) =
                     Tracked.isLoading data || Tracked.isLoading incompatibilities
 
                 AverageData data ->
+                    Tracked.isLoading data
+
+                DeviceBasedUsageData data ->
                     Tracked.isLoading data
     in
     Crosstab.any isCellLoading r.crosstab
@@ -3676,6 +3994,9 @@ loadedCellDataCount (AudienceCrosstab r) =
 
                 AverageData data ->
                     incrementIf (Tracked.isDone data)
+
+                DeviceBasedUsageData data ->
+                    incrementIf (Tracked.isDone data)
     in
     Crosstab.foldr (\_ -> count) 0 r.crosstab
         + Dict.Any.foldr (\_ -> count) 0 r.totals
@@ -3702,6 +4023,9 @@ loadingCount (AudienceCrosstab r) =
                         >> incrementIf (Tracked.isLoading incompatibilities)
 
                 AverageData data ->
+                    incrementIf (Tracked.isLoading data)
+
+                DeviceBasedUsageData data ->
                     incrementIf (Tracked.isLoading data)
     in
     Crosstab.foldr (\_ -> count) 0 r.crosstab
@@ -3796,6 +4120,9 @@ getAvAData cellData =
         AverageData _ ->
             Nothing
 
+        DeviceBasedUsageData _ ->
+            Nothing
+
         AvAData result ->
             Tracked.toMaybe result.data
 
@@ -3805,6 +4132,22 @@ getAverageData cellData =
     case cellData of
         AverageData result ->
             Tracked.toMaybe result
+
+        DeviceBasedUsageData _ ->
+            Nothing
+
+        AvAData _ ->
+            Nothing
+
+
+getDeviceBasedUsageData : CellData -> Maybe DeviceBasedUsageResult
+getDeviceBasedUsageData cellData =
+    case cellData of
+        DeviceBasedUsageData result ->
+            Tracked.toMaybe result
+
+        AverageData _ ->
+            Nothing
 
         AvAData _ ->
             Nothing

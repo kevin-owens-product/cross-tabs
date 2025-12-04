@@ -148,6 +148,7 @@ type alias Counts =
     , questionsCount : Int
     , datapointsCount : Int
     , averagesCount : Int
+    , deviceBasedUsagesCount : Int
     }
 
 
@@ -198,6 +199,13 @@ type Event
         , addedHow : AddedHow
         , cellsCount : Int
         , average : AttributeBrowser.Average
+        , datasetNames : List String
+        }
+    | DeviceBasedUsageAdded
+        { destination : Destination
+        , addedHow : AddedHow
+        , cellsCount : Int
+        , deviceBasedUsage : AttributeBrowser.DeviceBasedUsageQuestion
         , datasetNames : List String
         }
     | BasesDeleted (EventParams { basesCount : Int })
@@ -782,6 +790,9 @@ encodeSortConfig sortConfig =
                 Sort.ByOtherAxisAverage _ _ ->
                     ( "metric", "average" )
 
+                Sort.ByOtherAxisDeviceBasedUsage _ _ ->
+                    ( "metric", "device_based_usage" )
+
                 Sort.ByOtherAxisMetric _ metric _ ->
                     ( "metric", Metric.label metric )
 
@@ -959,33 +970,35 @@ encodeEvent flags route place event =
                         AttributeBrowser.AvgWithoutSuffixes code ->
                             ( code, Encode.string "n/a" )
 
-                        AttributeBrowser.DbuAverage code ->
-                            ( code, Encode.string "n/a" )
-
                         AttributeBrowser.AvgWithSuffixes code { datapointCode } ->
                             ( code, XB2.Share.Data.Id.encode datapointCode )
-
-                itemType =
-                    case average of
-                        AttributeBrowser.AvgWithoutSuffixes _ ->
-                            "average"
-
-                        AttributeBrowser.DbuAverage _ ->
-                            "device"
-
-                        AttributeBrowser.AvgWithSuffixes _ _ ->
-                            "average"
             in
             ( "P2 - Crosstabs - Item Added"
             , Encode.object
                 ([ ( "item_added_to", encodeDestination destination )
                  , ( "item_added_how", encodeAddedHow addedHow )
                  , ( "section", encodeSectionFromDestination destination )
-                 , ( "item_type", Encode.string itemType )
+                 , ( "item_type", Encode.string "average" )
                  , ( "cells_count", Encode.int cellsCount )
                  , ( "question_code", XB2.Share.Data.Id.encode avgQuestion.questionCode )
                  , ( "question_name", Encode.string <| AttributeBrowser.getAverageQuestionLabel average )
                  , ( "data_point_code", dtp )
+                 , ( "data_sets", Encode.list Encode.string datasetNames )
+                 ]
+                    ++ encodeCrosstabIdAttributeFromRoute route
+                )
+            )
+
+        DeviceBasedUsageAdded { destination, addedHow, cellsCount, deviceBasedUsage, datasetNames } ->
+            ( "P2 - Crosstabs - Item Added"
+            , Encode.object
+                ([ ( "item_added_to", encodeDestination destination )
+                 , ( "item_added_how", encodeAddedHow addedHow )
+                 , ( "section", encodeSectionFromDestination destination )
+                 , ( "item_type", Encode.string "device" )
+                 , ( "cells_count", Encode.int cellsCount )
+                 , ( "question_code", XB2.Share.Data.Id.encode deviceBasedUsage.questionCode )
+                 , ( "question_name", Encode.string deviceBasedUsage.name )
                  , ( "data_sets", Encode.list Encode.string datasetNames )
                  ]
                     ++ encodeCrosstabIdAttributeFromRoute route

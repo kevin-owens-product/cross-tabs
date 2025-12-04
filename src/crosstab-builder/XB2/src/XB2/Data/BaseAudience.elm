@@ -133,6 +133,9 @@ fromAudienceItem item =
         Average _ ->
             Nothing
 
+        DeviceBasedUsage _ ->
+            Nothing
+
 
 toBaseAudienceData : BaseAudience -> BaseAudienceData
 toBaseAudienceData (BaseAudience data) =

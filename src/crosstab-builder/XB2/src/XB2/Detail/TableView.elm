@@ -16,7 +16,7 @@ import Browser.Extra as Browser
 import Dict.Any exposing (AnyDict)
 import DnDList as Dnd
 import FormatNumber
-import FormatNumber.Locales as Locales exposing (usLocale)
+import FormatNumber.Locales as Locales
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attrs exposing (autocomplete)
 import Html.Attributes.Extra as Attrs
@@ -2062,6 +2062,9 @@ sortByNameDropdownView config model { isDropdownOpen, isHeaderCollapsed } =
                 ( ByOtherAxisAverage _ _, _, _ ) ->
                     Nothing
 
+                ( ByOtherAxisDeviceBasedUsage _ _, _, _ ) ->
+                    Nothing
+
                 ( NoSort, _, _ ) ->
                     Nothing
     in
@@ -2090,6 +2093,9 @@ sortByNameDropdownView config model { isDropdownOpen, isHeaderCollapsed } =
                                     Html.nothing
 
                                 ( ByOtherAxisAverage _ _, _ ) ->
+                                    Html.nothing
+
+                                ( ByOtherAxisDeviceBasedUsage _ _, _ ) ->
                                     Html.nothing
 
                                 ( ByName _, _ ) ->
@@ -2869,6 +2875,9 @@ heatmapColorAttrs heatmapScale column row cell =
         ( _, AverageData _ ) ->
             []
 
+        ( _, DeviceBasedUsageData _ ) ->
+            []
+
 
 checkIfCellPassesMinSampleSize : MinimumSampleSize -> ACrosstab.Cell -> Bool
 checkIfCellPassesMinSampleSize minimumSampleSize cell =
@@ -2894,6 +2903,9 @@ checkIfCellPassesMinSampleSize minimumSampleSize cell =
                             False
 
                 AverageData _ ->
+                    False
+
+                DeviceBasedUsageData _ ->
                     False
 
         Nothing ->
@@ -3142,6 +3154,9 @@ reorderMetrics sort metrics =
         ( ByOtherAxisAverage _ _, _ ) ->
             metrics
 
+        ( ByOtherAxisDeviceBasedUsage _ _, _ ) ->
+            metrics
+
         ( ByName _, _ ) ->
             metrics
 
@@ -3245,6 +3260,9 @@ averageItemDropdown triggers params =
                 ByOtherAxisAverage id _ ->
                     id == AudienceItem.getId params.key.item
 
+                ByOtherAxisDeviceBasedUsage id _ ->
+                    id == AudienceItem.getId params.key.item
+
                 ByTotalsMetric _ _ ->
                     False
 
@@ -3256,7 +3274,10 @@ averageItemDropdown triggers params =
 
         isSortingByThisDirection : SortDirection -> Bool
         isSortingByThisDirection sortDirection =
-            sortForOtherAxis == ByOtherAxisAverage (AudienceItem.getId params.key.item) sortDirection
+            sortForOtherAxis
+                == ByOtherAxisAverage (AudienceItem.getId params.key.item) sortDirection
+                || sortForOtherAxis
+                == ByOtherAxisDeviceBasedUsage (AudienceItem.getId params.key.item) sortDirection
 
         isDropdownOpen : Bool
         isDropdownOpen =
@@ -3321,7 +3342,12 @@ averageItemDropdown triggers params =
                                        Hence why we're sorting *the other axis* in this msg:
                                     -}
                                     (triggers.config.sortByOtherAxisAverage
-                                        { mode = ByOtherAxisAverage (AudienceItem.getId params.key.item) Ascending
+                                        { mode =
+                                            if AudienceItem.isAverage params.key.item then
+                                                ByOtherAxisAverage (AudienceItem.getId params.key.item) Ascending
+
+                                            else
+                                                ByOtherAxisDeviceBasedUsage (AudienceItem.getId params.key.item) Ascending
                                         , axis = otherAxis
                                         }
                                     )
@@ -3333,7 +3359,12 @@ averageItemDropdown triggers params =
                               , DropdownItem.onClick
                                     -- same as above
                                     (triggers.config.sortByOtherAxisAverage
-                                        { mode = ByOtherAxisAverage (AudienceItem.getId params.key.item) Descending
+                                        { mode =
+                                            if AudienceItem.isAverage params.key.item then
+                                                ByOtherAxisAverage (AudienceItem.getId params.key.item) Descending
+
+                                            else
+                                                ByOtherAxisDeviceBasedUsage (AudienceItem.getId params.key.item) Descending
                                         , axis = otherAxis
                                         }
                                     )
@@ -3422,6 +3453,9 @@ viewHeaderDropdown triggers params =
                     AudienceItemId.total == AudienceItem.getId params.key.item
 
                 ByOtherAxisAverage _ _ ->
+                    False
+
+                ByOtherAxisDeviceBasedUsage _ _ ->
                     False
 
                 ByName _ ->
@@ -3818,6 +3852,13 @@ keyedHeaderView triggers params =
                     else
                         Nothing
 
+                ByOtherAxisDeviceBasedUsage id sDirection ->
+                    if id == AudienceItem.getId params.key.item then
+                        Just sDirection
+
+                    else
+                        Nothing
+
                 ByName _ ->
                     Nothing
 
@@ -3842,9 +3883,9 @@ keyedHeaderView triggers params =
                     )
                 |> Maybe.withDefault []
 
-        isAverage : Bool
-        isAverage =
-            AudienceItem.isAverage params.key.item
+        isAverageOrDbu : Bool
+        isAverageOrDbu =
+            AudienceItem.isAverageOrDbu params.key.item
 
         isFocusedSearchTerm : Bool
         isFocusedSearchTerm =
@@ -3874,7 +3915,7 @@ keyedHeaderView triggers params =
                    , ( "sorted-by", isSortByThisKey )
                    , ( "sort-direction-asc", sortDirection == Just Ascending )
                    , ( "sort-direction-desc", sortDirection == Just Descending )
-                   , ( "is-average", isAverage )
+                   , ( "is-average", isAverageOrDbu )
                    , ( "non-totals", params.index /= 0 )
                    ]
 
@@ -3944,7 +3985,7 @@ keyedHeaderView triggers params =
                 ]
               <|
                 Html.viewIfLazy
-                    (not isAverage && (params.key.isSelected || (not isTotalsHeader && dndInfo == Nothing)))
+                    (not isAverageOrDbu && (params.key.isSelected || (not isTotalsHeader && dndInfo == Nothing)))
                     (\_ -> selectCheckboxView triggers.config params.direction params.key)
                     :: Html.viewIfLazy
                         (not isTotalsHeader && dndInfo == Nothing)
@@ -3980,7 +4021,7 @@ keyedHeaderView triggers params =
                         , key = params.key
                         , isInDebugMode = isInDebugMode
                         }
-                    :: (if isAverage then
+                    :: (if isAverageOrDbu then
                             [ Html.Lazy.lazy2
                                 averageItemDropdown
                                 { config = triggers.config }
@@ -4038,16 +4079,16 @@ ghostInnerView triggers params =
             NonemptyList.head params.items
                 |> Tuple.second
 
-        isAverage : Bool
-        isAverage =
-            AudienceItem.isAverage key.item
+        isAverageOrDbu : Bool
+        isAverageOrDbu =
+            AudienceItem.isAverageOrDbu key.item
     in
     Html.div
         ((tableModuleClass
             |> WeakCss.addMany [ "table", headerClass, "item" ]
             |> WeakCss.withStates
                 [ ( "ghost", True )
-                , ( "is-average", isAverage )
+                , ( "is-average", isAverageOrDbu )
                 ]
          )
             :: triggers.dnd.ghostStyles params.dndModel
@@ -4229,6 +4270,9 @@ cellView p =
 
                                         AverageData _ ->
                                             AverageData <| Tracked.Loading Nothing
+
+                                        DeviceBasedUsageData _ ->
+                                            DeviceBasedUsageData <| Tracked.Loading Nothing
                             }
 
                     else
@@ -4245,9 +4289,9 @@ cellView p =
             (AudienceItem.getId p.row.item == AudienceItemId.total)
                 && (AudienceItem.getId p.column.item == AudienceItemId.total)
 
-        isAverageCell : Bool
-        isAverageCell =
-            List.any (.item >> AudienceItem.isAverage) [ p.row, p.column ]
+        cellIsAverageOrDbu : Bool
+        cellIsAverageOrDbu =
+            List.any (.item >> AudienceItem.isAverageOrDbu) [ p.row, p.column ]
 
         warningIcon : { onClick : msg } -> Html msg
         warningIcon { onClick } =
@@ -4454,6 +4498,9 @@ cellView p =
                    either rows or columns are sorted by this cell `ByOtherAxisMetric`.
                 -}
                 ( ByOtherAxisAverage _ _, _ ) ->
+                    ( False, Nothing )
+
+                ( ByOtherAxisDeviceBasedUsage _ _, _ ) ->
                     ( False, Nothing )
 
                 ( ByName _, _ ) ->
@@ -4925,7 +4972,7 @@ cellView p =
                     singleNAErrorView err
 
                 Tracked.Failure err ->
-                    if isAverageCell then
+                    if cellIsAverageOrDbu then
                         singleNAErrorView err
 
                     else
@@ -5003,6 +5050,9 @@ cellView p =
                                     Html.nothing
 
                         AverageData _ ->
+                            Html.nothing
+
+                        DeviceBasedUsageData _ ->
                             Html.nothing
             in
             cellTrackedDataView
@@ -5086,26 +5136,32 @@ cellView p =
                                 |> Html.li [ cellClassAttr ]
 
                         OtherUnit unit ->
-                            if averageResult.isDbu then
-                                Html.li [ cellClassAttr ]
-                                    (dbuCellValueView
-                                        [ if p.shouldShowExactDbuNumber then
-                                            FormatNumber.format
-                                                usLocale
-                                                (averageResult.value * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
-
-                                          else
-                                            XB2.Share.Gwi.FormatNumber.formatNumber
-                                                (averageResult.value * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
-                                        , "devices"
-                                        ]
-                                    )
-
-                            else
-                                Html.li [ cellClassAttr ]
-                                    (averageCellValueView [ XB2.Share.Gwi.FormatNumber.formatXBAverage averageResult.value, unit ])
+                            [ XB2.Share.Gwi.FormatNumber.formatXBAverage averageResult.value
+                            , unit
+                            ]
+                                |> averageCellValueView
+                                |> Html.li [ cellClassAttr ]
                 )
                 avgData
+
+        DeviceBasedUsageData data ->
+            cellTrackedDataView
+                (\dbuResult ->
+                    Html.li [ cellClassAttr ]
+                        (dbuCellValueView
+                            [ if p.shouldShowExactDbuNumber then
+                                FormatNumber.format
+                                    Locales.usLocale
+                                    (dbuResult.averageValue * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
+
+                              else
+                                XB2.Share.Gwi.FormatNumber.formatNumber
+                                    (dbuResult.averageValue * max (toFloat p.totalRowUniverse) (toFloat p.totalColUniverse))
+                            , "devices"
+                            ]
+                        )
+                )
+                data
 
 
 agreementScoreTooltip : String
@@ -5480,6 +5536,9 @@ frozenCellsView p =
                                                 AverageData _ ->
                                                     0
 
+                                                DeviceBasedUsageData _ ->
+                                                    0
+
                                         Nothing ->
                                             0
 
@@ -5503,6 +5562,9 @@ frozenCellsView p =
                                                             0
 
                                                 AverageData _ ->
+                                                    0
+
+                                                DeviceBasedUsageData _ ->
                                                     0
 
                                         Nothing ->
@@ -5648,6 +5710,9 @@ cellsView p =
                                                 AverageData _ ->
                                                     0
 
+                                                DeviceBasedUsageData _ ->
+                                                    0
+
                                         Nothing ->
                                             0
 
@@ -5671,6 +5736,9 @@ cellsView p =
                                                             0
 
                                                 AverageData _ ->
+                                                    0
+
+                                                DeviceBasedUsageData _ ->
                                                     0
 
                                         Nothing ->

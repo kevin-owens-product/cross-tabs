@@ -24,6 +24,7 @@ import XB2.Data.BaseAudience as BaseAudience
 import XB2.Data.Calc.AudienceIntersect as AudienceIntersect exposing (IntersectResult)
 import XB2.Data.Caption as Caption
 import XB2.Data.Crosstab as Crosstab
+import XB2.Data.DeviceBasedUsage as DeviceBasedUsage
 import XB2.Data.Metric as Metric exposing (Metric)
 import XB2.Data.UndoEvent exposing (UndoEvent)
 import XB2.Detail.Common exposing (Unsaved(..))
@@ -100,6 +101,9 @@ dump flags model store =
 
                 Data.Average average ->
                     [ Average.getQuestionCode average ]
+
+                Data.DeviceBasedUsage dbu ->
+                    [ DeviceBasedUsage.getQuestionCode dbu ]
 
         questionInfo : List NamespaceAndQuestionCode -> List String
         questionInfo questionCodes =
@@ -290,6 +294,15 @@ dump flags model store =
                         (\averageResult ->
                             [ "Success Average:"
                             , "  " ++ String.fromFloat averageResult.value ++ " " ++ unitToString averageResult.unit
+                            ]
+                                |> String.join "\n"
+                        )
+
+                ACrosstab.DeviceBasedUsageData data ->
+                    cellRequestToString data
+                        (\dbuResult ->
+                            [ "Success Device-based usage:"
+                            , "  " ++ String.fromFloat dbuResult.averageValue ++ " devices"
                             ]
                                 |> String.join "\n"
                         )
