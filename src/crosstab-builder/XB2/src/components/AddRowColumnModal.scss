@@ -1,0 +1,128 @@
+.add-row-column-modal {
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 1rem;
+
+      &:focus {
+        outline: none;
+        border-color: #1976d2;
+      }
+    }
+
+    .browser-button {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #1565c0;
+      }
+    }
+  }
+
+  .divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #e0e0e0;
+    }
+
+    span {
+      background: white;
+      padding: 0 1rem;
+      color: #666;
+      font-size: 0.875rem;
+      position: relative;
+    }
+  }
+
+  .selected-audiences {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+
+    h4 {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+
+        .remove-audience {
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          cursor: pointer;
+          color: #999;
+          padding: 0;
+          width: 1.5rem;
+          height: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            color: #d32f2f;
+          }
+        }
+      }
+    }
+  }
+}
+
+.audience-browser-modal {
+  width: 90vw;
+  height: 90vh;
+  max-width: 1200px;
+  max-height: 800px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+

@@ -1,0 +1,63 @@
+.keyboard-shortcuts {
+  .shortcut-category {
+    margin-bottom: 2rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+
+      .shortcut-description {
+        color: #666;
+        font-size: 0.875rem;
+      }
+
+      .shortcut-keys {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        kbd {
+          display: inline-block;
+          padding: 0.25rem 0.5rem;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 3px;
+          font-family: monospace;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #333;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .key-separator {
+          color: #999;
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}
+

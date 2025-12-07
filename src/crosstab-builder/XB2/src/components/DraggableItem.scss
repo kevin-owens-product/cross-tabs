@@ -1,0 +1,18 @@
+.draggable-item {
+  cursor: move;
+  transition: opacity 0.2s, transform 0.2s;
+
+  &.dragging {
+    opacity: 0.5;
+  }
+
+  &.drag-over {
+    border: 2px dashed #1976d2;
+    background-color: #e3f2fd;
+  }
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+

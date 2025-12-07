@@ -1,0 +1,80 @@
+.heatmap-legend {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  min-width: 200px;
+  z-index: 1000;
+
+  .legend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .legend-title {
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: #333;
+    }
+
+    .legend-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+
+  .legend-content {
+    .legend-gradient {
+      display: flex;
+      height: 20px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+
+      .gradient-step {
+        flex: 1;
+        height: 100%;
+      }
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .legend-metric {
+      font-size: 0.75rem;
+      color: #666;
+      text-align: center;
+      padding-top: 0.5rem;
+      border-top: 1px solid #e0e0e0;
+
+      strong {
+        color: #333;
+        font-weight: 500;
+      }
+    }
+  }
+}
+

@@ -10,6 +10,8 @@
    * unmount
 */
 import { ximport } from "@globalwebindex/platform2-lib";
+import React from "react";
+import { createRoot, Root } from "react-dom/client";
 
 import keysInit from "../../_initializer/keys";
 import p2UrlInit from "../../_initializer/p2-url";
@@ -28,7 +30,8 @@ import * as Sentry from "@sentry/browser";
 
 import "regenerator-runtime/runtime";
 
-import * as ElmDebugger from "elm-debug-transformer";
+import { App } from "./src/App";
+import { Flags } from "./src/types";
 
 require("@webcomponents/webcomponentsjs/webcomponents-bundle.js");
 require("@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js");
@@ -42,8 +45,6 @@ require("../../custom-elements/x-cooltip/style.scss");
 require("../../custom-elements/x-simplebar/component.ts");
 require("../../custom-elements/x-simplebar/style.scss");
 require("../../custom-elements/x-resize-observer/component.ts");
-
-ElmDebugger.register({ limit: 1000000 });
 
 // Sentry
 // @ts-ignore
@@ -73,14 +74,28 @@ if (process.env.TARGET_ENV !== "development" && !Boolean(window.Sentry)) {
 // CONFIG DEFINITIONS
 const styleHref = "/assets/crosstabs.css";
 
-const state = {
+interface AppState {
+    checkBeforeLeave: boolean;
+    ignoreNextRouteChangeCounter: number;
+    lastUrl: string;
+    currentUrl: string;
+    domEl?: HTMLElement;
+    reactRoot?: Root;
+    navigateTo?: (str: string) => void;
+    checkBeforeLeaveSubscription?: (edited: boolean) => void;
+    routeChanged?: () => void;
+    beforeRouting?: (evt: CustomEvent) => void;
+    interruptRoutingStatusHandler?: (state: boolean) => void;
+}
+
+const state: AppState = {
     checkBeforeLeave: false,
     ignoreNextRouteChangeCounter: 0,
     lastUrl: "",
     currentUrl: ""
 };
 
-function getDomElement(domId) {
+function getDomElement(domId?: string): HTMLElement {
     const htmlId = domId !== undefined ? domId : "container";
 
     let domElement = document.getElementById(htmlId);
@@ -93,12 +108,28 @@ function getDomElement(domId) {
     return domElement;
 }
 
-function initENV(props) {
+function initENV(props: any): Flags {
     const ENV = JSON.parse(JSON.stringify(props));
     ENV.platform = ENV.platform || p2EnvPlatform;
     keysInit(ENV);
     p2UrlInit(ENV);
-    return ENV;
+    
+    // Convert to Flags type
+    const flags: Flags = {
+        token: ENV.token,
+        user: ENV.user,
+        env: ENV.env,
+        feature: ENV.feature || undefined,
+        pathPrefix: ENV.pathPrefix || undefined,
+        can: ENV.can || { useCrosstabs: true },
+        helpMode: ENV.helpMode || false,
+        supportChatVisible: ENV.supportChatVisible || false,
+        revision: ENV.revision || undefined,
+        referrer: ENV.referrer === "Platform2Referrer" ? "Platform2Referrer" : "OtherReferrer",
+        platform2Url: ENV.platform2Url || ""
+    };
+    
+    return flags;
 }
 
 // SINGLE-SPA INTERFACE LOGIC
@@ -106,250 +137,161 @@ function initENV(props) {
 /** Bootstrap function needs to handle provision of all resources
 as well as take core of main intialization of the app.
 */
-export function bootstrap(props) {
-    return ximport(styleHref)
-        .then(
-            () =>
-                import(
-                    /* webpackChunkName: "crosstabs-elm" */
-                    /* webpackMode: "eager" */
-                    // @ts-ignore
-                    "./src/Main"
-                )
-        )
-        .then(({ Elm }) => {
-            // Container element
-            // Elm is going to rewrite this node so it disappears
-            const element = document.createElement("div");
-            const domElement = getDomElement(props.domId);
-            domElement.innerHTML = "";
+export function bootstrap(props: { domId?: string }) {
+    return ximport(styleHref).then(() => {
+        const domElement = getDomElement(props.domId);
+        domElement.innerHTML = "";
 
-            // wrapper is a dom node we use to control the lifecycle
-            const wrapper = document.createElement("div");
-            wrapper.className = "xb2-wrapper";
-            wrapper.appendChild(element);
-            domElement.appendChild(wrapper);
+        // wrapper is a dom node we use to control the lifecycle
+        const wrapper = document.createElement("div");
+        wrapper.className = "xb2-wrapper";
+        domElement.appendChild(wrapper);
 
-            const ENV = initENV(props);
-
-            const app = Elm.Main.init({
-                node: element,
-                flags: ENV // Using global state again
-            });
-
-            // @ts-ignore
-            state.domEl = wrapper;
-            // @ts-ignore
-            state.app = app;
-        });
+        state.domEl = wrapper;
+    });
 }
 
 /** Mount application should handle render of the DOM of the application
 and hook to events / subscriptions which are not necessary un unmounted state.
 */
-export function mount(props) {
-    // @ts-ignore
-    const { app, domEl } = state;
+export function mount(props: { domId?: string }) {
+    const { domEl } = state;
+    if (!domEl) {
+        throw new Error("App not bootstrapped");
+    }
 
-    const ENV = initENV(props);
-    analyticsInit(ENV);
+    const flags = initENV(props);
+    analyticsInit(props);
 
-    return new Promise((resolve) => {
-        const mountedHandler = async function () {
-            app.ports.mountedXB2.unsubscribe(mountedHandler);
-            // @ts-ignore
-            resolve();
-        };
+    // Create React root and render app
+    const reactRoot = createRoot(domEl);
+    state.reactRoot = reactRoot;
 
+    let isMounted = false;
+
+    const handleMounted = () => {
+        isMounted = true;
+    };
+
+    const handleUnmounted = () => {
+        isMounted = false;
+    };
+
+    state.navigateTo = async function (str: string) {
         // @ts-ignore
-        state.navigateTo = async function (str) {
+        if (window.singleSpaNavigate) {
             // @ts-ignore
             window.singleSpaNavigate(str);
-        };
+        }
+    };
 
-        // @ts-ignore
-        state.checkBeforeLeaveSubscription = async function (edited) {
-            state.checkBeforeLeave = edited;
-        };
+    state.checkBeforeLeaveSubscription = async function (edited: boolean) {
+        state.checkBeforeLeave = edited;
+    };
 
-        // @ts-ignore
-        state.routeChanged = function () {
-            if (state.lastUrl !== window.location.href) {
-                if (state.ignoreNextRouteChangeCounter <= 0) {
-                    app.ports.routeChangedXB2.send(window.location.href);
-                } else {
-                    state.ignoreNextRouteChangeCounter--;
-                }
+    state.routeChanged = function () {
+        if (state.lastUrl !== window.location.href) {
+            if (state.ignoreNextRouteChangeCounter <= 0) {
+                // Route change handled by React Router
+            } else {
+                state.ignoreNextRouteChangeCounter--;
             }
-            state.lastUrl = window.location.href;
-        };
+        }
+        state.lastUrl = window.location.href;
+    };
 
-        // @ts-ignore
-        state.beforeRouting = (evt) => {
-            if (
-                state.checkBeforeLeave &&
-                evt.detail.newUrl.indexOf("/crosstabs") === -1
-            ) {
-                evt.detail.cancelNavigation();
-                /**
-                 * This whole SPA whatever kernel thing is wird as ***, you have `before-routing-event`
-                 * but even if it's before route change is already done and if you cancel it, it just simply
-                 * jump back to previous route so there are two route changes triggered even if nothing should happen.
-                 * And yes, I tried preventDefault and stopPropagation usual JS magic, but no luck here.
-                 * So here comes this hack. It's terribly stupid, but because SPA is 4rd party lib,
-                 * I did not see other reasonable option.
-                 * */
-                state.ignoreNextRouteChangeCounter = 2;
-
-                new Promise((resolve, _reject) => {
-                    // @ts-ignore
-                    state.interruptRoutingStatusHandler = async (state) => {
-                        if (state === true) {
-                            _reject("Cancelled navigation");
-                        } else {
-                            // @ts-ignore
-                            resolve();
-                        }
-                    };
-                    app.ports.interruptRoutingStatusXB2.subscribe(
-                        // @ts-ignore
-                        state.interruptRoutingStatusHandler
-                    );
-                    app.ports.checkRouteInterruptionXB2.send(evt.detail.newUrl);
-                })
-                    .catch(() => {
-                        // Do nothing so Promise does not appear as unhandled
-                        return;
-                    })
-                    .finally(() => {
-                        app.ports.interruptRoutingStatusXB2.unsubscribe(
-                            // @ts-ignore
-                            state.interruptRoutingStatusHandler
-                        );
-                    });
-            }
-            /** Another great behaviour of single-spa. If there is routing-event, but for different app
-             *  (like going from Dashboards to reports/insights..) it will not fire `single-spa:routing-event`
-             * for this APP. But `single-spa:before-routing-event` is still fired. What a intuitive behaviour.
-             * So we need to set lastUrl here in case of different URL
-             *
+    state.beforeRouting = (evt: CustomEvent) => {
+        if (
+            state.checkBeforeLeave &&
+            evt.detail.newUrl.indexOf("/crosstabs") === -1
+        ) {
+            evt.detail.cancelNavigation();
+            /**
+             * This whole SPA whatever kernel thing is wird as ***, you have `before-routing-event`
+             * but even if it's before route change is already done and if you cancel it, it just simply
+             * jump back to previous route so there are two route changes triggered even if nothing should happen.
+             * And yes, I tried preventDefault and stopPropagation usual JS magic, but no luck here.
+             * So here comes this hack. It's terribly stupid, but because SPA is 4rd party lib,
+             * I did not see other reasonable option.
              * */
-            if (evt.detail.newUrl.indexOf("/crosstabs") === -1) {
-                state.lastUrl = window.location.href;
-            }
-        };
+            state.ignoreNextRouteChangeCounter = 2;
+            // TODO: Implement route interruption check for React
+        }
+        /** Another great behaviour of single-spa. If there is routing-event, but for different app
+         *  (like going from Dashboards to reports/insights..) it will not fire `single-spa:routing-event`
+         * for this APP. But `single-spa:before-routing-event` is still fired. What a intuitive behaviour.
+         * So we need to set lastUrl here in case of different URL
+         *
+         * */
+        if (evt.detail.newUrl.indexOf("/crosstabs") === -1) {
+            state.lastUrl = window.location.href;
+        }
+    };
 
-        // hook routing
-        // @ts-ignore
-        window.addEventListener("single-spa:routing-event", state.routeChanged);
-        window.addEventListener(
-            "single-spa:before-routing-event",
-            // @ts-ignore
-            state.beforeRouting
-        );
+    // Hook routing
+    window.addEventListener("single-spa:routing-event", state.routeChanged);
+    window.addEventListener("single-spa:before-routing-event", state.beforeRouting);
 
-        // Ports communication
-        accessTokenHandler(app).init();
-        app.ports.mountedXB2.subscribe(mountedHandler);
-        // @ts-ignore
-        app.ports.navigateToXB2.subscribe(state.navigateTo);
-        app.ports.mountXB2.send(null);
-        app.ports.setXBProjectCheckBeforeLeave.subscribe(
-            // @ts-ignore
-            state.checkBeforeLeaveSubscription
-        );
-
-        // Book a demo analytics listening
-        window.addEventListener("CrosstabBuilder-bookDemoEvent", () => {
-            app.ports.bookADemoButtonClicked.send(null);
-        });
-
-        // Splash screen events
-        window.addEventListener("CrosstabBuilder-talkToAnExpertEvent", () => {
-            app.ports.talkToAnExpertSplashEvent.send(null);
-        });
-        window.addEventListener("CrosstabBuilder-upgradeEvent", () => {
-            app.ports.upgradeSplashEvent.send(null);
-        });
-
-        // @ts-ignore
-        windowPorts.subscribeOpenNewWindowXB2(app);
-        // @ts-ignore
-        analyticsPorts.subscribeTrack(app);
-        // @ts-ignore
-        analyticsPorts.subscribeBatch(app);
-        // @ts-ignore
-        beforeUnloadConfirmPorts.subscribeSetConfirmMsgBeforeLeavePage(app);
-        // @ts-ignore
-        scrollPorts.subscribeDebouncedScrollEvent(app);
-        // @ts-ignore
-        selectTextInFieldPorts.subscribeSelectTextInFieldXB2(app);
-        // @ts-ignore
-        intercomPorts.subscribeOpenChatWithErrorId(app);
-        // @ts-ignore
-        clipboardPorts.subscribeAddHostAndCopyToClipboard(app);
-
-        // DOM operation
-        const domElement = getDomElement(props.domId);
-        domElement.appendChild(domEl);
+    // Book a demo analytics listening
+    window.addEventListener("CrosstabBuilder-bookDemoEvent", () => {
+        // TODO: Implement analytics tracking
     });
+
+    // Splash screen events
+    window.addEventListener("CrosstabBuilder-talkToAnExpertEvent", () => {
+        // TODO: Implement analytics tracking
+    });
+    window.addEventListener("CrosstabBuilder-upgradeEvent", () => {
+        // TODO: Implement analytics tracking
+    });
+
+    // Render React app
+    reactRoot.render(
+        React.createElement(App, {
+            flags,
+            isAppMounted: true,
+            onMounted: handleMounted,
+            onUnmounted: handleUnmounted,
+        })
+    );
+
+    // Resolve immediately since React handles mounting asynchronously
+    return Promise.resolve();
 }
 
 /** Unmount should take care of destruction of DOM
 including event handlers / subscriptions that are not needed in unmounted state.
 */
-export function unmount(props) {
-    // @ts-ignore
-    const { app } = state;
-    return new Promise((resolve) => {
-        const unmountedHandler = async function () {
-            // unsubscribe from ports
-            accessTokenHandler(app).clear();
-            app.ports.unmountedXB2.unsubscribe(unmountedHandler);
-            // @ts-ignore
-            app.ports.navigateToXB2.unsubscribe(state.navigateTo);
-            app.ports.setXBProjectCheckBeforeLeave.unsubscribe(
-                // @ts-ignore
-                state.checkBeforeLeaveSubscription
-            );
+export function unmount(props: { domId?: string }) {
+    return new Promise<void>((resolve) => {
+        // Unmount React app
+        if (state.reactRoot) {
+            state.reactRoot.unmount();
+            state.reactRoot = undefined;
+        }
 
-            // @ts-ignore
-            analyticsPorts.unsubscribeTrack(app);
-            // @ts-ignore
-            analyticsPorts.unsubscribeBatch(app);
-            // @ts-ignore
-            beforeUnloadConfirmPorts.unsubscribeSetConfirmMsgBeforeLeavePage(app);
-            // @ts-ignore
-            scrollPorts.unsubscribeDebouncedScrollEvent(app);
-            // @ts-ignore
-            selectTextInFieldPorts.unsubscribeSelectTextInFieldXB2(app);
-            // @ts-ignore
-            intercomPorts.unsubscribeOpenChatWithErrorId(app);
-            // @ts-ignore
-            clipboardPorts.unsubscribeAddHostAndCopyToClipboard(app);
+        // Remove event listeners
+        if (state.routeChanged) {
+            window.removeEventListener("single-spa:routing-event", state.routeChanged);
+        }
+        if (state.beforeRouting) {
+            window.removeEventListener("single-spa:before-routing-event", state.beforeRouting);
+        }
 
-            window.removeEventListener(
-                "single-spa:routing-event",
-                // @ts-ignore
-                state.routeChanged
-            );
-            window.removeEventListener(
-                "single-spa:before-routing-event",
-                // @ts-ignore
-                state.beforeRouting
-            );
-            state.lastUrl = null;
-            state.ignoreNextRouteChangeCounter = 0;
-            // @ts-ignore
-            resolve();
-        };
-
-        // Ports communication
-        app.ports.unmountedXB2.subscribe(unmountedHandler);
-        app.ports.unmountXB2.send(null);
+        // Clean up state
+        state.lastUrl = "";
+        state.ignoreNextRouteChangeCounter = 0;
+        state.checkBeforeLeave = false;
+        state.navigateTo = undefined;
+        state.checkBeforeLeaveSubscription = undefined;
+        state.routeChanged = undefined;
+        state.beforeRouting = undefined;
+        state.interruptRoutingStatusHandler = undefined;
 
         // DOM operation
         const domElement = getDomElement(props.domId);
         domElement.innerHTML = "";
+
+        resolve();
     });
 }

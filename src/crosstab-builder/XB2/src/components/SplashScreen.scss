@@ -1,0 +1,59 @@
+.splash-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  .splash-content {
+    text-align: center;
+    padding: 3rem;
+    max-width: 600px;
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+
+    .splash-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+
+      .splash-button {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        border: 2px solid white;
+        border-radius: 8px;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: white;
+          color: #667eea;
+        }
+
+        &.primary {
+          background: white;
+          color: #667eea;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.9);
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,73 @@
+.bulk-actions {
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+
+    .action-button {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: #f5f5f5;
+        border-color: #1976d2;
+      }
+
+      &.active {
+        background-color: #e3f2fd;
+        border-color: #1976d2;
+        color: #1976d2;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .action-confirmation {
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+
+    p {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.875rem;
+
+      &.warning {
+        color: #d32f2f;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .action-options {
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #333;
+
+      select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+
+        &:focus {
+          outline: none;
+          border-color: #1976d2;
+        }
+      }
+    }
+  }
+}
+

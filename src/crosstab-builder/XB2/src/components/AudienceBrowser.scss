@@ -1,0 +1,51 @@
+.audience-browser-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+
+  .audience-browser-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #666;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+
+  .audience-browser-content {
+    flex: 1;
+    overflow: hidden;
+
+    x-et-audience-browser {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+}
+
